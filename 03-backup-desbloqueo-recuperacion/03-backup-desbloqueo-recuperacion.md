@@ -35,6 +35,9 @@ Xiaomi exige vincular una cuenta Mi al dispositivo y esperar un periodo (entre 2
 - ROM: `spes_global_images_V14.0.5.0.TGCMIXM_20231128.0000.00_13.0_global_92dfcefa88.tgz`, 7,1 GB, publicada el 28 nov 2023 (la fecha coincide con la compilación del kernel del teléfono). Los primeros 10 caracteres del hash MD5 forman parte del nombre del archivo. ([XM Firmware Updater](https://xmfirmwareupdater.com/miui/spes/stable/V14.0.5.0.TGCMIXM/), [XiaomiROM](https://xiaomirom.com/en/download/redmi-note-11-spes-stable-V14.0.5.0.TGCMIXM/)) **[VERIFICAR]** el hash al descargar.
 - La herramienta oficial **Mi Unlock es solo para Windows**; hay alternativas no oficiales para Linux. Un script de terceros que reciba las credenciales de la cuenta Mi es un riesgo, así que la elección se documenta antes de usar nada. ([Mi Flash Unlock Tool](https://drfone.wondershare.com/mi-account-unlock/mi-flash-unlock-review.html), [MiUnlockTool en XDA](https://xdaforums.com/t/tool-win-lin-mac-miunlocktool-unlock-bootloader-of-xiaomi-devices-on-mac-linux.3782444/page-10))
 - Espera del desbloqueo: entre 24 y 168 horas, impuesta por el servidor de Xiaomi.
+- **Para vincular la cuenta Mi hacen falta datos móviles:** una SIM insertada con un plan de datos activo y el Wi-Fi apagado; el Wi-Fi solo no basta. Algunos reportes añaden que la SIM debe tener el mismo número con el que se registró la cuenta. **[VERIFICAR]** ([guía de Mi Community](https://new.c.mi.com/global/post/101245), [Mi.com FAQ](https://www.mi.com/my/support/faq/details/KA-07238/))
+- Datos del teléfono (Paso 1): `/data` 102 GB con 13 GB usados; batería 100 %. El teléfono es de laboratorio y no tiene datos que importen, así que **no se hace respaldo de datos**.
+- Estado de partida (respuestas del usuario): **sin cuenta Mi y sin plan de datos en la SIM.** Hay que crear la cuenta y conseguir datos móviles antes del Paso 5; la vinculación es el camino crítico porque inicia la espera.
 
 ## Práctica guiada
 
@@ -52,7 +55,10 @@ Xiaomi exige vincular una cuenta Mi al dispositivo y esperar un periodo (entre 2
 
 ## Pendientes
 
-- [ ] Paso 1: datos a respaldar, cuenta Mi, SIM con datos, espacio libre del teléfono.
+- [x] Paso 1: datos a respaldar (ninguno), batería y espacio del teléfono.
+- [ ] Crear una cuenta Mi con un correo dedicado al laboratorio.
+- [ ] Conseguir una SIM con un plan de datos mínimo (solo hace falta durante la vinculación).
+- [ ] Confirmar si hay un PC con Windows disponible (Mi Unlock oficial).
 - [ ] Paso 2: ROM descargada y hash verificado.
 - [ ] Paso 3: imágenes originales copiadas a `backup/stock/` con sus SHA-256 en `logs/`.
 - [ ] Paso 4: herramienta de desbloqueo elegida y justificada.
