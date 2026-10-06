@@ -1,0 +1,331 @@
+Sí, pero en el prompt anterior los dejé **demasiado resumidos**. Para el curso que quieres, yo ampliaría la parte de sistemas móviles Linux para que Claude Code estudie **varios proyectos reales y los compare**, no solamente Ubuntu Touch, Mobian y Nura/postmarketOS.
+
+Añadiría estos al plan:
+
+- **postmarketOS / Nura** — Alpine Linux, `apk`, mainline/downstream kernel, device ports.
+- **Mobian** — Debian + Linux móvil, principalmente Phosh y otros componentes.
+- **Ubuntu Touch / UBports** — Ubuntu + Lomiri + Halium.
+- **Sailfish OS** — arquitectura móvil basada en Linux, especialmente interesante para estudiar integración móvil y compatibilidad.
+- **Plasma Mobile** — KDE/Plasma sobre Linux, útil para estudiar Wayland, KWin y aplicaciones móviles.
+- **Phosh** — no es una distribución completa, sino una interfaz/shell móvil basada en GNOME/Wayland; muy importante para entender el user space móvil.
+- **Lomiri** — entorno gráfico de Ubuntu Touch.
+- **Droidian** — Debian para teléfonos Android, especialmente interesante para estudiar la reutilización de componentes Android.
+- **Halium** — capa/proyecto de compatibilidad que aparece en varios ports Linux móviles sobre hardware Android.
+- **LuneOS** — proyecto móvil Linux basado en tecnologías de webOS; interesante como estudio histórico/arquitectónico.
+- **GrapheneOS / LineageOS / AOSP** — no son "Linux mobile" en el mismo sentido que Mobian o postmarketOS, pero **sí deben estudiarse como referencia Android**, porque tu Redmi Note 11 parte de ese ecosistema.
+
+La estructura que le daría a Claude sería:
+
+```text
+                    LINUX MOBILE
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+    Linux kernel      User space       Hardware
+        │                │                │
+        │          ┌─────┼─────┐          │
+        │          │     │     │          │
+        │        Phosh Lomiri Plasma       │
+        │          │     │     │           │
+        │          └─────┼─────┘           │
+        │                │                 │
+        │        ┌───────┼────────┐        │
+        │        │       │        │        │
+        │      Mobian  Ubuntu   postmarket  │
+        │              Touch       OS       │
+        │                │                  │
+        │             Halium                │
+        │                │                  │
+        └──────────── Android hardware ─────┘
+```
+
+Y añadiría al prompt una sección específica como esta:
+
+# ECOSISTEMA LINUX MOBILE
+
+No quiero estudiar solamente el kernel del Redmi Note 11.
+
+Quiero comprender cómo se construyen los sistemas operativos móviles basados en Linux.
+
+Estudiaremos y compararemos como mínimo:
+
+1. postmarketOS / Nura
+2. Mobian
+3. Ubuntu Touch / UBports
+4. Droidian
+5. Sailfish OS
+6. Plasma Mobile
+7. Phosh
+8. Lomiri
+9. Halium
+10. AOSP
+11. LineageOS
+12. GrapheneOS
+13. LuneOS
+
+IMPORTANTE:
+
+Diferencia siempre entre:
+
+- kernel;
+- distribución;
+- sistema operativo;
+- entorno gráfico;
+- compositor;
+- framework;
+- capa de compatibilidad;
+- proyecto de portabilidad;
+- ROM Android.
+
+No quiero que presentes todos estos proyectos como si fueran equivalentes.
+
+Para cada proyecto estudia:
+
+- kernel utilizado;
+- distribución base;
+- init;
+- libc;
+- sistema de paquetes;
+- compositor;
+- entorno gráfico;
+- gestión de aplicaciones;
+- servicios;
+- audio;
+- telefonía;
+- Wi-Fi;
+- Bluetooth;
+- cámara;
+- GPU;
+- gestión energética;
+- seguridad;
+- actualización del sistema;
+- relación con Android;
+- utilización de HAL;
+- utilización de Halium;
+- soporte de hardware;
+- filosofía del proyecto.
+
+Después crea comparaciones prácticas.
+
+Por ejemplo:
+
+## Comparación 1
+
+Debian + Mobian
+
+vs
+
+Alpine + postmarketOS/Nura
+
+## Comparación 2
+
+Ubuntu Touch
+
+vs
+
+Droidian
+
+## Comparación 3
+
+Linux móvil nativo/mainline
+
+vs
+
+Linux móvil apoyado en componentes Android
+
+## Comparación 4
+
+Android/AOSP
+
+vs
+
+Mobian
+
+vs
+
+postmarketOS/Nura
+
+vs
+
+Ubuntu Touch
+
+---
+
+# PROYECTO PRÁCTICO
+
+No quiero solamente leer sobre estos sistemas.
+
+Quiero reproducir conceptos en mi PC.
+
+Primero:
+
+```text
+QEMU
+  ↓
+Linux
+  ↓
+rootfs
+  ↓
+init
+  ↓
+servicios
+  ↓
+Wayland
+  ↓
+Phosh
+```
+
+Después estudiar:
+
+```text
+Debian
+  ↓
+Mobian
+```
+
+y:
+
+```text
+Alpine
+  ↓
+postmarketOS/Nura
+```
+
+y:
+
+```text
+Ubuntu
+  ↓
+Ubuntu Touch
+  ↓
+Lomiri
+```
+
+Finalmente:
+
+```text
+Android
+  ↓
+AOSP / LineageOS
+  ↓
+kernel
+  ↓
+vendor
+  ↓
+HAL
+```
+
+---
+
+# OBJETIVO FINAL
+
+Quiero ser capaz de responder técnicamente:
+
+"Si quisiera construir mi propio sistema operativo móvil para el Redmi Note 11, ¿qué partes tendría que reutilizar y cuáles tendría que desarrollar?"
+
+La respuesta debe separarse en:
+
+### Kernel
+
+¿Qué reutilizo?
+
+¿Qué modifico?
+
+¿Qué tendría que desarrollar?
+
+### Hardware
+
+¿Qué drivers existen?
+
+¿Cuáles son propietarios?
+
+¿Cuáles pueden utilizarse mediante mainline Linux?
+
+### User space
+
+¿Qué puedo reutilizar de Debian/Alpine/Ubuntu?
+
+### UI
+
+¿Phosh, Lomiri, Plasma Mobile u otra?
+
+### Telefonía
+
+¿Cómo funciona el modem?
+
+### Audio
+
+¿Qué componentes necesito?
+
+### GPU
+
+¿Qué driver existe?
+
+### Cámara
+
+¿Qué soporte existe?
+
+### Seguridad
+
+¿Cómo protejo el sistema?
+
+### Actualizaciones
+
+¿Cómo puedo actualizar kernel y rootfs de forma segura?
+
+---
+
+# REGLA IMPORTANTE
+
+Cuando estudiemos un proyecto móvil, no quiero que simplemente me expliques qué es.
+
+Quiero que encontremos:
+
+1. repositorio;
+2. documentación;
+3. estructura del código;
+4. proceso de compilación;
+5. imagen generada;
+6. proceso de arranque;
+7. relación con el kernel;
+8. relación con el hardware.
+
+Después quiero intentar reproducir una versión simplificada en mi PC.
+
+---
+
+# RESULTADO FINAL
+
+El proyecto del curso debe terminar con una arquitectura conceptual propia:
+
+```text
+                 RedmiLinux
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+     Kernel                    User Space
+        │                         │
+     ARM64                    RootFS
+        │                         │
+     Drivers                  Init
+        │                         │
+ Device Tree                Services
+        │                         │
+ Qualcomm                  Networking
+        │                         │
+ Hardware                  Audio
+                                  │
+                              Graphics
+                                  │
+                               Wayland
+                                  │
+                            Mobile Shell
+                                  │
+                         Applications
+```
+
+Quiero que me enseñes a construir esta arquitectura progresivamente, reutilizando componentes de proyectos Linux existentes cuando tenga sentido, en lugar de reinventar todo desde cero.
+
+**Así sí tienes un curso mucho más completo.** La idea no es que termines escribiendo un sistema operativo desde cero —sería un proyecto enorme— sino que aprendas **qué partes se pueden reutilizar y cuáles puedes desarrollar tú mismo**.
+
+Y para tu Redmi Note 11, la comparación **Android/AOSP → Droidian → Ubuntu Touch → Mobian → postmarketOS/Nura → tu propio sistema** puede ser una de las partes más interesantes del curso.
