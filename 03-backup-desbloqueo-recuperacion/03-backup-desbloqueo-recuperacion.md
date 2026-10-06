@@ -37,6 +37,8 @@ Xiaomi exige vincular una cuenta Mi al dispositivo y esperar un periodo (entre 2
 - Espera del desbloqueo: entre 24 y 168 horas, impuesta por el servidor de Xiaomi.
 - **Para vincular la cuenta Mi hacen falta datos móviles:** una SIM insertada con un plan de datos activo y el Wi-Fi apagado; el Wi-Fi solo no basta. Algunos reportes añaden que la SIM debe tener el mismo número con el que se registró la cuenta. **[VERIFICAR]** ([guía de Mi Community](https://new.c.mi.com/global/post/101245), [Mi.com FAQ](https://www.mi.com/my/support/faq/details/KA-07238/))
 - Datos del teléfono (Paso 1): `/data` 102 GB con 13 GB usados; batería 100 %. El teléfono es de laboratorio y no tiene datos que importen, así que **no se hace respaldo de datos**.
+- **Paso 4 (decisión):** hay un PC con Windows disponible, así que el desbloqueo se hará con la **herramienta oficial Mi Unlock** y no con scripts de terceros en Linux. Las credenciales de la cuenta Mi solo se escriben en la herramienta oficial de Xiaomi. **[VERIFICAR]** la URL oficial de descarga al llegar al Paso 6.
+- **La descarga de la ROM es lenta por diseño del servidor:** una conexión da ≈ 30 KB/s (≈ 2,5 días), pero 16 conexiones en paralelo dan ≈ 620 KB/s medidos (≈ 3 horas). Se usa `aria2c -x 16`. La Recovery ROM (3,7 GB) existe pero no sirve para rescatar el teléfono y no publica hash, así que se descarta como opción principal.
 - Estado de partida (respuestas del usuario): **sin cuenta Mi y sin plan de datos en la SIM.** Hay que crear la cuenta y conseguir datos móviles antes del Paso 5; la vinculación es el camino crítico porque inicia la espera.
 
 ## Práctica guiada
@@ -58,10 +60,10 @@ Xiaomi exige vincular una cuenta Mi al dispositivo y esperar un periodo (entre 2
 - [x] Paso 1: datos a respaldar (ninguno), batería y espacio del teléfono.
 - [ ] Crear una cuenta Mi con un correo dedicado al laboratorio.
 - [ ] Conseguir una SIM con un plan de datos mínimo (solo hace falta durante la vinculación).
-- [ ] Confirmar si hay un PC con Windows disponible (Mi Unlock oficial).
+- [x] PC con Windows disponible: se usará Mi Unlock oficial (Paso 4 decidido).
 - [ ] Paso 2: ROM descargada y hash verificado.
 - [ ] Paso 3: imágenes originales copiadas a `backup/stock/` con sus SHA-256 en `logs/`.
-- [ ] Paso 4: herramienta de desbloqueo elegida y justificada.
+- [x] Paso 4: herramienta de desbloqueo elegida (Mi Unlock oficial en Windows).
 - [ ] Paso 5: cuenta Mi vinculada (anotar la fecha y hora de inicio de la espera).
 - [ ] Paso 6: bootloader desbloqueado.
 - [ ] Paso 7: ensayo de fastboot hecho.
