@@ -4,3 +4,10 @@ out/
 downloads/
 backup/
 tools/
+
+# borradores y prompts antiguos (solo locales)
+docs/chatgpt_guia.md
+docs/claude_guia.md
+docs/README_Kernel_Redmi_Note_11.md
+docs/agent/rol.txt
+docs/agent/rol2.txt

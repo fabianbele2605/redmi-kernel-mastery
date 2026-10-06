@@ -547,7 +547,7 @@ make && sudo insmod hello.ko && sudo dmesg | tail -n 3 && sudo rmmod hello
 
 > Cargar módulos en tu PC es seguro con un ejemplo mínimo, pero hazlo mejor en una VM. Un bug en un módulo puede colgar el equipo.
 
-**Paso B: nodo `/proc` de solo lectura** (versión para kernel 4.19, que usa `file_operations`; en 5.6+ se usa `proc_ops`). Parte del código de `claude_guia.md`, Módulo 6, y añade tu propio campo (por ejemplo, un contador de lecturas).
+**Paso B: nodo `/proc` de solo lectura** (versión para kernel 4.19, que usa `file_operations`; en 5.6+ se usa `proc_ops`). Lo escribes por partes con el mentor. Piezas que usarás: `proc_create()` para crear el nodo (permisos `0444`), `single_open()` y `seq_file` para generar el texto, una `struct file_operations` (`.open`, `.read = seq_read`, `.llseek = seq_lseek`, `.release = single_release`) y `proc_remove()` en `module_exit` para no dejar un nodo huérfano. Añade tu propio campo (por ejemplo, un contador de lecturas).
 
 **Paso C: en el teléfono (el paso principal).** Comprueba si lo permite:
 
