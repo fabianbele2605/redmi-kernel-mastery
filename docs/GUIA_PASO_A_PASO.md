@@ -46,7 +46,7 @@ Ruta mínima si tienes poco tiempo: **0 → 1 → 2 → 3 → 4 → 5 → 6 → 
 2. No flashees nada sin tener la copia original y haber probado cómo restaurarla.
 3. Antes de optimizar, mide.
 4. Usa un teléfono **de laboratorio**: sin cuentas del trabajo, sin datos importantes.
-5. Anota todo en `logs/` y guarda la evidencia en `img/`.
+5. Documenta cada módulo en su carpeta y guarda las capturas como evidencia.
 
 ### Dónde se hace cada cosa
 
@@ -60,18 +60,19 @@ Ruta mínima si tienes poco tiempo: **0 → 1 → 2 → 3 → 4 → 5 → 6 → 
 
 ### Estructura del repositorio
 
-La raíz del repositorio es `~/Escritorio/Mobil`:
+La raíz del repositorio es `~/Escritorio/Mobil`. Cada módulo tiene su carpeta `NN-nombre/` con su documento y sus evidencias:
 
 ```text
 Mobil/
-├── docs/        guías y prompt del mentor
-├── img/         fotos y capturas (evidencias)
-├── logs/        bitácora de cada experimento
-├── artifacts/   boot-lab.img, parches, configs
-├── src/         kernel (NO se sube a Git)
-├── out/         compilación (NO se sube)
-├── backup/      boot.img original (NO se sube)
-└── downloads/   ROM de fábrica (NO se sube)
+├── docs/            README (progreso), guía, plantilla, prompt del mentor
+├── img/             capturas crudas (NO se sube a Git)
+├── logs/            salidas crudas: hashes, dmesg, logs de compilación
+├── 01-preparar-pc/
+│   ├── 01-preparar-pc.md
+│   └── evidencias/
+├── 02-identificar-telefono/ ...
+├── artifacts/       boot-lab.img, parches, configs
+├── src/  out/  backup/  downloads/  tools/     (NO se suben a Git)
 ```
 
 **Pasos:**
@@ -80,87 +81,55 @@ Mobil/
 cd ~/Escritorio/Mobil
 mkdir -p src out artifacts backup downloads logs tools img
 git init 2>/dev/null || true
-printf 'src/\nout/\ndownloads/\nbackup/\ntools/\n' > .gitignore
+printf 'img/\nsrc/\nout/\ndownloads/\nbackup/\ntools/\n' > .gitignore
 ```
 
 > `backup/` y `downloads/` quedan fuera de Git a propósito: contienen la ROM y el `boot.img` originales de Xiaomi (pesados y con derechos de autor). Solo se guardan sus **hashes** (SHA-256) en `logs/`.
 
-### Evidencias: cómo guardar fotos y capturas
+### Documentar cada módulo y guardar evidencias
 
-Las fotos y capturas son la prueba de que cada paso se hizo en el teléfono y sirven para los documentos finales.
+El documento de cada módulo sigue `docs/plantilla-modulo.md`: **estado, concepto, práctica guiada, hallazgos reales, evidencias con pie de foto y pendientes**. El módulo 1 (`01-preparar-pc/`) es el ejemplo ya completo.
 
-**Nombre de carpeta y archivo:**
+**Flujo con las capturas:**
 
-```text
-img/MM-nombre-del-modulo/AAAA-MM-DD_NN_descripcion.jpg
-```
-
-Ejemplos:
-
-```text
-img/02-identificar/2025-10-05_01_getprop-spes.jpg
-img/07-primer-arranque/2025-10-12_03_uname-lab01.jpg
-img/07-primer-arranque/2025-10-12_04_pantalla-fastboot.jpg
-```
+1. Durante el módulo, tomas capturas de la terminal y **fotos del teléfono** (pantalla de fastboot, `uname -a`, etc.). Caen crudas en `img/`.
+2. Cuando termines una tanda, dices **"verifica img"**: el mentor descarta duplicados, renombra cada captura (`01-descripcion.png`), las mueve a `NN-nombre/evidencias/` y las enlaza en el documento con un pie de foto.
+3. Se marca el checklist y se hace el commit.
 
 **Qué fotografiar** (mínimo por módulo):
 
 | Módulo | Evidencia mínima |
 |---|---|
-| 2 | Pantalla "Acerca del teléfono" y salida de `getprop` en la terminal |
-| 3 | Pantalla de Mi Unlock con éxito y pantalla de fastboot con `unlocked: yes` |
-| 5 | Terminal con el final de la compilación (`Image` generado) |
+| 1 | Versiones de herramientas y la verificación final |
+| 2 | Pantalla "Acerca del teléfono" y salida de `getprop` |
+| 3 | Mi Unlock con éxito y fastboot con `unlocked: yes` |
+| 5 | Final de la compilación con el `Image` generado |
 | 6 | Salida de `unpack_bootimg` con la cabecera |
 | 7 | El teléfono mostrando `uname -a` con **tu** `LOCALVERSION` (foto de la pantalla) |
-| 8 | `dmesg` mostrando tus mensajes |
+| 8 | `dmesg` con tus mensajes |
 | 9 | `dmesg` con tu módulo cargado y `cat /proc/hello_lab` |
-| 10 | Gráfica o tabla de temperatura y frecuencia |
-| 12 | Cada cambio funcionando antes/después |
+| 10 | Tabla o gráfica de temperatura y frecuencia |
+| 12 | Cada cambio funcionando, antes y después |
 
-**Reglas de las fotos:**
+**Reglas de las capturas:**
 
-1. **Antes de subirlas, tapa datos personales:** número de serie, IMEI, cuenta Mi, correo, número de teléfono. Una foto con el IMEI visible no debe llegar a un repositorio público.
-2. Reduce el tamaño: fotos de 5-10 MB llenan el repositorio. Con `convert` (ImageMagick): `convert foto.jpg -resize 1600x foto-peq.jpg`.
-3. Una foto = un hecho. Pon en el nombre qué demuestra.
-4. Cada foto se enlaza desde la bitácora (`logs/NN-*.md`) con una línea de contexto:
+1. **Tapa datos personales antes de que entren al repositorio:** número de serie, IMEI, cuenta Mi, correo, número de teléfono.
+2. Una captura = un hecho. El nombre y el pie de foto dicen qué demuestra.
+3. Reduce las fotos del teléfono (5-10 MB) antes de subirlas: `convert foto.jpg -resize 1600x foto-peq.jpg`.
+4. **Hallazgos reales:** si algo no sale como decía la teoría, no se oculta; se escribe en la sección de hallazgos. Es la regla central del curso.
 
-   ```markdown
-   ![uname con LOCALVERSION](../img/07-primer-arranque/2025-10-12_03_uname-lab01.jpg)
-   *El teléfono arrancó con mi kernel; `uname -r` muestra `-lab01`.*
-   ```
-
-5. Mantén un índice en `logs/evidencias.md` con fecha, módulo, archivo y qué demuestra.
-
-### Plantilla de bitácora
-
-Crea `logs/_plantilla.md`:
-
-```markdown
-# Experimento XX: <título>
-- Fecha:
-- Módulo:
-- Qué intenté:
-- Qué esperaba:
-- Qué ocurrió (pega la salida):
-- Evidencia: ![descripción](../img/MM-modulo/archivo.jpg)
-- Por qué ocurrió:
-- Cómo lo solucioné:
-- Cómo reproducirlo / cómo revertirlo:
-```
-
-### Flujo de Git (al terminar cada paso)
+### Flujo de Git
 
 ```bash
 git status
-git add img/ logs/ docs/ artifacts/
-git commit -m "modulo 05: kernel base compilado sin cambios"
+git add 01-preparar-pc/ docs/ logs/
+git commit -m "modulo 01: preparar el PC"
 ```
 
-- Un commit por paso, con el número de módulo en el mensaje.
-- Las fotos se suben junto con la bitácora que las explica.
-- Si quieres una copia remota, crea un repositorio **privado** en GitHub. Revisa antes que no haya datos personales en las imágenes.
+- Un commit por módulo o hito, con el número de módulo en el mensaje y el trailer `Co-Authored-By: Claude`.
+- El `git push` lo haces tú. Si quieres copia remota, crea un repositorio **privado** y revisa antes que no haya datos personales en las imágenes.
 
-**Checkpoint:** existen las carpetas, `git log` funciona y hay al menos un commit con `logs/_plantilla.md`.
+**Checkpoint:** existen las carpetas, `git log` funciona y hay al menos un commit con `docs/plantilla-modulo.md`.
 
 ---
 
@@ -605,7 +574,7 @@ adb shell zcat /proc/config.gz | grep -E "CONFIG_MODULES|MODULE_SIG|MODVERSIONS"
 3. Nodo que acepta escritura, validando longitud con `copy_from_user`.
 4. Contador protegido con mutex y prueba concurrente.
 
-**Evidencia:** foto o captura del teléfono con `dmesg` mostrando tu módulo y la salida de `cat /proc/hello_lab`. Guárdala en `img/09-modulo-c/`.
+**Evidencia:** foto o captura del teléfono con `dmesg` mostrando tu módulo y la salida de `cat /proc/hello_lab`. Se cura después con "verifica img".
 
 **Checkpoint:** ves tus mensajes en `dmesg` **en el teléfono** y puedes leer tu nodo con `cat`.
 
@@ -645,7 +614,7 @@ adb shell zcat /proc/config.gz | grep -E "CONFIG_MODULES|MODULE_SIG|MODVERSIONS"
 
 **Pasos:**
 
-1. **En el teléfono (Termux):** instala Rust (`pkg install rust`) y compila un programa pequeño de ownership/borrowing directamente sobre el ARM64 real. Esto es Rust normal, no kernel. Foto de la compilación en `img/11-rust/`.
+1. **En el teléfono (Termux):** instala Rust (`pkg install rust`) y compila un programa pequeño de ownership/borrowing directamente sobre el ARM64 real. Esto es Rust normal, no kernel. Foto de la compilación como evidencia.
 2. Descarga un kernel moderno (ver <https://docs.kernel.org/rust/>) y comprueba que tu toolchain cumple:
 
    ```bash

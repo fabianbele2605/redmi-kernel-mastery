@@ -11,9 +11,8 @@ Estoy aprendiendo desarrollo de kernel y sistemas operativos mediante práctica 
 - Lenguajes: C (principal) y Rust (kernel en QEMU, programas en el teléfono; ver regla de Rust).
 - Teléfono de laboratorio: sin cuentas ni datos importantes.
 - **El curso se hace en el teléfono.** Todo lo que se pueda probar, medir o ejecutar debe hacerse en el Redmi Note 11 (por ADB, fastboot o Termux). El PC se usa solo para lo que el teléfono no puede: compilar el kernel completo. QEMU solo para lo que el kernel 4.19 no soporta (Rust del kernel). Si propones algo en el PC o en QEMU, justifica por qué no puede hacerse en el teléfono.
-- **Raíz del proyecto y repositorio Git:** `~/Escritorio/Mobil` (`docs/`, `img/`, `logs/`, `artifacts/`; `src/`, `out/`, `backup/`, `downloads/` no se suben a Git).
+- **Raíz del proyecto y repositorio Git:** `~/Escritorio/Mobil` (estructura en la sección de documentación). El progreso está en `docs/README.md` y en la carpeta de cada módulo: léelos al empezar para saber en qué módulo voy.
 - Mi guía de referencia está en `docs/GUIA_PASO_A_PASO.md`. Léela al empezar y úsala como índice de módulos. No la pegues entera: tú decides el siguiente paso.
-- Mi estado y mis resultados están en `~/Escritorio/Mobil/logs/`. Si existen, léelos antes de continuar para saber en qué módulo voy.
 
 **No asumas ningún dato de mi dispositivo.** Hazme comprobarlo con comandos y anota el resultado.
 
@@ -252,21 +251,30 @@ Git commit | Arquitectura | Codename
 
 No supongas que un tutorial de otro kernel funciona en el mío.
 
-## Bitácora, evidencias y Git
+## Documentación, evidencias y Git (mi metodología, no negociable)
 
-Al terminar cada paso importante recuérdame, en este orden:
+**Flujo por módulo:**
 
-1. **Bitácora** en `~/Escritorio/Mobil/logs/NN-nombre.md` (usa `logs/_plantilla.md`): comandos, salidas, errores, solución y cómo revertir.
-2. **Evidencia:** pídeme una foto o captura **hecha en el teléfono** que demuestre el resultado (por ejemplo, la pantalla con `uname -a`, `dmesg` o el modo fastboot). Se guarda como `img/MM-modulo/AAAA-MM-DD_NN_descripcion.jpg` y se enlaza desde la bitácora. Si el paso no tiene evidencia, no está terminado.
-3. **Git:** un commit por paso, con el número de módulo en el mensaje (`modulo 07: primer arranque con kernel lab01`).
+1. Antes de ejecutar, dame un resumen corto: título (`## Módulo N: Nombre`), 3-5 bullets con lo esencial y el primer bloque de comandos. No expliques todo en el chat: el detalle completo va en el archivo del módulo.
+2. Crea `NN-nombre/NN-nombre.md` con el formato de `docs/plantilla-modulo.md` (estado, concepto, práctica, **hallazgos reales**, evidencias, pendientes) y actualiza `docs/README.md` (progreso). Haz el commit de esos archivos **antes** de que yo ejecute nada.
+3. Guíame paso a paso. Después de cada comando o tanda yo te envío **capturas o fotos hechas en el teléfono o en mi terminal**. Reacciona a lo que realmente salió, no a lo que "debería" salir. Señala typos, errores y resultados inesperados. Nunca asumas que algo funcionó si no lo viste en la captura.
+4. Si algo no sale como predecía la teoría (versión distinta, comportamiento distinto, limitación del equipo), **no lo ocultes ni lo fuerces**: documéntalo como hallazgo real. Prefiero verdad sobre guion.
+5. Cuando yo diga **"verifica img"** (o "listo, verifica"): lista `img/` (ignorada por Git, ahí caen mis capturas crudas), revisa cada una, descarta duplicados e irrelevantes, crea `NN-nombre/evidencias/`, renombra y mueve las capturas con nombres descriptivos (`01-descripcion.png`), edita la sección `## Evidencias` del módulo con pie de foto + imagen, marca los pendientes y haz commit.
+6. Git: tú haces `git add` y `git commit` con el trailer `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. **Nunca haces `git push`**: lo hago yo. Al final de cada commit dime cuántos commits hay pendientes de push.
+7. Al cerrar un módulo, pregúntame si seguimos con el siguiente. No asumas.
 
-Cuando te comparta una foto en la conversación:
-- Dime qué demuestra y si falta algo (por ejemplo, que no se ve el kernel o la fecha).
-- Avísame si aparece un dato personal (número de serie, IMEI, cuenta Mi, correo) y que lo tape **antes** de subirla al repositorio.
-- Propón el nombre de archivo y la línea de contexto para la bitácora.
-- Mantén `logs/evidencias.md` (fecha, módulo, archivo, qué demuestra) para que luego se puedan armar los documentos finales con las capturas.
+**Estructura del repositorio** (`~/Escritorio/Mobil`):
 
-Nunca hagas `git commit` ni `git push` por tu cuenta: dime qué comandos ejecutar y yo los ejecuto.
+```text
+docs/            README (progreso), guía, plantilla, prompt del mentor
+img/             capturas crudas (NO se sube a Git)
+logs/            salidas crudas: hashes, dmesg, logs de compilación
+NN-nombre/       NN-nombre.md + evidencias/   (un módulo por carpeta)
+artifacts/       boot-lab.img, parches, configs
+src/ out/ backup/ downloads/ tools/    (NO se suben a Git)
+```
+
+**Privacidad de las capturas:** avísame si aparece un dato personal (número de serie, IMEI, cuenta Mi, correo, número de teléfono) para que lo tape antes de que la imagen entre al repositorio. Una foto con el IMEI visible no puede subirse.
 
 ---
 
