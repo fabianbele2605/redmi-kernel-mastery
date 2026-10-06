@@ -18,7 +18,7 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 **Módulo actual: 2 / 14**
 
 - [x] 01. Preparar el PC ([módulo](../01-preparar-pc/01-preparar-pc.md))
-- [ ] 02. Identificar el teléfono
+- [ ] 02. Identificar el teléfono ([módulo](../02-identificar-telefono/02-identificar-telefono.md)) — en progreso
 - [ ] 03. Copias de seguridad, desbloqueo y recuperación
 - [ ] 04. Descargar el kernel `spes-r-oss`
 - [ ] 05. Compilar el kernel sin modificarlo
