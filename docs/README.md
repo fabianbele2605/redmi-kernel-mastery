@@ -15,12 +15,12 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 
 ## Progreso
 
-**Módulo actual: 3 / 14**
+**Módulo actual: 3-4 / 14**
 
 - [x] 01. Preparar el PC ([módulo](../01-preparar-pc/01-preparar-pc.md))
 - [x] 02. Identificar el teléfono ([módulo](../02-identificar-telefono/02-identificar-telefono.md))
 - [ ] 03. Copias de seguridad, desbloqueo y recuperación ([módulo](../03-copias-seguridad/03-copias-seguridad.md)) — en progreso
-- [ ] 04. Descargar el kernel `spes-r-oss`
+- [ ] 04. Descargar el kernel `spes-r-oss` ([módulo](../04-descargar-kernel/04-descargar-kernel.md)) — en progreso
 - [ ] 05. Compilar el kernel sin modificarlo
 - [ ] 06. Analizar el `boot.img` original
 - [ ] 07. `boot-lab.img` y primer arranque
