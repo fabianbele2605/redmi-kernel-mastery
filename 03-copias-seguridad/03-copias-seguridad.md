@@ -63,7 +63,111 @@ sha256sum backup/stock/* | tee logs/03-hash-stock.txt
 
 ## Evidencias
 
-(pendiente — se cura con "verifica img": capturas de Estado de Mi Desbloqueo, Mi Unlock con la cuenta vinculada, el error 403, el Administrador de dispositivos antes/después del driver, FASTBOOT en el teléfono, y la pantalla final "Couldn't unlock... 166 hours later")
+**01 — Estado de Mi Desbloqueo: bloqueado, cuenta sin vincular**
+Pantalla inicial del teléfono: "Dispositivo bloqueado, Teléfono asegurado" y botón "Agregar cuenta y dispositivo" aún sin tocar.
+![Estado de Mi Desbloqueo antes de vincular la cuenta](evidencias/01-estado-mi-desbloqueo-bloqueado.png)
+
+**02 — Vinculando la cuenta (hallazgo #2)**
+Mensaje emergente "Preparándose para agregar cuenta y dispositivo...".
+![Preparándose para agregar cuenta](evidencias/02-preparandose-agregar-cuenta.png)
+
+**03 — Cuenta vinculada con éxito (hallazgo #2)**
+Toast "Agregado con éxito. La Cuenta Mi ya está asociada con este dispositivo" — la única señal real del cambio de estado; el texto de fondo de la pantalla no varía.
+![Agregado con éxito](evidencias/03-agregado-con-exito.png)
+
+**04 — URL incorrecta: foro roto (hallazgo #3)**
+`miui.com/unlock/apply.php` devolviendo un error de servidor del foro MIUI, no la herramienta de desbloqueo.
+![Página rota de foro antiguo](evidencias/04-url-incorrecta-apply-php.png)
+
+**05 — URL incorrecta: página de MIUI8 (hallazgo #3)**
+`miui.com/unlock/index_en.html`, una página de ~2016 (nótese "MIUI8" en el menú), no la vigente.
+![Página antigua de MIUI8](evidencias/05-url-incorrecta-miui8.png)
+
+**06 — Página oficial vigente**
+`en.miui.com/unlock/download_en.html`, con el botón "Download Mi Unlock" y los pasos correctos.
+![Página oficial de descarga de Mi Unlock](evidencias/06-pagina-oficial-download-en.png)
+
+**07 — Página alternativa comparada**
+`en.miui.com/unlock/index.html`, la otra página legítima del mismo dominio, comparada antes de elegir cuál usar.
+![Página alternativa Unlock Now](evidencias/07-pagina-alternativa-index.png)
+
+**08 — Mi Unlock 6.5.224.28: Disclaimer**
+Primer arranque de la herramienta oficial, ventana de aviso legal.
+![Disclaimer de Mi Unlock](evidencias/08-mi-unlock-disclaimer.png)
+
+**09 — Mi Unlock 6.5.224.28: pantalla de login**
+Login con correo/contraseña de cuenta Xiaomi; sin opción de Google visible, solo Facebook.
+![Pantalla de login de Mi Unlock](evidencias/09-mi-unlock-login.png)
+
+**10 — Bug de la versión 6.5.224.28 (hallazgo #5)**
+"Account Authentication" se queda en blanco indefinidamente tras iniciar sesión.
+![Pantalla en blanco Account Authentication](evidencias/10-bug-account-authentication-blanco.png)
+
+**11 — 403 Forbidden del CDN de Xiaomi (hallazgo #4)**
+`ultimateota.d.miui.com` rechazando la descarga de `miflash_unlock_en_7.6.727.43.zip`; se repitió igual al intentarlo desde el actualizador interno de la app.
+![403 Forbidden al descargar la version nueva](evidencias/11-403-forbidden-cdn-xiaomi.png)
+
+**12 — Actualizador interno ofreciendo la 7.6.727.43**
+Diálogo "Updates" de Mi Unlock detectando la versión nueva — este botón también cae en el mismo 403.
+![Actualizador interno de Mi Unlock](evidencias/12-actualizador-interno-7.6.727.43.png)
+
+**13 — Mirror alternativo: Internet Archive**
+`archive.org`, item "Miflash unlock tool 7.6.602.42", usado para evitar el bloqueo del CDN de Xiaomi.
+![Pagina de Internet Archive con la version 7.6.602.42](evidencias/13-internet-archive-7.6.602.42.png)
+
+**14 — Mi Unlock 7.6.602.42: sesión iniciada correctamente**
+Ya sin el bug de pantalla en blanco; cuenta `6271160236` vinculada, "Not connected to the phone" (aún sin fastboot).
+![Sesion iniciada en Mi Unlock 7.6.602.42](evidencias/14-mi-unlock-sesion-iniciada.png)
+
+**15 — Teléfono en modo FASTBOOT**
+Pantalla del propio teléfono mostrando "FASTBOOT" tras Vol- + Encendido.
+![Telefono en modo fastboot](evidencias/15-telefono-en-fastboot.png)
+
+**16 — Driver de fastboot faltante (hallazgo #6)**
+Administrador de dispositivos: "Android" sin controlador asignado bajo "Otros dispositivos", pese a que el teléfono ya estaba en FASTBOOT.
+![Android sin driver en el Administrador de dispositivos](evidencias/16-device-manager-android-sin-driver.png)
+
+**17 — Primer intento de instalar el driver: fallido**
+Apuntar a la carpeta `driver` genérica no bastó — "Windows no pudo instalar su Android".
+![Primer intento de driver fallido](evidencias/17-primer-intento-driver-fallido.png)
+
+**18 — Diálogo de controlador: ruta por defecto**
+Antes de corregir la ruta, mostraba un driver de Realtek sin relación.
+![Ruta por defecto en el dialogo de controladores](evidencias/18-driver-ruta-por-defecto.png)
+
+**19 — Ruta corregida al driver correcto (hallazgo #6)**
+Apuntando exactamente a `...\driver\win10`, la carpeta con `android_winusb.inf`.
+![Ruta corregida a driver win10](evidencias/19-driver-ruta-corregida-win10.png)
+
+**20 — Pantalla de elección del asistente**
+"¿Cómo quieres buscar controladores?" — se eligió "Examinar mi PC" para apuntar manualmente.
+![Eleccion de busqueda manual de controladores](evidencias/20-driver-eleccion-buscar-manualmente.png)
+
+**21 — Driver instalado correctamente (hallazgo #6)**
+"Windows actualizó correctamente los controladores" → queda como "Android Bootloader Interface".
+![Android Bootloader Interface instalado](evidencias/21-driver-instalado-android-bootloader-interface.png)
+
+**22 — Mi Unlock detecta el teléfono**
+Tras el driver, "Phone connected / Mi Phone", botón "Unlock" activo, advertencia de borrado de datos.
+![Telefono conectado en Mi Unlock](evidencias/22-mi-unlock-telefono-conectado.png)
+
+**23 — Primer aviso de confirmación (hallazgo #7)**
+"Unlock the phone will erase all phone data, whether to continue to unlock the phone?"
+![Primer aviso de borrado](evidencias/23-aviso-borrado-1.png)
+
+**24 — Segundo aviso de confirmación (hallazgo #7)**
+"An unlocked device is an easy target for malware..." — segundo aviso encadenado antes de proceder.
+![Segundo aviso de borrado](evidencias/24-aviso-borrado-2.png)
+
+**25 — Progreso del desbloqueo**
+"Verifying device" (✓) seguido de "Unlocking" en curso, al 40%.
+![Progreso del intento de desbloqueo](evidencias/25-progreso-desbloqueo.png)
+
+**26 — Resultado: rechazado por plazo de espera (hallazgo #7 y #8)**
+"Couldn't unlock. Please unlock 166 hours later. And do not add your account in MIUI again..." — "Verifying device" en verde, "Unlocking" en rojo: no se llegó a borrar nada.
+![Resultado del intento: 166 horas de espera](evidencias/26-resultado-166-horas-espera.png)
+
+*Descartadas por curación: dos capturas del error 403 visualmente idénticas a la evidencia 11 (mismo mirror, mismo resultado), una repetición de "Phone connected" idéntica a la evidencia 22, y una captura del Administrador de dispositivos/Windows Update que mostraba nombre y correo personal — redundante además con la evidencia 16.*
 
 ## Pendientes
 
