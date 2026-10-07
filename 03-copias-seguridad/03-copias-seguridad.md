@@ -61,6 +61,11 @@ sha256sum backup/stock/* | tee logs/03-hash-stock.txt
 8. **Advertencia explícita de Xiaomi:** si se vuelve a vincular la cuenta Mi en el teléfono (Agregar cuenta y dispositivo) antes de que termine la espera, el contador se reinicia desde cero. No tocar esa pantalla hasta pasado el plazo.
 9. **`fastboot getvar all` confirma `anti:1`**, es decir, `spes` sí tiene protección anti-rollback activa. Cierra el "[VERIFICAR]" que había quedado abierto en el módulo 2: no se debe intentar un downgrade de firmware.
 
+10. **El servidor de Xiaomi limita cada conexión de descarga a ≈ 30-40 KB/s** (medido desde la laptop con rangos HTTP contra `bigota.d.miui.com`): una sola conexión tardaría ≈ 2,5 días para los 6,6 GB, mientras que 16 conexiones en paralelo dieron ≈ 620 KB/s (≈ 3 h). La ROM se terminó bajando desde el PC con Windows, que tiene mejor conexión.
+11. **La ROM completa se queda en el PC con Windows.** Solo se usa allí (MiFlash o `flash_all` ante un brick), así que no hace falta pasar los 6,6 GB a la laptop. A la laptop solo le hacen falta las 5 imágenes pequeñas de `backup/stock/` (módulo 6). `rom/` y `backup/` están en `.gitignore`.
+12. **Privacidad: se tapó información publicada.** Las capturas 22 y 26 mostraban el **ID numérico de la cuenta Mi** en la cabecera de Mi Unlock, y `logs/03-fastboot-getvar.txt` contenía `token` y `cpuid` del dispositivo; el número de serie estuvo ≈ 20 minutos en el historial (commits `c826f35` a `8e047f6`). Ya está tapado en la versión actual, pero **el historial público conserva esos valores**. Para la siguiente vez: revisar cada captura y cada log *antes* del primer commit, no después.
+13. **Un solo archivo de ROM, dos ramas de trabajo.** El avance se hizo en dos máquinas a la vez (PC con Windows y laptop) y las ramas divergieron al hacer `git pull`; se resolvió con `git pull --rebase` (sin conflictos, porque no se tocaron los mismos archivos) y se descartó la carpeta duplicada del plan.
+
 ## Evidencias
 
 **01 — Estado de Mi Desbloqueo: bloqueado, cuenta sin vincular**
@@ -109,4 +114,4 @@ Tras el driver, "Phone connected / Mi Phone", botón "Unlock" activo, advertenci
 - [ ] Depuración USB reactivada tras el reseteo de fábrica (ocurrirá cuando el desbloqueo real se complete).
 - [x] `fastboot devices` y `fastboot getvar all` comprobados, guardados en `logs/03-fastboot-getvar.txt` (`unlocked:no`, `anti:1`, `current-slot:b`, `product:spes`).
 - [x] Procedimiento de rescate escrito en `logs/03-recuperacion.md`.
-- [ ] Verificar si `spes` tiene protección anti-rollback (hallazgo pendiente del módulo 2) antes de considerar cualquier downgrade.
+- [x] Anti-rollback: `anti:1` es el índice de anti-rollback del dispositivo (hallazgo #9). Sigue vigente la regla de no flashear firmware más antiguo.

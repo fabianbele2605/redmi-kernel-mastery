@@ -1,6 +1,6 @@
 (bootloader) crc:1
 (bootloader) DP:0x0
-(bootloader) token:VQEBHgEQvSENtGRDIInSBjGzG0EsKgMEc3BlcwIEG4s4nA
+(bootloader) token:[REDACTADO]
 (bootloader) parallel-download-flash:yes
 (bootloader) anti:1
 (bootloader) hw-revision:10000
@@ -203,7 +203,7 @@
 (bootloader) slot-unbootable:a:no
 (bootloader) slot-successful:a:yes
 (bootloader) slot-count:2
-(bootloader) cpuid:0x1b8b389c
+(bootloader) cpuid:[REDACTADO]
 (bootloader) secure:yes
 (bootloader) serialno:[REDACTADO]
 (bootloader) product:spes
