@@ -116,5 +116,5 @@ Tras `adb kill-server` y aceptar la huella RSA, el teléfono pasa a `device`. N�
 - [x] Serial tapado en toda captura del repositorio.
 - [ ] No ejecutado: contar los núcleos (`grep -c processor /proc/cpuinfo`). El SM6225 es de 8 núcleos según su ficha. **[VERIFICAR]** si hace falta.
 - [ ] Opcional: foto de la pantalla *Acerca del teléfono* (sin IMEI ni serial).
-- [ ] Antes del Módulo 3: comprobar si `spes` tiene protección anti-rollback antes de flashear cualquier cosa.
+- [x] Antes del Módulo 3: comprobar si `spes` tiene protección anti-rollback antes de flashear cualquier cosa — confirmado `anti:1` (sí la tiene) en el [módulo 3](../03-copias-seguridad/03-copias-seguridad.md).
 - [ ] Módulo 4: comparar el hash `cb1ffc010755` del kernel con la rama `spes-r-oss`.

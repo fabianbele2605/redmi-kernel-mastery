@@ -4,6 +4,7 @@ out/
 downloads/
 backup/
 tools/
+rom/
 
 # borradores y prompts antiguos (solo locales)
 docs/chatgpt_guia.md
