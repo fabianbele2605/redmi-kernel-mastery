@@ -33,7 +33,7 @@ Xiaomi impone un periodo de espera para Mi Unlock que puede ser de días; mientr
 # -> queda como "Android Bootloader Interface"
 
 cd rom/miflash_unlock_en_7.6.602.42
-./fastboot.exe devices                  # 2df43584  fastboot
+./fastboot.exe devices                  # [serial]  fastboot
 
 # ROM fastboot (misma fingerprint que el módulo 2, V14.0.5.0.TGCMIXM):
 # descargada completa (6.63 GB) tras descartar mirrors caídos/duplicados.

@@ -205,7 +205,7 @@
 (bootloader) slot-count:2
 (bootloader) cpuid:0x1b8b389c
 (bootloader) secure:yes
-(bootloader) serialno:2df43584
+(bootloader) serialno:[REDACTADO]
 (bootloader) product:spes
 (bootloader) snapshot-update-status:none
 (bootloader) is-userspace:no
