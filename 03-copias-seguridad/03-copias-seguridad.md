@@ -1,7 +1,7 @@
 # Módulo 3 — Copias de seguridad y recuperación
 
-- Estado: En progreso
-- Fecha: 2026-10-06
+- Estado: Completado
+- Fecha: 2026-10-06 a 2026-10-13
 - Versión: Android 13, MIUI 14 V14.0.5.0.TGCMIXM, kernel `4.19.157-perf-gcb1ffc010755` (ver [módulo 2](../02-identificar-telefono/02-identificar-telefono.md))
 - Objetivo: tener cómo volver al estado original del teléfono antes de desbloquear el bootloader y antes de flashear nada. Vincular la cuenta Mi, descargar la fastboot ROM exacta (misma fingerprint), extraer y guardar el `boot.img` original con su hash, y dejar escrito el procedimiento de rescate.
 
@@ -60,6 +60,9 @@ sha256sum backup/stock/* | tee logs/03-hash-stock.txt
 7. **Mi Unlock no muestra el periodo de espera por adelantado.** La pantalla con el teléfono conectado decía simplemente "Unlock will erase user data" sin ningún contador, dando la impresión de que el borrado sería inmediato. El plazo de espera (166 horas, ≈ 7 días) solo apareció **después** de pulsar "Unlock" dos veces (dos avisos de confirmación encadenados) y de que el paso "Verifying device" pasara — el paso "Unlocking" fue rechazado por el servidor sin tocar los datos del teléfono.
 8. **Advertencia explícita de Xiaomi:** si se vuelve a vincular la cuenta Mi en el teléfono (Agregar cuenta y dispositivo) antes de que termine la espera, el contador se reinicia desde cero. No tocar esa pantalla hasta pasado el plazo.
 9. **`fastboot getvar all` confirma `anti:1`**, es decir, `spes` sí tiene protección anti-rollback activa. Cierra el "[VERIFICAR]" que había quedado abierto en el módulo 2: no se debe intentar un downgrade de firmware.
+10. **El reintento tras los ~166h funcionó sin repetir ningún trámite**: misma sesión de cuenta, mismo driver ya instalado, `fastboot devices` detectó el teléfono de inmediato. El botón pasó de decir "Unlock will erase user data" (antes) a mostrar dos avisos de confirmación con un contador de 3 y 2 segundos respectivamente (`Unlock anyway(3)` → `Unlock anyway(2)` → habilitado), forzando a leer el aviso antes de poder pulsar.
+11. **El desbloqueo real sí borra todo y reinicia el teléfono al asistente de configuración de fábrica.** Hubo que reactivar Opciones de desarrollador y Depuración USB desde cero, igual que en el módulo 2. No hace falta SIM para completar el asistente; WiFi sí se puede usar sin restricción (la restricción de WiFi apagado/datos móviles era solo para vincular la cuenta en el módulo 3, no aplica aquí).
+12. **Verificado con `adb` que el desbloqueo quedó reflejado en el sistema:** `ro.boot.flash.locked` pasó de `1` a `0`, y `ro.boot.verifiedbootstate` pasó de `green` a `orange`. El kernel sigue siendo el mismo stock (`4.19.157-perf-gcb1ffc010755`, nov 2023) — normal, todavía no se ha flasheado nada propio.
 
 ## Evidencias
 
@@ -99,14 +102,20 @@ Tras el driver, "Phone connected / Mi Phone", botón "Unlock" activo, advertenci
 "Couldn't unlock. Please unlock 166 hours later. And do not add your account in MIUI again..." — "Verifying device" en verde, "Unlocking" en rojo: no se llegó a borrar nada.
 ![Resultado del intento: 166 horas de espera](evidencias/26-resultado-166-horas-espera.png)
 
+**10 — Desbloqueo real completado (hallazgo #10)**
+"Unlocked successfully" — los tres pasos (Verifying device, Unlocking, Done) en verde, 2026-10-13, ya pasado el plazo de espera.
+![Unlocked successfully](evidencias/27-unlocked-successfully.png)
+
+*(La captura de terminal que verificaba `ro.boot.flash.locked=0` y `verifiedbootstate=orange` se descartó: mostraba el número de serie del teléfono en texto plano. El dato queda documentado igual en el hallazgo #12.)*
+
 ## Pendientes
 
 - [x] Cuenta Mi iniciada y vinculada en el teléfono (Opciones de desarrollador → Estado de Mi Unlock).
-- [x] Solicitud de Mi Unlock enviada — **rechazada por plazo de espera: 166 horas desde 2026-10-06 (~2026-10-13)**. No volver a vincular la cuenta antes de esa fecha.
+- [x] Solicitud de Mi Unlock enviada y, tras el plazo de espera de 166 horas, completada con éxito el 2026-10-13.
 - [x] Fastboot ROM descargada, misma fingerprint que `ro.build.fingerprint` del módulo 2, con su hash en `logs/03-hash-rom.txt`.
 - [x] `boot.img`, `vendor_boot.img`, `dtbo.img`, `vbmeta.img`, `vbmeta_system.img` copiados a `backup/stock/` con hash en `logs/03-hash-stock.txt`.
-- [ ] Bootloader desbloqueado con Mi Unlock — pendiente hasta ~2026-10-13, reintentar con "Unlock again".
-- [ ] Depuración USB reactivada tras el reseteo de fábrica (ocurrirá cuando el desbloqueo real se complete).
-- [x] `fastboot devices` y `fastboot getvar all` comprobados, guardados en `logs/03-fastboot-getvar.txt` (`unlocked:no`, `anti:1`, `current-slot:b`, `product:spes`).
+- [x] Bootloader desbloqueado con Mi Unlock — confirmado con `ro.boot.flash.locked=0` y `verifiedbootstate=orange`.
+- [x] Depuración USB reactivada tras el reseteo de fábrica.
+- [x] `fastboot devices` y `fastboot getvar all` comprobados, guardados en `logs/03-fastboot-getvar.txt` (`anti:1`, `current-slot:b`, `product:spes`).
 - [x] Procedimiento de rescate escrito en `logs/03-recuperacion.md`.
-- [ ] Verificar si `spes` tiene protección anti-rollback (hallazgo pendiente del módulo 2) antes de considerar cualquier downgrade.
+- [x] Verificar si `spes` tiene protección anti-rollback (hallazgo pendiente del módulo 2) antes de considerar cualquier downgrade — confirmado `anti:1`.
