@@ -1,7 +1,7 @@
 # Módulo 3 — Copias de seguridad y recuperación
 
-- Estado: En progreso
-- Fecha: 2026-10-06
+- Estado: Completado
+- Fecha: 2026-10-06 a 2026-10-13
 - Versión: Android 13, MIUI 14 V14.0.5.0.TGCMIXM, kernel `4.19.157-perf-gcb1ffc010755` (ver [módulo 2](../02-identificar-telefono/02-identificar-telefono.md))
 - Objetivo: tener cómo volver al estado original del teléfono antes de desbloquear el bootloader y antes de flashear nada. Vincular la cuenta Mi, descargar la fastboot ROM exacta (misma fingerprint), extraer y guardar el `boot.img` original con su hash, y dejar escrito el procedimiento de rescate.
 
@@ -60,11 +60,14 @@ sha256sum backup/stock/* | tee logs/03-hash-stock.txt
 7. **Mi Unlock no muestra el periodo de espera por adelantado.** La pantalla con el teléfono conectado decía simplemente "Unlock will erase user data" sin ningún contador, dando la impresión de que el borrado sería inmediato. El plazo de espera (166 horas, ≈ 7 días) solo apareció **después** de pulsar "Unlock" dos veces (dos avisos de confirmación encadenados) y de que el paso "Verifying device" pasara — el paso "Unlocking" fue rechazado por el servidor sin tocar los datos del teléfono.
 8. **Advertencia explícita de Xiaomi:** si se vuelve a vincular la cuenta Mi en el teléfono (Agregar cuenta y dispositivo) antes de que termine la espera, el contador se reinicia desde cero. No tocar esa pantalla hasta pasado el plazo.
 9. **`fastboot getvar all` confirma `anti:1`**, es decir, `spes` sí tiene protección anti-rollback activa. Cierra el "[VERIFICAR]" que había quedado abierto en el módulo 2: no se debe intentar un downgrade de firmware.
+10. **El reintento tras los ~166h funcionó sin repetir ningún trámite**: misma sesión de cuenta, mismo driver ya instalado, `fastboot devices` detectó el teléfono de inmediato. El botón pasó de decir "Unlock will erase user data" (antes) a mostrar dos avisos de confirmación con un contador de 3 y 2 segundos respectivamente (`Unlock anyway(3)` → `Unlock anyway(2)` → habilitado), forzando a leer el aviso antes de poder pulsar.
+11. **El desbloqueo real sí borra todo y reinicia el teléfono al asistente de configuración de fábrica.** Hubo que reactivar Opciones de desarrollador y Depuración USB desde cero, igual que en el módulo 2. No hace falta SIM para completar el asistente; WiFi sí se puede usar sin restricción (la restricción de WiFi apagado/datos móviles era solo para vincular la cuenta en el módulo 3, no aplica aquí).
+12. **Verificado con `adb` que el desbloqueo quedó reflejado en el sistema:** `ro.boot.flash.locked` pasó de `1` a `0`, y `ro.boot.verifiedbootstate` pasó de `green` a `orange`. El kernel sigue siendo el mismo stock (`4.19.157-perf-gcb1ffc010755`, nov 2023) — normal, todavía no se ha flasheado nada propio.
 
-10. **El servidor de Xiaomi limita cada conexión de descarga a ≈ 30-40 KB/s** (medido desde la laptop con rangos HTTP contra `bigota.d.miui.com`): una sola conexión tardaría ≈ 2,5 días para los 6,6 GB, mientras que 16 conexiones en paralelo dieron ≈ 620 KB/s (≈ 3 h). La ROM se terminó bajando desde el PC con Windows, que tiene mejor conexión.
-11. **La ROM completa se queda en el PC con Windows.** Solo se usa allí (MiFlash o `flash_all` ante un brick), así que no hace falta pasar los 6,6 GB a la laptop. A la laptop solo le hacen falta las 5 imágenes pequeñas de `backup/stock/` (módulo 6). `rom/` y `backup/` están en `.gitignore`.
-12. **Privacidad: se tapó información publicada.** Las capturas 22 y 26 mostraban el **ID numérico de la cuenta Mi** en la cabecera de Mi Unlock, y `logs/03-fastboot-getvar.txt` contenía `token` y `cpuid` del dispositivo; el número de serie estuvo ≈ 20 minutos en el historial (commits `c826f35` a `8e047f6`). Ya está tapado en la versión actual, pero **el historial público conserva esos valores**. Para la siguiente vez: revisar cada captura y cada log *antes* del primer commit, no después.
-13. **Un solo archivo de ROM, dos ramas de trabajo.** El avance se hizo en dos máquinas a la vez (PC con Windows y laptop) y las ramas divergieron al hacer `git pull`; se resolvió con `git pull --rebase` (sin conflictos, porque no se tocaron los mismos archivos) y se descartó la carpeta duplicada del plan.
+13. **El servidor de Xiaomi limita cada conexión de descarga a ≈ 30-40 KB/s** (medido desde la laptop con rangos HTTP contra `bigota.d.miui.com`): una sola conexión tardaría ≈ 2,5 días para los 6,6 GB, mientras que 16 conexiones en paralelo dieron ≈ 620 KB/s (≈ 3 h). La ROM se terminó bajando desde el PC con Windows, que tiene mejor conexión.
+14. **La ROM completa se queda en el PC con Windows.** Solo se usa allí (MiFlash o `flash_all` ante un brick), así que no hace falta pasar los 6,6 GB a la laptop. A la laptop solo le hacen falta las 5 imágenes pequeñas de `backup/stock/` (módulo 6). `rom/` y `backup/` están en `.gitignore`.
+15. **Privacidad: se tapó información publicada.** Las capturas 22, 26 y 27 mostraban el **ID numérico de la cuenta Mi** en la cabecera de Mi Unlock (la 27, ya publicada, se tapó en el commit de la unión), y `logs/03-fastboot-getvar.txt` contenía `token` y `cpuid` del dispositivo; el número de serie estuvo ≈ 20 minutos en el historial (commits `c826f35` a `8e047f6`). Ya está tapado en la versión actual, pero **el historial público conserva esos valores**. Para la siguiente vez: revisar cada captura y cada log *antes* del primer commit, no después.
+16. **Un solo archivo de ROM, dos ramas de trabajo.** El avance se hizo en dos máquinas a la vez (PC con Windows y laptop) y las ramas divergieron al hacer `git pull`; se resolvió con `git pull --rebase` (sin conflictos, porque no se tocaron los mismos archivos) y se descartó la carpeta duplicada del plan.
 
 ## Evidencias
 
@@ -104,14 +107,20 @@ Tras el driver, "Phone connected / Mi Phone", botón "Unlock" activo, advertenci
 "Couldn't unlock. Please unlock 166 hours later. And do not add your account in MIUI again..." — "Verifying device" en verde, "Unlocking" en rojo: no se llegó a borrar nada.
 ![Resultado del intento: 166 horas de espera](evidencias/26-resultado-166-horas-espera.png)
 
+**10 — Desbloqueo real completado (hallazgo #10)**
+"Unlocked successfully" — los tres pasos (Verifying device, Unlocking, Done) en verde, 2026-10-13, ya pasado el plazo de espera.
+![Unlocked successfully](evidencias/27-unlocked-successfully.png)
+
+*(La captura de terminal que verificaba `ro.boot.flash.locked=0` y `verifiedbootstate=orange` se descartó: mostraba el número de serie del teléfono en texto plano. El dato queda documentado igual en el hallazgo #12.)*
+
 ## Pendientes
 
 - [x] Cuenta Mi iniciada y vinculada en el teléfono (Opciones de desarrollador → Estado de Mi Unlock).
-- [x] Solicitud de Mi Unlock enviada — **rechazada por plazo de espera: 166 horas desde 2026-10-06 (~2026-10-13)**. No volver a vincular la cuenta antes de esa fecha.
+- [x] Solicitud de Mi Unlock enviada y, tras el plazo de espera de 166 horas, completada con éxito el 2026-10-13.
 - [x] Fastboot ROM descargada, misma fingerprint que `ro.build.fingerprint` del módulo 2, con su hash en `logs/03-hash-rom.txt`.
 - [x] `boot.img`, `vendor_boot.img`, `dtbo.img`, `vbmeta.img`, `vbmeta_system.img` copiados a `backup/stock/` con hash en `logs/03-hash-stock.txt`.
-- [ ] Bootloader desbloqueado con Mi Unlock — pendiente hasta ~2026-10-13, reintentar con "Unlock again".
-- [ ] Depuración USB reactivada tras el reseteo de fábrica (ocurrirá cuando el desbloqueo real se complete).
-- [x] `fastboot devices` y `fastboot getvar all` comprobados, guardados en `logs/03-fastboot-getvar.txt` (`unlocked:no`, `anti:1`, `current-slot:b`, `product:spes`).
+- [x] Bootloader desbloqueado con Mi Unlock — confirmado con `ro.boot.flash.locked=0` y `verifiedbootstate=orange`.
+- [x] Depuración USB reactivada tras el reseteo de fábrica.
+- [x] `fastboot devices` y `fastboot getvar all` comprobados, guardados en `logs/03-fastboot-getvar.txt` (`anti:1`, `current-slot:b`, `product:spes`).
 - [x] Procedimiento de rescate escrito en `logs/03-recuperacion.md`.
 - [x] Anti-rollback: `anti:1` es el índice de anti-rollback del dispositivo (hallazgo #9). Sigue vigente la regla de no flashear firmware más antiguo.
