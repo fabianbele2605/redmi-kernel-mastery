@@ -36,22 +36,80 @@ Se divide en dos sesiones:
 ## Práctica guiada
 
 ```bash
-# se completa con los comandos reales ejecutados
+# Paso 1: Clang 11.0.1 de AOSP a tools/
+mkdir -p tools/clang-r383902
+curl -L -# -o downloads/clang-r383902.tar.gz "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r383902.tar.gz"
+tar -xzf downloads/clang-r383902.tar.gz -C tools/clang-r383902
+tools/clang-r383902/bin/clang --version      # clang version 11.0.1 (based on r383902)
+
+# Paso 2: prueba de humo ARM64
+tools/clang-r383902/bin/clang --target=aarch64-linux-gnu -O2 -c tools/smoke/suma.c -o tools/smoke/suma.o
+file tools/smoke/suma.o                      # ELF 64-bit LSB relocatable, ARM aarch64
+tools/clang-r383902/bin/llvm-objdump -d tools/smoke/suma.o   # add w0, w1, w0 ; ret
+
+# Paso 3: script de entorno (artifacts/build-env.sh, versionado) y defconfig
+source artifacts/build-env.sh
+make -C src/kernel ARCH=arm64 mrproper       # solo tras el error de 0= (ver hallazgos)
+kmake vendor/spes-perf_defconfig 2>&1 | tee logs/05-defconfig.log
+
+# Paso 4: comparar con la configuración del teléfono
+python3 src/kernel/scripts/diffconfig logs/04-config-telefono.txt out/.config | tee logs/05-diffconfig.txt
 ```
 
 ## Hallazgos reales
 
-(se documentan aquí a medida que aparezcan)
+1. **El Clang de AOSP funciona tal cual en Ubuntu 24.04.** `clang-r383902` (327 MB comprimido, 1,1 GB descomprimido) se descargó a ≈ 4 MB/s desde `android.googlesource.com` y arranca sin librerías que falten. Trae `clang`, `ld.lld`, `llvm-ar`, `llvm-nm`, `llvm-objcopy`, `llvm-objdump`, `llvm-strip` y `llvm-readelf`, así que se usa toda la cadena LLVM 11 y no la 18 de Ubuntu. Su `AndroidVersion.txt` dice "11.0.1 based on r383902". El `clang-r399163b` que pide `build.config.common` no existe en AOSP (404).
+2. **La prueba de humo confirma que genera ARM64:** `ELF 64-bit LSB relocatable, ARM aarch64`; `suma()` se desensambla en `add w0, w1, w0` y `ret`, dos instrucciones de 4 bytes (`20 00 00 0b`, `c0 03 5f d6`), con los argumentos en `w0` y `w1`.
+3. **Corrección a la guía:** el vDSO de 32 bits usa la variable `CROSS_COMPILE_COMPAT` (`arch/arm64/kernel/vdso32/Makefile`), no `CROSS_COMPILE_ARM32`. El script de entorno usa la correcta. `CONFIG_COMPAT_VDSO=y` aparece activado en nuestro `.config`, así que ese vDSO sí se compilará.
+4. **Un `0` en lugar de `O`:** el script se tecleó con `0="$LAB/out"` (cero) y no `O="$LAB/out"` (letra O). `make` trató `0=` como una variable inventada, compiló **dentro del árbol** (`configuration written to .config`) y `out/` no existió. Confirmado con `od -c`. El kernel exige un árbol limpio para compilar fuera de él, así que hubo que ejecutar `make mrproper` (que solo elimina archivos generados: `.config`, `.config.old`, `include/config`, `include/generated`, etc.). Con la corrección, `kmake` entra en `.../out` y escribe `out/.config` (151 959 bytes, igual que el accidental).
+5. **El aviso `ignoring unsupported character` (25 veces) viene de finales de línea de Windows (CRLF)** en `drivers/input/touchscreen/ft3418_i2c/Kconfig` y `drivers/usb/typec/wusb3801x/Kconfig` (`file` dice "ASCII text, with CRLF line terminators"; se ve `^M` con `cat -A`). Es inofensivo.
+6. **El `Makefile` crea archivos de relleno de Xiaomi al ejecutarse** (líneas 305-312): enlaces simbólicos `include/linux/{rtmm,ktrace}.h` hacia `include/dum/` y `Kconfig`/`Makefile` vacíos en `drivers/staging/{rtmm,ktrace}`. Son sustitutos de dos módulos de Xiaomi que no son de código abierto. Aparecen como "sin seguimiento" en `git status` y no hay que tocarlos.
+7. **`make mrproper` sin `CC=clang` repite el aviso `python: No existe el archivo`** (decenas de líneas y `gcc-version.sh: python: orden no encontrada`): es el *wrapper* de Python 2 del `Makefile` y es inofensivo; con `kmake` no sale.
+8. **El kernel de fábrica y nuestra configuración se parecen en un 99 %:** `diffconfig` da 54 líneas de diferencia sobre 5 654. **Solo el teléfono** tiene (`-`): `EMERGENCY_MEMORY`, `MIHW`, `MILLET`, `MIUI_ZRAM_MEMORY_TRACKING`, `MI_MEMORY_SYSFS`, `MI_RECLAIM`, `RTMM`, `UFSFEATURE` y `UNIX_SCM` (activadas, `y`), y seis símbolos que en el teléfono están apagados (`n`: `FM_INSIDE_LNA`, `QPNP_LINEAR_CHARGER`, `QPNP_VM_BMS`, `SMB1360_CHARGER_FG`, `TYPEC_FUSB303`, `UFSHPB`) pero que ni existen en nuestro árbol. Por el nombre, las nueve activadas parecen **funciones propias de MIUI** (gestión de memoria y reclamación, congelado de apps, seguimiento de zram) que Xiaomi no publica; `RTMM` es justo uno de los módulos que el `Makefile` sustituye por relleno. **[VERIFICAR]** su función exacta. Riesgo: MIUI puede esperar esas funciones; se probará con `fastboot boot` (Módulo 7).
+9. **Lo demás son opciones de depuración y del compilador.** Nuestro `.config` activa `DEBUG_FS`, `IOSCHED_BFQ`, `TASK_DELAY_ACCT`, `THERMAL_STATISTICS` y varias `*_DEBUGFS`, que el teléfono tiene apagadas (útil para los módulos 10 y 13). `CLANG_VERSION` pasa de 100007 a 110001, y `LD_IS_LLD`, `RELR` y `TOOLS_SUPPORT_RELR` se derivan del Clang/LLD que usamos. `ZRAM_WRITEBACK` pasa de `y` a `n`, y `STATIC_USERMODEHELPER_PATH` de vacío a `"/system/bin/micd"`.
+10. **Este repositorio NO contiene los Device Tree de `spes`/`bengal`:** no existe `arch/arm64/boot/dts/vendor/` y `find` no encuentra ningún `*bengal*.dts*` ni `*spes*.dts*` (solo hay 193 `.dts` de otras plataformas). En los árboles Qualcomm de Android el Device Tree vive en repositorios aparte. Consecuencias: el kernel compilará sin DTB, `CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE` no está activado, y el DTB que arranque el teléfono tendrá que ser el **original** (viene en `vendor_boot`). Se confirmará al analizar el `boot.img` en el Módulo 6. **[VERIFICAR]**
+11. **Un typo de `grep`:** `grep'^-'` (sin espacio entre el comando y el patrón entre comillas) dio `grep^-: no se encontró la orden`; el shell pegó las dos cosas en una sola palabra. Con el espacio, `grep '^-' archivo` funcionó.
+12. **El kernel se comprime con GZIP** (`CONFIG_KERNEL_GZIP=y`), así que `make` generará `Image` e `Image.gz`.
 
 ## Evidencias
 
-(se curan con "verifica img")
+**01 — `clang-r383902` descargado y funcionando (hallazgo #1)**
+327 MB, `clang version 11.0.1 (based on r383902)`.
+![Clang de AOSP descargado y ejecutándose](evidencias/01-clang-r383902-descargado.png)
+
+**02 — Prueba de humo ARM64 (hallazgo #2)**
+`ELF 64-bit LSB relocatable, ARM aarch64` y `add w0, w1, w0` / `ret`.
+![Prueba de humo: compila para aarch64](evidencias/02-prueba-humo-aarch64.png)
+
+**03 — El error del `0` en lugar de `O` (hallazgo #4)**
+`configuration written to .config` (sin `out/`) y `ls: no se puede acceder a 'out/.config'`.
+![make escribe el .config en el árbol por el 0 de O](evidencias/03-error-0-en-lugar-de-O.png)
+
+**04 — Corrección y limpieza con `mrproper` (hallazgos #4 y #7)**
+`grep -n 'O='` muestra la letra O roja; `CLEAN include/config include/generated` y `CLEAN .config`.
+![Corrección del script y make mrproper](evidencias/04-mrproper-y-defconfig-en-out.png)
+
+**05 — `out/.config` generado (hallazgo #4)**
+`make[1]: se sale del directorio '.../out'` y `out/.config` de 151 959 bytes.
+![defconfig escrito en out/.config](evidencias/05-out-config-generado.png)
+
+**06 — Diferencias frente al teléfono (hallazgos #8 y #11)**
+`wc -l` da 54 y `grep '^-'` lista las 15 líneas que solo tiene el teléfono. Se ve el typo de `grep`.
+![diffconfig: 54 diferencias y opciones solo del teléfono](evidencias/06-diffconfig-54-lineas.png)
+
+**07 — Inicio de la comparación (hallazgos #8 y #9)**
+Las primeras líneas: opciones `-` (solo teléfono) y cambios de valor (`n -> y`).
+![Inicio de la salida de diffconfig](evidencias/07-diffconfig-inicio.png)
+
+
 
 ## Pendientes
 
-- [ ] Paso 1: `clang-r383902` descargado y funcionando.
-- [ ] Paso 2: prueba de humo ARM64.
-- [ ] Paso 3: `out/.config` generado desde `spes-perf_defconfig`.
-- [ ] Paso 4: diferencias frente al `config.gz` del teléfono anotadas.
-- [ ] Paso 5: compilación terminada y log en `logs/05-build-01.log`.
-- [ ] Paso 6: `Image` localizada y con hash.
+- [x] Paso 1: `clang-r383902` descargado y funcionando.
+- [x] Paso 2: prueba de humo ARM64.
+- [x] Paso 3: `out/.config` generado desde `spes-perf_defconfig` (con `artifacts/build-env.sh`).
+- [x] Paso 4: diferencias frente al `config.gz` del teléfono anotadas (`logs/05-diffconfig.txt`).
+- [ ] Paso 5 (sesión B): compilación con `kmake -j8` y log en `logs/05-build-01.log`.
+- [ ] Paso 6: localizar `Image` e `Image.gz` en `out/arch/arm64/boot/` y guardar sus hashes.
+- [ ] Módulo 6: confirmar que el DTB original viene en `vendor_boot` (el árbol no trae los Device Tree de `spes`).
+- [ ] Verificar la función exacta de `MILLET`, `MI_RECLAIM`, `RTMM`, `MIHW`, `EMERGENCY_MEMORY`, `UFSFEATURE` y `UNIX_SCM`.
