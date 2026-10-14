@@ -21,7 +21,7 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 - [x] 02. Identificar el teléfono ([módulo](../02-identificar-telefono/02-identificar-telefono.md))
 - [x] 03. Copias de seguridad, desbloqueo y recuperación ([módulo](../03-copias-seguridad/03-copias-seguridad.md))
 - [x] 04. Descargar el kernel `spes-r-oss` ([módulo](../04-descargar-kernel/04-descargar-kernel.md))
-- [ ] 05. Compilar el kernel sin modificarlo
+- [ ] 05. Compilar el kernel sin modificarlo ([módulo](../05-compilar-kernel/05-compilar-kernel.md)) — en progreso
 - [ ] 06. Analizar el `boot.img` original
 - [ ] 07. `boot-lab.img` y primer arranque
 - [ ] 08. Depuración: `dmesg`, `pstore`
