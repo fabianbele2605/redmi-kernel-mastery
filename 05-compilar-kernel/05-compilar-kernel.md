@@ -1,8 +1,9 @@
 # Módulo 5 — Compilar el kernel sin modificarlo
 
-- Estado: En progreso
-- Fecha: 2026-10-13
-- Árbol: `src/kernel`, rama `spes-r-oss`, commit `88afd32564211f4cfb60171ed8cbeaa734860601`, kernel 4.19.157
+- Estado: Completado
+- Fecha: 2026-10-13 (cierre 2026-10-13)
+- Árbol de referencia: `src/kernel`, rama `spes-r-oss`, commit `88afd32564211f4cfb60171ed8cbeaa734860601`, kernel 4.19.157 (**no enlaza**, ver hallazgos #14-#16)
+- Árbol compilado: `src/kernel-px`, PixelExperience `fourteen`, commit `dad6f6ab28fc2694e9e1f431daa3eab228cb955b`, kernel 4.19.297 (**compila completo**)
 - Objetivo: producir con tus propias manos la imagen `Image` (y su DTB) de un kernel **sin cambios**, entendiendo cada error que aparezca. Es la línea base contra la que se medirá todo lo demás.
 
 ## Concepto
@@ -93,6 +94,9 @@ python3 src/kernel/scripts/diffconfig logs/04-config-telefono.txt out/.config | 
 32. **Versión que mostrará el kernel: `4.19.297-uvite`** (`out-px/include/config/kernel.release`). **Corrección al hallazgo #6 del Módulo 4:** con este árbol **no** se añade el sufijo `-g<hash>` (el árbol oficial sí lo haría con `LOCALVERSION_AUTO=y`); el de fábrica es `4.19.157-perf-gcb1ffc010755`. Sigue siendo fácil distinguirlos con `uname -r`. `UTS_VERSION` = `#1 SMP PREEMPT Tue Oct 13 22:00:29 -05 2026`, compilado "por fabian" con `clang version 11.0.1 (based on r383902)`.
 33. **Solo 4 módulos `.ko`:** casi todo está integrado (`built-in`); `CONFIG_MODULES=y` y sin `MODULE_SIG`, así que el Módulo 9 es viable con este árbol.
 34. **El espacio en disco baja con cada compilación:** 59 GB libres antes de `out/`, 57 al clonar `kernel-px` y 52 tras compilar `out-px/` (89 % usado). Los artefactos grandes quedan fuera de Git (`out/`, `out-px/`, `src/`, `artifacts/px/`).
+35. **Las huellas SHA-256 de la compilación (`logs/05-hash-px.txt`):** `Image` `8e1248cd96f3e8d82041e0ba4e503f452e01003e66bb6661eaf796bd8fdb1188`, `Image.gz` `61ee45c371bb7a2c5d2f83fe50c2b7dd7498ffd3775667ce20d0c0d95c3a65b2`, `dtb.img` `8926c84b06ede7183d694930109874f8f55b74c62dfa43a832e11cd38c510b85`, `dtbo.img` `1eb2307f31766fc3e1ab2450b5a30863b45daced0295bfb50477f721e70e5c2f`. Copias en `artifacts/px/` (66 MB, fuera de Git).
+36. **El banner del kernel (`strings Image | grep -m1 "Linux version"`)** confirma lo compilado: `Linux version 4.19.297-uvite (fabian@fabian-HP-255-15-6-inch-G10-Notebook-PC) (Android (6443078 based on r383902) clang version 11.0.1 …, LLD 11.0.1 …) #1 SMP PREEMPT Tue Oct 13 22:00:29 -05 2026`. El **enlazador también es el de AOSP** (`LLD 11.0.1`), no el `ld.lld` 18 de Ubuntu. Ese texto es el que mostrará `/proc/version` cuando el kernel corra. Incluye usuario y nombre de equipo del host.
+37. **Resumen del módulo — lo que se aprendió compilando:** (1) un kernel Android necesita un compilador de su época (Clang 11 de AOSP, no el 18 del sistema); (2) el código publicado por Xiaomi para `spes` **no basta** (faltan `techpack/` y los Device Tree), y un árbol de la comunidad completo y archivado sí compila; (3) `make` marca sus errores con `***`, no con `error:`; (4) `grep` con `^` no ve las opciones apagadas (`# CONFIG_X is not set`); (5) un `0` por una `O`, o un `tee` sin `-px`, bastan para ensuciar o pisar resultados, y conviene **copiar y pegar**; (6) `make` es incremental: la segunda pasada tardó 21 s; (7) lo que compila **no** garantiza que arranque ni que MIUI funcione (faltan 8 funciones propias de MIUI).
 
 ## Evidencias
 
@@ -124,23 +128,27 @@ python3 src/kernel/scripts/diffconfig logs/04-config-telefono.txt out/.config | 
 Las primeras líneas: opciones `-` (solo teléfono) y cambios de valor (`n -> y`).
 ![Inicio de la salida de diffconfig](evidencias/07-diffconfig-inicio.png)
 
+**08 — Compilación del árbol de PX terminada (hallazgo #30)**
+`LD vmlinux`, `OBJCOPY Image`, `GZIP Image.gz`, `MODPOST 4 modules` y los cuatro `.ko`; `real 0m21`.
+![Compilación completa de PixelExperience](evidencias/08-build-px-02-exito.png)
+
+**09 — Inicio de la segunda compilación (hallazgo #30)**
+`echo $KSRC $KOUT`, `source artifacts/build-env.sh` y los primeros `DTC` de los Device Tree.
+![Inicio de la segunda compilación](evidencias/09-build-px-02-inicio-dtc.png)
+
+**10 — Huellas SHA-256 y banner del kernel (hallazgos #35 y #36)**
+`sha256sum` de los cuatro artefactos y `Linux version 4.19.297-uvite …`; `ls -lh` con 66 MB en total.
+![Hashes y banner del kernel compilado](evidencias/10-hashes-y-banner-del-kernel.png)
+
 
 
 ## Pendientes
 
-- [x] Paso 1: `clang-r383902` descargado y funcionando.
-- [x] Paso 2: prueba de humo ARM64.
-- [x] Paso 3: `out/.config` generado desde `spes-perf_defconfig` (con `artifacts/build-env.sh`).
-- [x] Paso 4: diferencias frente al `config.gz` del teléfono anotadas (`logs/05-diffconfig.txt`).
-- [x] Paso 5: compilación con `kmake -j8` hecha (`logs/05-build-01.log`), pero **falla en el enlazado** (hallazgos #13-#16).
-- [x] Decidir la fuente del kernel: árbol archivado de PixelExperience (hallazgo #19).
-- [x] Clonarlo en `src/kernel-px`, registrar su commit y comprobar `techpack/display`, los DT y el `defconfig`.
-- [x] Expandir `spes-perf_defconfig` en `out-px/.config` y compararlo con el teléfono (`logs/05-diffconfig-px.txt`).
-- [x] Primera compilación de PX (`logs/05-build-px-01.log`): todo compila; falla `dtbo.img` por `PYTHON` (hallazgo #27).
-- [x] Reanudar con `PYTHON=python3` y guardar `logs/05-build-px-02.log`: **compila completo** (hallazgos #30-#34).
-- [ ] Guardar los hashes SHA-256 de `Image`, `Image.gz`, `dtb.img` y `dtbo.img` en `logs/05-hash-px.txt` y copiar los artefactos a `artifacts/px/`.
-- [ ] Repetir la compilación con el árbol elegido hasta obtener `Image`/`Image.gz`.
-- [ ] Paso 6: localizar `Image` e `Image.gz` en `out/arch/arm64/boot/` y guardar sus hashes.
-- [ ] Resolver el error de `__crc_gsi_write_channel_scratch` (o desactivar `CONFIG_MODVERSIONS`).
-- [ ] Módulo 6: confirmar que el DTB original viene en `vendor_boot` (el árbol no trae los Device Tree de `spes`).
-- [ ] Verificar la función exacta de `MILLET`, `MI_RECLAIM`, `RTMM`, `MIHW`, `EMERGENCY_MEMORY`, `UFSFEATURE` y `UNIX_SCM`.
+- [x] Pasos 1-4 (sesión A): Clang 11, prueba de humo, `.config` y diferencias con el teléfono.
+- [x] Pasos 5-9: compilar. El árbol oficial no enlaza; el de PixelExperience compila completo.
+- [x] Paso 10: artefactos copiados a `artifacts/px/` y huellas en `logs/05-hash-px.txt`.
+- [ ] Módulo 6: traer las 5 imágenes originales (`boot`, `vendor_boot`, `dtbo`, `vbmeta`, `vbmeta_system`) del PC con Windows y analizarlas con `unpack_bootimg`.
+- [ ] Módulo 6: confirmar si el DTB original viene en `vendor_boot` y la versión de cabecera del `boot.img`.
+- [ ] Módulo 7: probar `Image.gz` con el ramdisk y el DTB originales mediante `fastboot boot` (nunca `flash`).
+- [ ] Verificar la función exacta de las 8 funciones de MIUI que no están en PX (`MILLET`, `MI_RECLAIM`, `RTMM`, `MIHW`, `EMERGENCY_MEMORY`, `UFSFEATURE`, `MI_MEMORY_SYSFS`, `MIUI_ZRAM_MEMORY_TRACKING`).
+- [ ] Resolver el error de `__crc_gsi_write_channel_scratch` del árbol oficial solo si se quiere volver a él.
