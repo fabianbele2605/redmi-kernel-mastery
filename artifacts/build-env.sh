@@ -18,6 +18,7 @@ kmake() {
     CROSS_COMPILE=aarch64-linux-gnu- \
     CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
     CLANG_TRIPLE=aarch64-linux-gnu- \
+    PYTHON=python3 \
     "$@"
 }
 
