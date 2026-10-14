@@ -1,0 +1,14 @@
+make: se entra en el directorio '/home/fabian/Escritorio/Mobil/src/kernel-px'
+make[1]: se entra en el directorio '/home/fabian/Escritorio/Mobil/out-px'
+  HOSTCC  scripts/basic/fixdep
+  GEN     ./Makefile
+  HOSTCC  scripts/kconfig/conf.o
+  YACC    scripts/kconfig/zconf.tab.c
+  LEX     scripts/kconfig/zconf.lex.c
+  HOSTCC  scripts/kconfig/zconf.tab.o
+  HOSTLD  scripts/kconfig/conf
+#
+# configuration written to .config
+#
+make[1]: se sale del directorio '/home/fabian/Escritorio/Mobil/out-px'
+make: se sale del directorio '/home/fabian/Escritorio/Mobil/src/kernel-px'
