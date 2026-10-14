@@ -77,6 +77,9 @@ python3 src/kernel/scripts/diffconfig logs/04-config-telefono.txt out/.config | 
 17. **Existen árboles de la comunidad que sí están completos.** Se comprobó con la API pública de GitHub (rama por defecto de cada uno): `PixelExperience-Devices/kernel_xiaomi_sm6225` (rama `fourteen`, **archivado el 2023-11-15**, kernel **4.19.297**, 95 archivos `spes`/`bengal` de Device Tree, trae `spes-perf_defconfig`, y `techpack` con `audio`, `camera`, `data`, `display` y `video`); `knyplaygrnd/android_kernel_xiaomi_spes` y `Nexs7/android_kernel_xiaomi_spes` (activos en 2026, 4.19.325, con `techpack/display` y 89-95 DT; ramas `asano`, `asano-ksu`, `asano-spes`, `urumi`); y `spi3ex/android_kernel_xiaomi_sm6225` (LineageOS 19.1, 4.19.113). Ninguno es oficial de Xiaomi. **[VERIFICAR]** que compilan y arrancan en este teléfono.
 18. **Posible problema para el Módulo 7:** el `defconfig` tiene `CONFIG_MODULE_SIG_FORCE=y`. Un kernel propio solo confía en la clave que genera al compilarse, así que **no cargaría los módulos `.ko` de Xiaomi** que pueda traer el teléfono (firmados con su clave). Habría que desactivar `MODULE_SIG_FORCE` en nuestra configuración. **[VERIFICAR]** al analizar `vendor_boot`.
 
+19. **Decisión: pasar al árbol archivado de PixelExperience** (`PixelExperience-Devices/kernel_xiaomi_sm6225`, rama `fourteen`, commit `dad6f6ab28fc2694e9e1f431daa3eab228cb955b`), conservando el árbol oficial en `src/kernel` como referencia. Razones: está **archivado** (no cambia, reproducible), su fecha (nov 2023, con fusiones `ASB-2023-11-05_4.19-stable`) coincide con la ROM del teléfono, y trae `spes-perf_defconfig`, `techpack/display` y 95 archivos de Device Tree. Comprobado antes de clonar: su `Makefile` usa `CC = clang` (sin el *wrapper* de Python 2), su `defconfig` fija `CONFIG_LOCALVERSION="-uvite"` y no menciona `MODULE_SIG` (no exigiría módulos firmados, lo que atenúa el hallazgo #18), declara `clang-r416183b` (Clang 12) y tiene `MODVERSIONS=y`. No hay README. Los más de 10 000 *contributors* que muestra GitHub vienen del historial del kernel Linux y de Android Common Kernel incluido en el repositorio: **no es un repositorio oficial ni lo mantienen esos autores**. Es código de terceros que correrá con privilegios de kernel en un teléfono de laboratorio.
+20. **El script `artifacts/build-env.sh` ahora admite varios árboles:** usa las variables `KSRC` y `KOUT` (por defecto `src/kernel` y `out/`). El árbol de PixelExperience irá a `src/kernel-px` y `out-px/`.
+
 ## Evidencias
 
 **01 — `clang-r383902` descargado y funcionando (hallazgo #1)**
@@ -116,7 +119,8 @@ Las primeras líneas: opciones `-` (solo teléfono) y cambios de valor (`n -> y`
 - [x] Paso 3: `out/.config` generado desde `spes-perf_defconfig` (con `artifacts/build-env.sh`).
 - [x] Paso 4: diferencias frente al `config.gz` del teléfono anotadas (`logs/05-diffconfig.txt`).
 - [x] Paso 5: compilación con `kmake -j8` hecha (`logs/05-build-01.log`), pero **falla en el enlazado** (hallazgos #13-#16).
-- [ ] **Decidir la fuente del kernel:** seguir con el árbol oficial (incompleto) o pasar a un árbol completo de la comunidad (hallazgo #17).
+- [x] Decidir la fuente del kernel: árbol archivado de PixelExperience (hallazgo #19).
+- [ ] Clonarlo en `src/kernel-px`, registrar su commit y comprobar `techpack/display`, los DT y el `defconfig`.
 - [ ] Repetir la compilación con el árbol elegido hasta obtener `Image`/`Image.gz`.
 - [ ] Paso 6: localizar `Image` e `Image.gz` en `out/arch/arm64/boot/` y guardar sus hashes.
 - [ ] Resolver el error de `__crc_gsi_write_channel_scratch` (o desactivar `CONFIG_MODVERSIONS`).
