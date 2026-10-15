@@ -32,22 +32,55 @@ En un teléfono A/B hay dos copias de cada partición (`boot_a`/`boot_b`, `vendo
 ## Práctica guiada
 
 ```bash
-# se completa con los comandos reales ejecutados
+# Paso 1: cabecera del boot.img (--out siempre explícito: por defecto sería ./out, que ya existe)
+mkdir -p backup/stock-unpacked
+python3 tools/mkbootimg/unpack_bootimg.py --boot_img backup/stock/boot.img --out backup/stock-unpacked/boot | tee logs/06-boot-cabecera.txt
+ls -l backup/stock-unpacked/boot
+file backup/stock-unpacked/boot/kernel
+
+# Paso 2: receta para reconstruirlo y versión del kernel de fábrica
+python3 tools/mkbootimg/unpack_bootimg.py --boot_img backup/stock/boot.img --out backup/stock-unpacked/boot --format mkbootimg
+zcat backup/stock-unpacked/boot/kernel > backup/stock-unpacked/boot/kernel.raw
+strings backup/stock-unpacked/boot/kernel.raw | grep -m1 "Linux version"
+file backup/stock-unpacked/boot/kernel.raw
+
+# Paso 3: vendor_boot
+python3 tools/mkbootimg/unpack_bootimg.py --boot_img backup/stock/vendor_boot.img --out backup/stock-unpacked/vendor_boot | tee logs/06-vendor-boot-cabecera.txt
+ls -l backup/stock-unpacked/vendor_boot
+file backup/stock-unpacked/vendor_boot/*
 ```
 
 ## Hallazgos reales
 
-(se documentan aquí a medida que aparezcan)
+1. **`boot.img` es versión de cabecera 3.** `unpack_bootimg` da `boot magic: ANDROID!`, `boot image header version: 3`, `kernel_size: 18862488`, `ramdisk size: 19769994`, `os version: 12.0.0`, `os patch level: 2023-12` y **`command line args:` vacío**. (`os version 12.0.0` es la etiqueta de la imagen de arranque; el sistema es Android 13.) Con la cabecera 3, el `boot.img` solo lleva el kernel y un ramdisk genérico; lo específico del fabricante va en `vendor_boot`.
+2. **El kernel de fábrica es un `Image.gz`:** `file` dice `gzip compressed data … original size modulo 2^32 41105920`, y descomprimido (`zcat`) es `Linux kernel ARM64 boot executable Image, little-endian, 4K pages` de **41 105 920 bytes**, con la marca `ARMd` en el byte 56 igual que el nuestro. El nuestro mide 36 719 104 B sin comprimir (17 619 346 B en gzip contra 18 862 488 B). El formato es compatible, así que nuestro `Image.gz` puede ocupar su lugar.
+3. **La receta exacta del `boot.img` de fábrica** (`--format mkbootimg`): `--header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel … --ramdisk … --cmdline ''`. Es la que se usará en el Módulo 7: solo cambia el kernel.
+4. **El kernel de fábrica confirma lo medido en el Módulo 2:** `Linux version 4.19.157-perf-gcb1ffc010755 (builder@pangu-build-component-vendor-448263-0h5j6-27sw5-mphfb) (clang version 10.0.7 for Android NDK, GNU ld (binutils-2.27-bd24d23f) 2.27.0.20170315) #1 SMP PREEMPT Tue Nov 28 05:56:27 UTC 2023`, idéntico al `uname -a` del teléfono. **Corrección al hallazgo #10 del Módulo 5:** se compiló con el **Clang 10.0.7 del NDK de Android** (no con el Snapdragon LLVM de Qualcomm) y se enlazó con **GNU ld**, **no LLD**. Nosotros usamos LLD 11.0.1; el `builder@pangu-…` es el servidor de compilación de Xiaomi (por eso el commit `cb1ffc010755` no está en GitHub).
+5. **`vendor_boot.img` también es cabecera 3** (`boot magic: VNDRBOOT`, `vendor boot image header version: 3`, `page size: 0x1000`, `kernel load address: 0x00008000`, `ramdisk load address: 0x01000000`, `kernel tags load address: 0x100`, `vendor boot image header size: 2112`).
+6. **El Device Tree de fábrica está en `vendor_boot`:** `dtb size: 5598424` (`dtb address: 0x1f00000`). Es un archivo con **varios DTB concatenados**: `file` solo describe el primero (`Device Tree Blob version 17, size=357914`). Responde la pregunta abierta desde el Módulo 4: sí podemos conservar el DTB original, porque el Módulo 7 solo sustituye el kernel de `boot`.
+7. **La línea de comandos está en `vendor_boot`** (la de `boot` está vacía): `console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x4a90000 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 loop.max_part=7 buildvariant=user`. **No contiene número de serie** (lo añade el bootloader en tiempo de arranque). Destacan `earlycon=msm_geni_serial,0x4a90000` (consola temprana por la UART del SoC) y `buildvariant=user`.
+8. **El ramdisk de `vendor_boot` es diminuto:** `vendor ramdisk size: 2290` bytes (gzip; descomprimido, 9 728). Casi vacío: **no trae los módulos del kernel `.ko` del fabricante** en esta etapa. Esto atenúa la preocupación del Módulo 5 (#18) sobre que nuestro kernel no pudiera cargar módulos firmados por Xiaomi durante el arranque temprano. **[VERIFICAR]** en qué partición están los módulos (`vendor`/`vendor_dlkm` dentro de `super`, o integrados).
+9. **Dos trampas evitadas:** `unpack_bootimg` extrae por defecto a una carpeta `./out`, que en este proyecto ya existe (compilación del árbol oficial); por eso se indicó siempre `--out backup/stock-unpacked/…`. Y todo lo desempaquetado queda en `backup/` (ignorada por Git), porque contiene el kernel binario de Xiaomi.
 
 ## Evidencias
 
-(se curan con "verifica img")
+**01 — Cabecera del `boot.img` (hallazgos #1 y #2)**
+`header version: 3`, `os version: 12.0.0`, `os patch level: 2023-12`, `command line args:` vacío y el kernel en gzip.
+![Cabecera del boot.img de fábrica, versión 3](evidencias/01-boot-cabecera-v3.png)
+
+**02 — Receta de reconstrucción y versión del kernel de fábrica (hallazgos #3 y #4)**
+`--header_version 3 … --cmdline ''` y `Linux version 4.19.157-perf-gcb1ffc010755 … clang version 10.0.7 for Android NDK, GNU ld …`.
+![Receta mkbootimg y versión del kernel de fábrica](evidencias/02-kernel-fabrica-version-y-receta.png)
+
+**03 — `vendor_boot`: DTB y línea de comandos (hallazgos #5, #6, #7 y #8)**
+`VNDRBOOT`, `vendor ramdisk size: 2290`, `dtb size: 5598424`, la línea de comandos completa y los archivos `dtb` y `vendor_ramdisk`.
+![vendor_boot con DTB de 5,6 MB y línea de comandos](evidencias/03-vendor-boot-dtb-y-cmdline.png)
 
 ## Pendientes
 
-- [ ] Paso 1: `boot.img` desempaquetado y versión de cabecera anotada.
-- [ ] Paso 2: formato y versión del kernel de fábrica.
-- [ ] Paso 3: `vendor_boot.img` desempaquetado; ¿el DTB viaja ahí?
+- [x] Paso 1: `boot.img` desempaquetado, cabecera versión 3.
+- [x] Paso 2: kernel de fábrica gzip (4.19.157-perf) y receta de reconstrucción.
+- [x] Paso 3: `vendor_boot.img` desempaquetado: el DTB (5,6 MB) y la línea de comandos viajan ahí.
 - [ ] Paso 4: contenido del ramdisk y de los módulos del fabricante.
 - [ ] Paso 5: comparación con nuestra compilación.
 - [ ] Paso 6: estado de AVB en `vbmeta`.
