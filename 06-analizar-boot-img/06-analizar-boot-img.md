@@ -48,6 +48,12 @@ file backup/stock-unpacked/boot/kernel.raw
 python3 tools/mkbootimg/unpack_bootimg.py --boot_img backup/stock/vendor_boot.img --out backup/stock-unpacked/vendor_boot | tee logs/06-vendor-boot-cabecera.txt
 ls -l backup/stock-unpacked/vendor_boot
 file backup/stock-unpacked/vendor_boot/*
+
+# Paso 4: contenido de los ramdisks (solo se LISTA con cpio -t, no se extrae nada)
+zcat backup/stock-unpacked/vendor_boot/vendor_ramdisk | cpio -tv
+zcat backup/stock-unpacked/boot/ramdisk | cpio -t | wc -l          # 885 entradas
+zcat backup/stock-unpacked/boot/ramdisk | cpio -t | head -30
+zcat backup/stock-unpacked/boot/ramdisk | cpio -t | grep -c "\.ko$"   # 0
 ```
 
 ## Hallazgos reales
@@ -61,6 +67,10 @@ file backup/stock-unpacked/vendor_boot/*
 7. **La línea de comandos está en `vendor_boot`** (la de `boot` está vacía): `console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x4a90000 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 loop.max_part=7 buildvariant=user`. **No contiene número de serie** (lo añade el bootloader en tiempo de arranque). Destacan `earlycon=msm_geni_serial,0x4a90000` (consola temprana por la UART del SoC) y `buildvariant=user`.
 8. **El ramdisk de `vendor_boot` es diminuto:** `vendor ramdisk size: 2290` bytes (gzip; descomprimido, 9 728). Casi vacío: **no trae los módulos del kernel `.ko` del fabricante** en esta etapa. Esto atenúa la preocupación del Módulo 5 (#18) sobre que nuestro kernel no pudiera cargar módulos firmados por Xiaomi durante el arranque temprano. **[VERIFICAR]** en qué partición están los módulos (`vendor`/`vendor_dlkm` dentro de `super`, o integrados).
 9. **Dos trampas evitadas:** `unpack_bootimg` extrae por defecto a una carpeta `./out`, que en este proyecto ya existe (compilación del árbol oficial); por eso se indicó siempre `--out backup/stock-unpacked/…`. Y todo lo desempaquetado queda en `backup/` (ignorada por Git), porque contiene el kernel binario de Xiaomi.
+10. **El ramdisk de `vendor_boot` solo trae el `fstab`:** `cpio -tv` lista únicamente `first_stage_ramdisk/` y `first_stage_ramdisk/fstab.default` (9 168 bytes). El `fstab` monta en el arranque temprano `system`, `system_ext`, `vendor`, `product` y `mi_ext` (todos `ext4`, `ro`), y varias superposiciones `overlay` de `/product/*` apoyadas en `/mnt/vendor/mi_ext/…` (la personalización de MIUI). Son particiones lógicas dentro de `super`.
+11. **El ramdisk de `boot` tiene 885 entradas (≈ 38,4 MB) y es de tipo «recovery en boot»:** además de `init`, `system/bin` (218 entradas), `system/lib64` (74) y `system/etc` (42), trae `init.recovery.hardware.rc`, `init.recovery.qcom.rc`, `miui.factoryreset.rc`/`.fstab`, `first_stage_ramdisk/avb/{q,r,s}-gsi.avbpubkey` (claves de las imágenes genéricas de Google), `verity_key`, `vendor_file_contexts` y `default.prop`. El teléfono no tiene partición `recovery`; parece que el recovery vive en este ramdisk. **[VERIFICAR]** cómo decide el bootloader entre arrancar Android o el recovery (parámetros añadidos en tiempo de arranque).
+12. **Ninguno de los dos ramdisks trae módulos del kernel:** `cpio -t | grep -c "\.ko$"` da **0**. Coherente con la configuración del teléfono, que solo define **5** módulos (`=m`): `MSM_RDBG`, `DVB_MPQ`, `DVB_MPQ_DEMUX`, `LCD_CLASS_DEVICE`, `EXFAT_FS`; la de PixelExperience define 4 (`TCP_CONG_BIC`, `LCD_CLASS_DEVICE`, `RMNET_PERF`, `RMNET_SHS`). Ambos kernels son prácticamente **monolíticos**: casi todo está integrado en la imagen. La preocupación del Módulo 5 (#18) sobre módulos del fabricante firmados queda muy atenuada.
+13. **El kernel nuevo tiene lo que necesita el arranque:** las opciones que exige ese `fstab` y Android (`BLK_DEV_DM`, `DM_VERITY`, `DM_CRYPT`, `EXT4_FS`, `F2FS_FS`, `OVERLAY_FS`, `FS_ENCRYPTION`, `ANDROID_BINDER_IPC`, `SECURITY_SELINUX`) están en `y` en `out-px/.config` y **ninguna aparece entre las 222 diferencias** con el teléfono: son iguales. Las diferencias que tocan almacenamiento son `UFSFEATURE` (solo el teléfono; función propia de Xiaomi para UFS), `EXFAT_FS` (`m` en el teléfono, integrado en PX) y `CORESIGHT` (apagado en PX). Ninguna es crítica para arrancar. **[VERIFICAR]** en el Módulo 7.
 
 ## Evidencias
 
@@ -76,11 +86,19 @@ file backup/stock-unpacked/vendor_boot/*
 `VNDRBOOT`, `vendor ramdisk size: 2290`, `dtb size: 5598424`, la línea de comandos completa y los archivos `dtb` y `vendor_ramdisk`.
 ![vendor_boot con DTB de 5,6 MB y línea de comandos](evidencias/03-vendor-boot-dtb-y-cmdline.png)
 
+**04 — Ramdisks: el de `vendor_boot` y el principio del de `boot` (hallazgos #10 y #11)**
+`first_stage_ramdisk/fstab.default` y las primeras entradas de `boot` (`acct`, `apex`, `bin`, `first_stage_ramdisk/avb/*-gsi.avbpubkey`…); 885 entradas.
+![Contenido de los dos ramdisks](evidencias/04-ramdisks-vendor-y-boot.png)
+
+**05 — Resto del ramdisk de `boot` y cero módulos (hallazgos #11 y #12)**
+`init`, `init.recovery.*.rc`, `miui.factoryreset.*` y `grep -c "\.ko$"` = 0.
+![Ramdisk de boot sin módulos del kernel](evidencias/05-ramdisk-boot-contenido-y-cero-ko.png)
+
 ## Pendientes
 
 - [x] Paso 1: `boot.img` desempaquetado, cabecera versión 3.
 - [x] Paso 2: kernel de fábrica gzip (4.19.157-perf) y receta de reconstrucción.
 - [x] Paso 3: `vendor_boot.img` desempaquetado: el DTB (5,6 MB) y la línea de comandos viajan ahí.
-- [ ] Paso 4: contenido del ramdisk y de los módulos del fabricante.
+- [x] Paso 4: ramdisks listados: `vendor_boot` solo trae el `fstab`; ninguno tiene módulos `.ko`.
 - [ ] Paso 5: comparación con nuestra compilación.
 - [ ] Paso 6: estado de AVB en `vbmeta`.
