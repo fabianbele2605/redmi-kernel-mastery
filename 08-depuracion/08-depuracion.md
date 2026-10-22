@@ -75,6 +75,11 @@ grep "^<3>" logs/08-dmesg-fabrica.txt | grep -v -E "fg_|nopmi_chg|sm5602|_calcul
 19. **Errores que solo tiene nuestro kernel (misma ventana de 108 s):** `elliptic_system_configuration_param_get` (66) y `[ELUS] … get ELLIPTIC_SYSTEM_CONFIGURATION_CUSTOM_SETTING` (32), del sensor de proximidad ultrasónico de Elliptic Labs; `msm_dwc3_perf_vote_work` (52), charla del USB; el amplificador de audio Awinic, `aw…_show_current_profile_index: not found struct` (20); y el **audio**: `msm-pcm-routing … mux AUDIO_REF_EC_UL10 MUX has no paths` (13), `bengal-asoc-snd … no source widget found for DMIC1_OUTPUT` (12), `Failed to add route DMIC1_OUTPUT -> …` (12) y `no source widget found for MINS_TX` (5): el controlador de audio de PixelExperience define rutas de micrófono digital (DMIC) que el hardware o el DT de fábrica no tienen. Además USB `unexpected PWR_EVNT` (6) y `power supply error when setting property` (4), y `palm_sensor_store has not implement` (4). El usuario comprobó que el **sonido** funciona; **el micrófono no se ha probado**. **[VERIFICAR]**
 20. **Errores que solo tiene el kernel de fábrica (misma ventana):** `wlan: read_all_reg` (16), `OF: graph: no port node found in /soc/cti@…` (12), `[FTS_TS/E]fb_notifier_callback` (10, el táctil de Focaltech), `msm-usb-hsphy … clocks_enabled` (7), `ipa_rm … IPA RM was not initialized` (4) y `ASoC: CODEC DAI btfm_bt_sco_a2dp_slim_rx not registered` (4).
 21. **`LAST KMSG` está vacío en los dos informes** (3 líneas). En el de fábrica, porque no hubo *panic*; en el de uvite, además, porque `ramoops` no arrancó (hallazgo #18).
+22. **`pstore` funciona con nuestro kernel añadiendo `ramoops_memreserve=4M` a la línea de comandos de `boot-lab.img` (Paso 5), sin recompilar.** Imagen: `mkbootimg … --cmdline 'ramoops_memreserve=4M' -o artifacts/px/boot-lab-ramoops.img`; `unpack_bootimg` confirma `command line args: ramoops_memreserve=4M`. En el `dmesg` del nuevo arranque (`logs/08-dmesg-ramoops.txt`, 7 154 líneas): `ramoops: msm_reserve_ramoops_memory addr=5d000000,size=400000` y `record_size=0,ftrace_size=0` (t=0), `console [pstore-1] enabled`, `pstore: Registered ramoops as persistent store backend`, `ramoops: attached 0x400000@0x5d000000, ecc: 0/0` y `{cxt}: physical address: 0x5d000000, memory size: 400000, record size: 0, console size: 200000`. **Ya no aparece el `failed with error -22`.** Es el primer cambio hecho por el usuario a la configuración de arranque, y confirma la causa del hallazgo #18 (el parche de PixelExperience en `fs/pstore/ram.c`).
+23. **El `cmdline` de `boot.img` se une en el MEDIO de la línea final** (con la cabecera v3): en la línea real, `ramoops_memreserve=4M` es el parámetro nº 17, después de lo de `vendor_boot` y antes de los `androidboot.*` que añade el bootloader. La línea sigue terminando cortada: pasa de 940 a **944 caracteres** y el único cambio es `+ ramoops_memreserve=4M` y `− androidboot.cpui` (el último token se pierde al meter 21 caracteres más). Es decir, hay un **límite fijo de ≈ 944 caracteres en lo que se registra** (el `COMMAND_LINE_SIZE` del kernel es 4 096, así que no es el kernel). Para añadir parámetros al arranque: **ponerlos en `boot.img`, que caen antes del corte**. **[VERIFICAR]** quién impone el límite.
+24. **`record_size=0`:** con `ramoops_memreserve` el parche reparte la memoria a mitades (consola 2 MiB + `pmsg` 2 MiB) y deja `record_size` en 0. Se guardará la **consola** (donde queda el mensaje de un *panic*) y `pmsg`, pero **no los volcados de *oops*** que sí guardaba el kernel de fábrica (`record_size=524288`). Es suficiente para depurar.
+25. **`ramoops` se registra más tarde con nuestro kernel:** `pstore: Registered ramoops` a los **0,250 s**, frente a los 0,0886 s del kernel de fábrica. Los mensajes anteriores a 0,25 s de un arranque no estarían en `pstore`.
+26. **Un segundo arranque idéntico es casi igual al primero:** `<3>` 1 225 (antes 1 205), `<4>` 696 (676), `<6>` 4 578 (4 417), 404 `<3>` sin la charla de hardware (antes 558) y 121 denegaciones de SELinux (113), en 153 s de registro (antes 108 s). Las diferencias son de ventana de tiempo, no del cambio.
 
 ## Evidencias
 
@@ -90,6 +95,14 @@ Las líneas de `pstore`/`ramoops` (165-168), 11 090 mensajes de nivel `<3>`, **7
 `fastboot boot` con `OKAY`, `kernel en marcha: 4.19.297-uvite`, el `bugreport` de 16 272 337 bytes, la prueba de fugas a 0 y el resumen del registro.
 ![Captura del dmesg con el kernel 4.19.297-uvite](evidencias/03-captura-del-dmesg-con-kernel-uvite.png)
 
+**04 — `pstore` funciona con `ramoops_memreserve=4M` (hallazgos #22 y #24)**
+`grep` sobre `logs/08-dmesg-ramoops.txt`: `msm_reserve_ramoops_memory addr=5d000000,size=400000`, `console [pstore-1] enabled`, `Registered ramoops as persistent store backend` y `attached 0x400000@0x5d000000`.
+![pstore funcionando con ramoops_memreserve](evidencias/04-pstore-funciona-con-ramoops-memreserve.png)
+
+**05 — Construir la imagen con el parámetro, arrancarla y capturar (hallazgos #22 y #23)**
+`mkbootimg --cmdline 'ramoops_memreserve=4M'`, `command line args: ramoops_memreserve=4M`, `fastboot boot` con `OKAY` y el resumen del script con la prueba de fugas a 0.
+![Imagen con cmdline y captura](evidencias/05-boot-lab-ramoops-cmdline-y-captura.png)
+
 ## Pendientes
 
 - [x] Paso 1: `adb bugreport` con el kernel de fábrica (16 MB, en `backup/`).
@@ -97,7 +110,8 @@ Las líneas de `pstore`/`ramoops` (165-168), 11 090 mensajes de nivel `<3>`, **7
 - [x] Paso 3 (análisis del mentor): cmdline real, `pstore`/`ramoops` activo, `earlycon` inerte, charla de la batería a nivel ERR.
 - [x] Paso 3 (el usuario): búsquedas con `grep` en `logs/08-dmesg-fabrica.txt`: 11 090 `<3>` → 776 sin batería.
 - [x] Paso 4: `dmesg` con tu kernel capturado y comparado (misma ventana de 108 s): `pstore` NO funciona con nuestro kernel; hay errores de audio (DMIC) y de Elliptic solo en el nuestro.
-- [ ] Paso 5: hacer funcionar `pstore` en nuestro kernel añadiendo `ramoops_memreserve=4M` a la línea de comandos de `boot-lab.img` (sin recompilar).
+- [x] Paso 5: `pstore` funciona con nuestro kernel añadiendo `ramoops_memreserve=4M` a la línea de comandos de `boot-lab.img` (sin recompilar).
+- [ ] Paso 6: comprobar que `pstore` GUARDA: reiniciar en caliente con la misma imagen y leer `LAST KMSG` (debe traer la consola del arranque anterior).
 - [ ] Probar el micrófono (grabar un audio) con nuestro kernel.
 - [x] Paso 5: ¿`ramoops` en el DTB de fábrica? **Sí**: `attached 0x400000@0x5d000000` (hallazgo #7). No hizo falta descompilar el DTB.
 - [ ] (Módulo 13) Provocar un *panic* controlado y leerlo desde `pstore`: requiere root (`echo c > /proc/sysrq-trigger`).
