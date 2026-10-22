@@ -48,6 +48,12 @@ export KOUT="$HOME/Escritorio/Mobil/out-px"
 source artifacts/build-env.sh                  # define $LAB y la función kmake (solo vive en esa terminal)
 kmake M="$LAB/modulos/hello_lab" modules 2>&1 | tail -15
 ls -l modulos/hello_lab/
+
+# Paso 2: inspeccionar el .ko (solo lectura)
+file modulos/hello_lab/hello_lab.ko
+modinfo modulos/hello_lab/hello_lab.ko
+tools/clang-r383902/bin/llvm-nm modulos/hello_lab/hello_lab.ko | grep -E " (T|U|D) "
+tools/clang-r383902/bin/llvm-objdump -d --section=.init.text modulos/hello_lab/hello_lab.ko
 ```
 
 ## Hallazgos reales
@@ -58,6 +64,9 @@ ls -l modulos/hello_lab/
 4. **Resultado de la compilación (Paso 1):** `CC [M] …/hello_lab.o`, `Building modules, stage 2.`, `MODPOST 1 modules`, `CC …/hello_lab.mod.o`, `LD [M] …/hello_lab.ko`. Se generaron `hello_lab.ko` (**30 168 bytes**), `hello_lab.o` (5 040), `hello_lab.mod.o` (26 720), `hello_lab.mod.c` (759), `modules.order` (68) y `Module.symvers` (**0 bytes**: el módulo no exporta ningún símbolo). Las salidas están ignoradas por `modulos/.gitignore`; solo el `.c` y el `Makefile` se versionan.
 5. **Lo que lleva por dentro el `.ko` (comprobado por el mentor sobre una copia, 30 424 B por la ruta más larga):** `file` → `ELF 64-bit LSB relocatable, ARM aarch64 … with debug_info, not stripped`; `modinfo` → `license: GPL`, `author: fabian`, `description: Laboratorio: primer modulo`, **`vermagic: 4.19.297-uvite SMP preempt mod_unload modversions aarch64`** (exactamente el predicho), `name: hello_lab`, `depends:` vacío. Secciones: `.init.text` (0x20 = 32 B), `.exit.text` (0x1c = 28 B), `.modinfo` (0x9c), `.rodata.str1.1` (0x49, los textos), `.gnu.linkonce.this_module` (0x340 = 832 B, la `struct module`) y `__versions` (0x80, los CRC de los símbolos que importa). Símbolos: `T init_module` y `T cleanup_module` (los nombres reales que `module_init`/`module_exit` dan a tus dos funciones), `D __this_module` y **`U printk`**: la única función que no es suya y que el kernel resolverá al cargarlo.
 6. **`init_module` en ARM64, 8 instrucciones (32 B):** `stp x29, x30, [sp, #-16]!` (guarda el registro de marco y el de retorno), `mov x29, sp`, `adrp x0, #0` y `add x0, x0, #0` (cargan la dirección del texto en `x0`, el primer argumento; los ceros se rellenan al cargar el módulo mediante las reubicaciones de `.rela.init.text`), `bl #0` (la llamada a `printk`, con su destino también por reubicar), `mov w0, wzr` (`return 0`), `ldp x29, x30, [sp], #16` y `ret`. Es la teoría del módulo 3 (argumentos en `x0`…, resultado en `w0`, `bl` y el registro de enlace `x30`) delante de código tuyo.
+7. **El usuario abrió su `.ko` (Paso 2) y todo coincide con lo previsto:** `file` → `ELF 64-bit LSB relocatable, ARM aarch64 … BuildID[xxHash]=6b6d32c8f41a117f, with debug_info, not stripped`; `modinfo` → `license GPL`, `author fabian`, `description Laboratorio: primer modulo`, **`vermagic 4.19.297-uvite SMP preempt mod_unload modversions aarch64`**, `name hello_lab`, `depends` vacío; `llvm-nm` → `D __this_module`, `T cleanup_module`, `T init_module`, **`U printk`**; el desensamblado de `.init.text` tiene **8 instrucciones** (`stp x29,x30,[sp,#-16]!`, `mov x29,sp`, `adrp x0,#0`, `add x0,x0,#0`, **`bl #0 <init_module+0x10>`**, `mov w0,wzr`, `ldp x29,x30,[sp],#16`, `ret`). Las preguntas del mentor: `init_module` tiene 8 instrucciones y la que llama a `printk` es el `bl` de `0x10`, con destino por reubicar (por eso `printk` es `U`).
+8. **Lo que ocurriría al cargarlo:** el kernel compara el `vermagic` con el suyo (si no coincide, rechaza el módulo), resuelve el `U printk` buscando ese símbolo y comprobando su CRC contra `__versions` (por `MODVERSIONS`), rellena las reubicaciones (`adrp`/`add`/`bl` a cero), y llama a `init_module`. Como no hay `insmod` sin root, se hará mediante la integración *built-in* (Paso 4).
+9. **El módulo con `/proc` (versión del Paso 3) compila sin avisos** (comprobado por el mentor en una copia): importa `printk`, `proc_create`, `proc_remove`, `seq_lseek`, `seq_printf`, `seq_puts`, `seq_read`, `single_open` y `single_release`, y su `.ko` pasa a ≈ 137 KB (con la información de depuración de las nuevas estructuras).
 
 ## Evidencias
 
@@ -65,10 +74,18 @@ ls -l modulos/hello_lab/
 Entorno cargado (`kernel:` `kernel-px`, `salida:` `out-px`), `kmake M="$LAB/modulos/hello_lab" modules` con `CC [M]`, `MODPOST` y `LD [M]`, y el `ls` con `hello_lab.ko` de 30 168 bytes.
 ![Compilación de hello_lab.ko](evidencias/01-compilacion-de-hello-lab-ko.png)
 
+**02 — `file`, `modinfo` y `llvm-nm` sobre `hello_lab.ko` (hallazgo #7)**
+`ARM aarch64`, el `vermagic` `4.19.297-uvite SMP preempt mod_unload modversions aarch64`, y los símbolos `T init_module`, `T cleanup_module`, `D __this_module`, `U printk`.
+![file, modinfo y llvm-nm de hello_lab.ko](evidencias/02-inspeccion-file-modinfo-nm-objdump-1.png)
+
+**03 — `init_module` desensamblado en ARM64 (hallazgo #7)**
+Ocho instrucciones: `stp`, `mov`, `adrp`, `add`, `bl` (la llamada a `printk`), `mov w0, wzr`, `ldp` y `ret`.
+![init_module desensamblado en ARM64](evidencias/03-inspeccion-init-module-en-arm64.png)
+
 ## Pendientes
 
 - [x] Paso 1: `hello_lab.c` escrito a mano y compilado como `hello_lab.ko` (30 168 B).
-- [ ] Paso 2: `.ko` inspeccionado (`file`, `modinfo`, `vermagic`).
+- [x] Paso 2: `.ko` inspeccionado (`file`, `modinfo`, `llvm-nm`, `llvm-objdump`).
 - [ ] Paso 3: nodo `/proc/hello_lab` con `seq_file`.
 - [ ] Paso 4: módulo integrado en el kernel y kernel recompilado.
 - [ ] Paso 5: `printk` del módulo visto en el `dmesg` del teléfono.
