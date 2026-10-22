@@ -44,6 +44,12 @@ python3 artifacts/extraer-dmesg.py backup/bugreport-fabrica.zip logs/08-dmesg-fa
 wc -l logs/08-dmesg-fabrica.txt                           # 17398
 grep -c "$(adb get-serialno)" logs/08-dmesg-fabrica.txt   # 0  (prueba de fugas)
 sed -n 3,6p logs/08-dmesg-fabrica.txt | cut -c1-170
+
+# Paso 3: leer el dmesg con grep (todo sobre el archivo, solo lectura)
+grep -n -i -E "pstore|ramoops" logs/08-dmesg-fabrica.txt | head -6 | cut -c1-170
+grep -c "^<3>" logs/08-dmesg-fabrica.txt                                  # 11090
+grep "^<3>" logs/08-dmesg-fabrica.txt | grep -v -E "fg_|nopmi_chg|sm5602|_calculate_battery" | wc -l     # 776
+grep "^<3>" logs/08-dmesg-fabrica.txt | grep -v -E "fg_|nopmi_chg|sm5602|_calculate_battery" | head -8 | cut -c1-150
 ```
 
 ## Hallazgos reales
@@ -58,6 +64,8 @@ sed -n 3,6p logs/08-dmesg-fabrica.txt | cut -c1-170
 8. **La consola temprana de la línea de comandos no hace nada**, tal como se sospechaba: aunque `earlycon=msm_geni_serial,0x4a90000` está en la línea de comandos, el `dmesg` **no contiene ninguna línea `bootconsole` ni de `earlycon`** (coherente con `# CONFIG_SERIAL_MSM_GENI_EARLY_CONSOLE is not set`). Para ver el arranque por UART habría que activarla en nuestro kernel.
 9. **La línea de comandos real del kernel** (ya sin identificadores) es la de `vendor_boot` más lo que añade el bootloader y el DT: `cgroup_disable=pressure rcupdate.rcu_expedited=1 rcu_nocbs=0-7 kpti=off console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x4a90000 androidboot.hardware=qcom … buildvariant=user androidboot.verifiedbootstate=orange androidboot.keymaster=1 androidboot.vbmeta.device=PARTUUID=[TAPADO] androidboot.vbmeta.avb_version=1.0 androidboot.vbmeta.device_state=unlocked androidboot.vbmeta.hash_alg=sha256 androidboot.vbmeta.size=7360 androidboot.vbmeta.digest=7ddb33b4… androidboot.vbmeta.invalidate_on_error=yes androidboot.veritymode=enforcing androidboot.bootdevice=4804000.ufshc androidboot.fstab_suffix=default androidboot.boot_devices=soc/4804000.ufshc androidboot.serialno=[TAPADO] androidboot.cpui`. **Termina cortada** en `androidboot.cpui`: el kernel limita la línea de comandos a un tamaño fijo, y el final (`androidboot.cpuid=…`) se perdió.
 10. **SELinux registra 212 denegaciones (`avc: denied`) en 713 s de funcionamiento**, entre ellas la nuestra: a los 422 s, `comm="ls" name="/" dev="pstore" … scontext=u:r:shell:s0`, es decir, nuestro `ls /sys/fs/pstore` desde `adb shell` (hallazgo #1). Se ven también 754 mensajes de `binder`. El último registro del `dmesg` es el instante 713,5 s.
+11. **Filtrando la charla de la batería, de los 11 090 mensajes `<3>` quedan 776** (comprobado por el usuario con `grep -v`). Y esos 776 siguen siendo en su mayoría charla: el monitor del cargador (`bq…_monitor_workfunc`, 139; `bq…_usb_changed_workfunc`, 80) y `USBPD-PM` (152). Por tiempo: **288** en los primeros 5 s (arranque del kernel), 130 entre los 5 y 30 s y **358** después de los 30 s. Los errores genuinos de arranque son unas pocas familias: `OF: reserved mem: OVERLAP DETECTED!` y `disp_rdump_region@5c000000 … overlaps with cont_splash_region@5c000000` (dos regiones de memoria reservada del DT de Xiaomi se solapan: un error de su Device Tree, inofensivo), `Unable to find DT property: qcom,msm-imem-download_mode` y `…emergency_download_mode` (el DT no define las propiedades del modo de volcado de memoria), `Minidump: Entry name already exist`, `msm_mem_dump soc:mem_dump: Mini dump entry failed`, `OF: graph: no port node found in /soc/cti@…` (12), `ufshcd_slave_configure` y mensajes de `ipa`. **Estos son la línea base con el kernel de fábrica** para comparar con el de PixelExperience (Paso 4).
+12. **Una prueba de captura automática** (`artifacts/capturar-dmesg.sh <etiqueta>`): espera a que Android termine de arrancar, genera el `bugreport` en `backup/`, extrae el `dmesg` limpio a `logs/08-dmesg-<etiqueta>.txt`, hace la **prueba de fugas** (serial, `PARTUUID`, UUID, 15 dígitos, MAC) y **borra la salida si encuentra alguna**.
 
 ## Evidencias
 
@@ -65,12 +73,16 @@ sed -n 3,6p logs/08-dmesg-fabrica.txt | cut -c1-170
 `extraer-dmesg.py` produce `logs/08-dmesg-fabrica.txt` de 17 396 líneas (17 398 con `wc`), la prueba de fugas da `0` y se ven las primeras líneas (`Booting Linux`, `Linux version 4.19.157-perf-gcb1ffc010755`, `Machine model: … SPES KHAJE IDP nopmi`).
 ![Extracción del dmesg y prueba de fugas](evidencias/01-extraer-dmesg-y-prueba-de-fugas.png)
 
+**02 — Leer el `dmesg` con `grep` (hallazgos #7 y #11)**
+Las líneas de `pstore`/`ramoops` (165-168), 11 090 mensajes de nivel `<3>`, **776** tras quitar la batería y los primeros 8: `OF: reserved mem: OVERLAP DETECTED!`, `disp_rdump_region … overlaps with cont_splash_region`, `Unable to find DT property: qcom,msm-imem-download_mode`, `Minidump: Entry name already exist`.
+![grep sobre el dmesg de fábrica](evidencias/02-grep-errores-reales-del-kernel-de-fabrica.png)
+
 ## Pendientes
 
 - [x] Paso 1: `adb bugreport` con el kernel de fábrica (16 MB, en `backup/`).
 - [x] Paso 2: `dmesg` y `LAST KMSG` extraídos y sin datos personales (`logs/08-dmesg-fabrica.txt`, prueba de fugas = 0).
 - [x] Paso 3 (análisis del mentor): cmdline real, `pstore`/`ramoops` activo, `earlycon` inerte, charla de la batería a nivel ERR.
-- [ ] Paso 3 (el usuario): repetir las búsquedas con `grep` en `logs/08-dmesg-fabrica.txt` para familiarizarse.
+- [x] Paso 3 (el usuario): búsquedas con `grep` en `logs/08-dmesg-fabrica.txt`: 11 090 `<3>` → 776 sin batería.
 - [ ] Paso 4: `dmesg` con tu kernel y comparación.
 - [x] Paso 5: ¿`ramoops` en el DTB de fábrica? **Sí**: `attached 0x400000@0x5d000000` (hallazgo #7). No hizo falta descompilar el DTB.
 - [ ] (Módulo 13) Provocar un *panic* controlado y leerlo desde `pstore`: requiere root (`echo c > /proc/sysrq-trigger`).
