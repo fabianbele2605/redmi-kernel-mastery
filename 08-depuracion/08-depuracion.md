@@ -1,7 +1,7 @@
 # Módulo 8 — Depuración: ver lo que dice el kernel
 
-- Estado: En progreso
-- Fecha: 2026-10-22
+- Estado: Completado
+- Fecha: 2026-10-22 (cierre 2026-10-22)
 - Teléfono: Redmi Note 11 `spes`, ROM `user` (Android 13, MIUI `V14.0.5.0.TGCMIXM`), bootloader desbloqueado, kernel de fábrica en marcha (`4.19.157-perf-gcb1ffc010755`)
 - Objetivo: poder **leer el registro del kernel** (`dmesg`) y el del arranque anterior (`pstore`) en una ROM de usuario sin root, para saber qué dice el kernel cuando algo falla. Es la base del Módulo 9 (`printk` de tu propio módulo).
 
@@ -80,6 +80,11 @@ grep "^<3>" logs/08-dmesg-fabrica.txt | grep -v -E "fg_|nopmi_chg|sm5602|_calcul
 24. **`record_size=0`:** con `ramoops_memreserve` el parche reparte la memoria a mitades (consola 2 MiB + `pmsg` 2 MiB) y deja `record_size` en 0. Se guardará la **consola** (donde queda el mensaje de un *panic*) y `pmsg`, pero **no los volcados de *oops*** que sí guardaba el kernel de fábrica (`record_size=524288`). Es suficiente para depurar.
 25. **`ramoops` se registra más tarde con nuestro kernel:** `pstore: Registered ramoops` a los **0,250 s**, frente a los 0,0886 s del kernel de fábrica. Los mensajes anteriores a 0,25 s de un arranque no estarían en `pstore`.
 26. **Un segundo arranque idéntico es casi igual al primero:** `<3>` 1 225 (antes 1 205), `<4>` 696 (676), `<6>` 4 578 (4 417), 404 `<3>` sin la charla de hardware (antes 558) y 121 denegaciones de SELinux (113), en 153 s de registro (antes 108 s). Las diferencias son de ventana de tiempo, no del cambio.
+27. **PRUEBA DE PERSISTENCIA: `pstore` guarda de verdad (Paso 6).** Con la misma imagen (`boot-lab-ramoops.img`), un reinicio en caliente (`adb reboot bootloader` + `fastboot boot`) y `bash artifacts/capturar-dmesg.sh ramoops2`, la sección `LAST KMSG` pasó de **3 líneas a 13 702** (el `bugreport` entero tiene 21 878). Empieza como un arranque (`Booting Linux on physical CPU 0x0000000000`, `Linux version 4.19.297-uvite (fabian@…)`, `Machine model: … SPES KHAJE IDP nopmi`, `ramoops: msm_reserve_ramoops_memory addr=5d000000,size=400000`) y es **el registro de la sesión anterior**: la sección de `dmesg` de la sesión actual llega a 241,8 s y `LAST KMSG` a **2 661,6 s (≈ 44 min)**, que es lo que estuvo encendido el arranque previo antes de reiniciarlo. Prueba de fugas: 0 en todo.
+28. **Y termina con el comando que se le dio al teléfono:** `init: reboot-bootloader: Error writing bootloader_message: Bootloader command pending.` (t=2655,3), **`reboot: Restarting system with command 'bootloader'`** (t=2661,5), el apagado ordenado de los controladores (`sm_fg_shutdown(3696): sm fuel gauge driver shutdown!`, `aw87xxx_i2c_shutdown` de los dos amplificadores Awinic, `rt_regmap_cache_reload`), **`Going down for restart now`** y **`Forcing a warm reset of the system`** (t=2661,6). Si el kernel hubiera entrado en *panic*, su mensaje habría quedado en el mismo sitio. Es la demostración de que `pstore` sirve para depurar fallos.
+29. **`f2fs` revela cuándo se formateó `/data`:** en la sesión anterior, `fsck.f2fs: Info: MKFS version "4.19.157-perf-gcb1ffc010755 #1 SMP PREEMPT Tue Nov 28 05:56:27 UTC 2023"` y `FSCK version from "4.19.297-uvite"`: la partición de datos (`dm-40`, 104 715 MB, `Found nat_bits in checkpoint`, `Mounted with checkpoint version = 48d232d8`) la creó el kernel de fábrica (el reinicio de fábrica del desbloqueo) y la comprueba el nuestro. No es un aviso: son las versiones del que formateó y del que comprueba. Además `fsck.f2fs: Info: not exist /proc/version!`.
+30. **Revisión de privacidad de los tres registros nuevos** (`08-dmesg-uvite.txt` 6 915 líneas, `08-dmesg-ramoops.txt` 7 156 y `08-dmesg-ramoops2.txt` 21 878): 0 apariciones de SSID, números `+57`, nombres, contraseñas o IMSI/ICCID. Las únicas coincidencias son falsos positivos: `dm-devel@redhat.com`, `memory.fbo.native@1.0-service.rc` y números de versión de firmware (`5.2.05.23`, `2.0.0.10`) con forma de IP. Cada archivo pasó la prueba de fugas del script (serial, `PARTUUID`, UUID, 15 dígitos, MAC).
+31. **Resumen del módulo — lo que se aprendió:** (1) en una ROM `user` el usuario `shell` no puede leer `dmesg` ni `pstore`, pero `adb bugreport` sí lo da sin root, y tarda de 1 a 4 minutos (**no se interrumpe**); (2) el `.zip` contiene datos muy personales y **nunca se publica**; solo se extrae la sección del kernel con `extraer-dmesg.py`, que tapa serial, MAC, IMEI, `PARTUUID` y UUID, y **siempre con prueba de fugas leyendo el resultado**; (3) el nivel de un mensaje (`<3>`) lo elige el autor del controlador: 11 090 «errores» de fábrica eran charla de la batería; (4) con la misma ventana de tiempo, el kernel de PixelExperience tiene más errores reales (558 contra 365): el audio (DMIC), el sensor Elliptic y el USB; (5) `pstore`/`ramoops` ya funcionaba en fábrica (DT, `0x5d000000`, 4 MiB) pero **no en nuestro kernel**, por un parche de `fs/pstore/ram.c` que exige `ramoops_memreserve=<tamaño>`; (6) se arregló **sin recompilar**, poniéndolo en el `cmdline` de `boot.img` (cae en el medio de la línea final); (7) y se **demostró** que guarda: un reinicio en caliente dejó 13 702 líneas del arranque anterior, terminando en `reboot: Restarting system with command 'bootloader'`. Desde ahora, **la imagen por defecto para probar es `artifacts/px/boot-lab-ramoops.img`.**
 
 ## Evidencias
 
@@ -103,15 +108,24 @@ Las líneas de `pstore`/`ramoops` (165-168), 11 090 mensajes de nivel `<3>`, **7
 `mkbootimg --cmdline 'ramoops_memreserve=4M'`, `command line args: ramoops_memreserve=4M`, `fastboot boot` con `OKAY` y el resumen del script con la prueba de fugas a 0.
 ![Imagen con cmdline y captura](evidencias/05-boot-lab-ramoops-cmdline-y-captura.png)
 
+**06 — Prueba de persistencia: `LAST KMSG` pasa de 3 a 13 702 líneas (hallazgo #27)**
+`fastboot boot` de `boot-lab-ramoops.img`, `capturar-dmesg.sh ramoops2` con la prueba de fugas a 0, y `sed -n '/LAST KMSG/,$p' … | wc -l` = `13702`.
+![Prueba de persistencia de pstore](evidencias/06-prueba-de-persistencia-last-kmsg-13702-lineas.png)
+
+**07 — `LAST KMSG` empieza con el arranque anterior (hallazgo #27)**
+`Booting Linux on physical CPU`, `Linux version 4.19.297-uvite (fabian@…)`, `Machine model: … SPES KHAJE IDP nopmi` y `ramoops: msm_reserve_ramoops_memory addr=5d000000,size=400000`.
+![LAST KMSG con el arranque anterior](evidencias/07-last-kmsg-empieza-con-el-arranque-anterior.png)
+
 ## Pendientes
 
 - [x] Paso 1: `adb bugreport` con el kernel de fábrica (16 MB, en `backup/`).
-- [x] Paso 2: `dmesg` y `LAST KMSG` extraídos y sin datos personales (`logs/08-dmesg-fabrica.txt`, prueba de fugas = 0).
-- [x] Paso 3 (análisis del mentor): cmdline real, `pstore`/`ramoops` activo, `earlycon` inerte, charla de la batería a nivel ERR.
-- [x] Paso 3 (el usuario): búsquedas con `grep` en `logs/08-dmesg-fabrica.txt`: 11 090 `<3>` → 776 sin batería.
-- [x] Paso 4: `dmesg` con tu kernel capturado y comparado (misma ventana de 108 s): `pstore` NO funciona con nuestro kernel; hay errores de audio (DMIC) y de Elliptic solo en el nuestro.
-- [x] Paso 5: `pstore` funciona con nuestro kernel añadiendo `ramoops_memreserve=4M` a la línea de comandos de `boot-lab.img` (sin recompilar).
-- [ ] Paso 6: comprobar que `pstore` GUARDA: reiniciar en caliente con la misma imagen y leer `LAST KMSG` (debe traer la consola del arranque anterior).
-- [ ] Probar el micrófono (grabar un audio) con nuestro kernel.
-- [x] Paso 5: ¿`ramoops` en el DTB de fábrica? **Sí**: `attached 0x400000@0x5d000000` (hallazgo #7). No hizo falta descompilar el DTB.
+- [x] Paso 2: `dmesg` y `LAST KMSG` extraídos sin datos personales (`logs/08-dmesg-fabrica.txt`).
+- [x] Paso 3: lectura con `grep` del `dmesg` de fábrica (11 090 `<3>` → 776 → 370 sin charla de hardware).
+- [x] Paso 4: `dmesg` con nuestro kernel capturado y comparado en la misma ventana de 108 s.
+- [x] Paso 5: `pstore` funciona con nuestro kernel con `ramoops_memreserve=4M` en el `cmdline` (sin recompilar).
+- [x] Paso 6: prueba de persistencia: `LAST KMSG` trae 13 702 líneas del arranque anterior y termina en `reboot: Restarting system with command 'bootloader'`.
+- [ ] Probar el micrófono con nuestro kernel (los errores de rutas DMIC del audio de PixelExperience lo hacen sospechoso).
 - [ ] (Módulo 13) Provocar un *panic* controlado y leerlo desde `pstore`: requiere root (`echo c > /proc/sysrq-trigger`).
+- [ ] Averiguar quién impone el recorte de ≈ 944 caracteres de la línea de comandos registrada (¿bootloader, `printk`, `dumpstate`?).
+- [ ] Probar datos móviles y SIM con el kernel nuevo (falta una SIM puesta).
+- [ ] Verificar la función exacta de las 8 funciones de MIUI que no están en PX.
