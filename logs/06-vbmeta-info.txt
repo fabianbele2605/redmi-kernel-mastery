@@ -1,0 +1,80 @@
+Minimum libavb version:   1.0
+Header Block:             256 bytes
+Authentication Block:     320 bytes
+Auxiliary Block:          3776 bytes
+Public key (sha1):        b2a02f1e56e366d727a1a8e089762fe0b91bbc84
+Algorithm:                SHA256_RSA2048
+Rollback Index:           0
+Flags:                    0
+Rollback Index Location:  0
+Release String:           'avbtool 1.2.0'
+Descriptors:
+    Chain Partition descriptor:
+      Partition Name:          vbmeta_system
+      Rollback Index Location: 2
+      Public key (sha1):       b2a02f1e56e366d727a1a8e089762fe0b91bbc84
+    Prop: com.android.build.boot.fingerprint -> 'Redmi/spes/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys'
+    Prop: com.android.build.boot.os_version -> '12'
+    Prop: com.android.build.boot.security_patch -> '2023-12-01'
+    Prop: com.android.build.boot.security_patch -> '2023-12-01'
+    Prop: com.android.build.vendor_boot.fingerprint -> 'Redmi/spes/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys'
+    Prop: com.android.build.vendor.fingerprint -> 'Redmi/spes/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys'
+    Prop: com.android.build.vendor.os_version -> '12'
+    Prop: com.android.build.vendor.security_patch -> '2023-12-01'
+    Prop: com.android.build.vendor.security_patch -> '2023-12-01'
+    Prop: com.android.build.mi_ext.os_version -> '13'
+    Prop: com.android.build.mi_ext.fingerprint -> 'Xiaomi/spes_global/missi:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys'
+    Prop: com.android.build.mi_ext.security_patch -> '2023-12-01'
+    Prop: com.android.build.mi_ext.security_patch -> '2023-12-01'
+    Prop: com.android.build.dtbo.fingerprint -> 'Redmi/spes/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys'
+    Hash descriptor:
+      Image Size:            38641664 bytes
+      Hash Algorithm:        sha256
+      Partition Name:        boot
+      Salt:                  5b5d76e2e2e308ccd2f0126b6c5d3e2fefe04038745b652ecd3f72c71bb311a0
+      Digest:                60291945b91c009b50e0452eef753391d44d4d7880d69667f2a0b0d73d08ac3e
+      Flags:                 0
+    Hash descriptor:
+      Image Size:            4167553 bytes
+      Hash Algorithm:        sha256
+      Partition Name:        dtbo
+      Salt:                  89daa1fcfc19da868cdae8ffb8026e861a011b5d540c84d9688a67ef70e88792
+      Digest:                9508c2ad3651133b4ab391fd1318e238ddebba1af4b0558fd24227275c2fff8b
+      Flags:                 0
+    Hash descriptor:
+      Image Size:            5607424 bytes
+      Hash Algorithm:        sha256
+      Partition Name:        vendor_boot
+      Salt:                  30a35be4c720a18eb1fede14198aa514ad46f1353a7b9d2d2b1f20c998996507
+      Digest:                b2a38035b60242265408ff55b014296155dced9a7ec02946f1461c0b8029789a
+      Flags:                 0
+    Hashtree descriptor:
+      Version of dm-verity:  1
+      Image Size:            2347008 bytes
+      Tree Offset:           2347008
+      Tree Size:             24576 bytes
+      Data Block Size:       4096 bytes
+      Hash Block Size:       4096 bytes
+      FEC num roots:         2
+      FEC offset:            2371584
+      FEC size:              24576 bytes
+      Hash Algorithm:        sha256
+      Partition Name:        mi_ext
+      Salt:                  567dfc8070520761fa7e46eb3e4bb793e50ce40a5189fd2e28c005a9a3c7fc91
+      Root Digest:           7e54fd8fdc9edb471cdc3f08d5eed654197b3a1bd6ebb23d8a28ae38ac5442ef
+      Flags:                 0
+    Hashtree descriptor:
+      Version of dm-verity:  1
+      Image Size:            1202577408 bytes
+      Tree Offset:           1202577408
+      Tree Size:             9474048 bytes
+      Data Block Size:       4096 bytes
+      Hash Block Size:       4096 bytes
+      FEC num roots:         2
+      FEC offset:            1212051456
+      FEC size:              9584640 bytes
+      Hash Algorithm:        sha1
+      Partition Name:        vendor
+      Salt:                  2720788998ec8f9e0083def3524e82834260cb25
+      Root Digest:           33330c3d90ff61d5a3f68d5350b1a35dd5cd6693
+      Flags:                 0

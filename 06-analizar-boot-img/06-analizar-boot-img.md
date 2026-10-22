@@ -54,6 +54,11 @@ zcat backup/stock-unpacked/vendor_boot/vendor_ramdisk | cpio -tv
 zcat backup/stock-unpacked/boot/ramdisk | cpio -t | wc -l          # 885 entradas
 zcat backup/stock-unpacked/boot/ramdisk | cpio -t | head -30
 zcat backup/stock-unpacked/boot/ramdisk | cpio -t | grep -c "\.ko$"   # 0
+
+# Paso 5: verificación de arranque (AVB). avbtool.py de AOSP, misma etiqueta que mkbootimg
+mkdir -p tools/avb
+curl -sL "https://android.googlesource.com/platform/external/avb/+/refs/tags/platform-tools-34.0.4/avbtool.py?format=TEXT" | base64 -d > tools/avb/avbtool.py
+python3 tools/avb/avbtool.py info_image --image backup/stock/vbmeta.img | tee logs/06-vbmeta-info.txt
 ```
 
 ## Hallazgos reales
@@ -71,6 +76,12 @@ zcat backup/stock-unpacked/boot/ramdisk | cpio -t | grep -c "\.ko$"   # 0
 11. **El ramdisk de `boot` tiene 885 entradas (≈ 38,4 MB) y es de tipo «recovery en boot»:** además de `init`, `system/bin` (218 entradas), `system/lib64` (74) y `system/etc` (42), trae `init.recovery.hardware.rc`, `init.recovery.qcom.rc`, `miui.factoryreset.rc`/`.fstab`, `first_stage_ramdisk/avb/{q,r,s}-gsi.avbpubkey` (claves de las imágenes genéricas de Google), `verity_key`, `vendor_file_contexts` y `default.prop`. El teléfono no tiene partición `recovery`; parece que el recovery vive en este ramdisk. **[VERIFICAR]** cómo decide el bootloader entre arrancar Android o el recovery (parámetros añadidos en tiempo de arranque).
 12. **Ninguno de los dos ramdisks trae módulos del kernel:** `cpio -t | grep -c "\.ko$"` da **0**. Coherente con la configuración del teléfono, que solo define **5** módulos (`=m`): `MSM_RDBG`, `DVB_MPQ`, `DVB_MPQ_DEMUX`, `LCD_CLASS_DEVICE`, `EXFAT_FS`; la de PixelExperience define 4 (`TCP_CONG_BIC`, `LCD_CLASS_DEVICE`, `RMNET_PERF`, `RMNET_SHS`). Ambos kernels son prácticamente **monolíticos**: casi todo está integrado en la imagen. La preocupación del Módulo 5 (#18) sobre módulos del fabricante firmados queda muy atenuada.
 13. **El kernel nuevo tiene lo que necesita el arranque:** las opciones que exige ese `fstab` y Android (`BLK_DEV_DM`, `DM_VERITY`, `DM_CRYPT`, `EXT4_FS`, `F2FS_FS`, `OVERLAY_FS`, `FS_ENCRYPTION`, `ANDROID_BINDER_IPC`, `SECURITY_SELINUX`) están en `y` en `out-px/.config` y **ninguna aparece entre las 222 diferencias** con el teléfono: son iguales. Las diferencias que tocan almacenamiento son `UFSFEATURE` (solo el teléfono; función propia de Xiaomi para UFS), `EXFAT_FS` (`m` en el teléfono, integrado en PX) y `CORESIGHT` (apagado en PX). Ninguna es crítica para arrancar. **[VERIFICAR]** en el Módulo 7.
+14. **`vbmeta.img` — verificación ACTIVA y firma RSA-2048:** `Algorithm: SHA256_RSA2048`, **`Flags: 0`** (verificación y árboles hash habilitados), `Rollback Index: 0`, `Release String: 'avbtool 1.2.0'`, clave pública sha1 `b2a02f1e56e366d727a1a8e089762fe0b91bbc84`. Se lee con el `avbtool.py` oficial de AOSP, que ocupa **201 397 bytes** descodificado (los 268 532 que dije antes eran el tamaño del texto en base64, no el del script).
+15. **Qué cubre `vbmeta`:** tres **hash descriptors** (la imagen entera, con su sal y su SHA-256): `boot` (38 641 664 B), `dtbo` (4 167 553 B) y `vendor_boot` (5 607 424 B); dos **hashtree descriptors** (dm-verity por bloques, con FEC): `vendor` (hash sha1, raíz `33330c3d…`) y `mi_ext` (sha256, raíz `7e54fd8f…`); y una **Chain Partition** hacia `vbmeta_system` (`Rollback Index Location: 2`, misma clave `b2a02f1e…`), que a su vez firma `system`, `system_ext` y `product`.
+16. **Propiedades firmadas dentro de `vbmeta`:** `boot.os_version '12'`, `vendor.os_version '12'` y `mi_ext.os_version '13'`; todas con `security_patch '2023-12-01'` y la fingerprint `Redmi/spes/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys` (la de `mi_ext` es `Xiaomi/spes_global/missi:13/…`). **El sistema es Android 13 sobre un `vendor` de Android 12**: explica por qué el código publicado es el de Android 11 (`spes-r-oss`) y por qué un kernel 4.19 de esa época es compatible con los controladores (HAL) del `vendor`.
+17. **El tamaño que declara `vbmeta` para `boot` (38 641 664 B) es exactamente** `4096` (cabecera) `+` `18 862 488` (kernel) redondeado a páginas de 4 096 B `+` `19 769 994` (ramdisk) redondeado: es el `boot.img` sin el relleno hasta los 96 MiB de la partición.
+18. **La receta reproduce el `boot.img` de fábrica byte por byte** (comprobado por el mentor en una carpeta temporal): `mkbootimg --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel …/kernel --ramdisk …/ramdisk --cmdline ''` da un archivo de **38 641 664 bytes** que `cmp -n 38641664` declara **idéntico** al original. Además `SHA256(salt || imagen)` da `60291945b91c009b50e0452e…`, el `Digest` del descriptor de `boot` en `vbmeta`, tanto para el original como para el reconstruido. Prueba que entendemos el formato y que la receta del Módulo 7 es la correcta. El script `artifacts/verificar-boot-avb.py` repite esa comprobación con cualquier imagen.
+19. **Consecuencia para el Módulo 7:** nuestro `boot.img` (kernel nuevo) tendrá un hash distinto y **no coincidirá con `vbmeta`**. Con el bootloader **desbloqueado** (`orange`), AVB avisa pero deja arrancar; con él bloqueado, no arrancaría. Solo cambia `boot`: `vendor_boot`, `dtbo` y `vbmeta` seguirán siendo los de fábrica, y sus hashes coincidirán. Con nuestro `Image.gz`, el `boot.img` pesaría 37 396 480 B (35,7 MiB de 96) frente a los 38 641 664 B del original. **[VERIFICAR]** que el bootloader acepta `fastboot boot` de una imagen cuyo hash no coincide.
 
 ## Evidencias
 
@@ -94,6 +105,18 @@ zcat backup/stock-unpacked/boot/ramdisk | cpio -t | grep -c "\.ko$"   # 0
 `init`, `init.recovery.*.rc`, `miui.factoryreset.*` y `grep -c "\.ko$"` = 0.
 ![Ramdisk de boot sin módulos del kernel](evidencias/05-ramdisk-boot-contenido-y-cero-ko.png)
 
+**06 — `vbmeta`: cabecera y flags (hallazgos #14 y #15)**
+`avbtool.py` de 201 397 bytes, `Algorithm: SHA256_RSA2048`, `Flags: 0`, `Rollback Index: 0` y la Chain Partition hacia `vbmeta_system`.
+![Cabecera de vbmeta con Flags 0](evidencias/06-vbmeta-cabecera-flags-0.png)
+
+**07 — `vbmeta`: propiedades y descriptores de `boot` y `dtbo` (hallazgos #15, #16 y #17)**
+`vendor.os_version '12'`, `mi_ext.os_version '13'`, y los *hash descriptors* de `boot` (38 641 664 bytes, `Digest 60291945…`) y `dtbo`.
+![Descriptores de boot y dtbo en vbmeta](evidencias/07-vbmeta-descriptores-boot-dtbo.png)
+
+**08 — `vbmeta`: árboles hash de `mi_ext` y `vendor` (hallazgo #15)**
+`Hashtree descriptor` con dm-verity versión 1, FEC y `Root Digest` de cada partición.
+![Hashtree descriptors de mi_ext y vendor](evidencias/08-vbmeta-hashtree-mi-ext-vendor.png)
+
 ## Pendientes
 
 - [x] Paso 1: `boot.img` desempaquetado, cabecera versión 3.
@@ -101,4 +124,5 @@ zcat backup/stock-unpacked/boot/ramdisk | cpio -t | grep -c "\.ko$"   # 0
 - [x] Paso 3: `vendor_boot.img` desempaquetado: el DTB (5,6 MB) y la línea de comandos viajan ahí.
 - [x] Paso 4: ramdisks listados: `vendor_boot` solo trae el `fstab`; ninguno tiene módulos `.ko`.
 - [ ] Paso 5: comparación con nuestra compilación.
-- [ ] Paso 6: estado de AVB en `vbmeta`.
+- [x] Paso 5: estado de AVB en `vbmeta`: verificación activa (`Flags: 0`), `boot`, `dtbo` y `vendor_boot` cubiertos por hash.
+- [ ] Paso 6: reconstruir `boot.img` con la receta y comprobar `cmp` y el hash AVB (script `artifacts/verificar-boot-avb.py`).
