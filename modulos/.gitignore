@@ -1,0 +1,9 @@
+# salidas de compilación de los módulos (se regeneran; el código fuente sí se versiona)
+*.ko
+*.o
+*.mod.c
+*.mod.o
+.*.cmd
+.tmp_versions/
+Module.symvers
+modules.order
