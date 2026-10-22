@@ -36,20 +36,30 @@ La imagen que probamos (`boot-lab.img`) es el `boot.img` de fábrica con **una s
 ## Práctica guiada
 
 ```bash
-# se completa con los comandos reales ejecutados
+# Paso 1: construir boot-lab.img (receta validada, pero con NUESTRO kernel) y comprobarla en el disco
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel artifacts/px/Image.gz --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline '' -o artifacts/px/boot-lab.img
+ls -l artifacts/px/boot-lab.img                                       # 37396480
+python3 tools/mkbootimg/unpack_bootimg.py --boot_img artifacts/px/boot-lab.img --out backup/stock-unpacked/lab-check
+cmp backup/stock-unpacked/lab-check/ramdisk backup/stock-unpacked/boot/ramdisk && echo "RAMDISK IGUAL AL DE FABRICA"
+python3 artifacts/verificar-boot-avb.py artifacts/px/boot-lab.img     # NO coincide (esperado)
+sha256sum artifacts/px/boot-lab.img | tee logs/07-hash-boot-lab.txt
 ```
 
 ## Hallazgos reales
 
 1. **La conexión se validó antes de empezar:** `adb devices` → `device`; `ro.boot.flash.locked=0`, `ro.boot.verifiedbootstate=orange`, slot `_b`, Android 13, kernel `4.19.157-perf-gcb1ffc010755`, batería 65 %, depuración USB activa. Se usó `sudo adb devices` por costumbre: no hace falta, porque el usuario ya está en `plugdev` y existe `51-android.rules`; solo había un servidor `adb`, el del usuario.
+2. **`boot-lab.img` construida y comprobada (Paso 1):** mide **37 396 480 bytes** (35,7 MiB de los 96 MiB de la partición: cabe de sobra), `unpack_bootimg` la lee como `ANDROID!`, `header version: 3`, `os version 12.0.0`, `os patch level 2023-12`, **`kernel_size: 17619346`** (el de nuestro `Image.gz`) y `ramdisk size: 19769994`; `cmp` confirma que el **ramdisk es idéntico** al de fábrica (`RAMDISK IGUAL AL DE FABRICA`). Solo cambió el kernel. SHA-256: `d8c3f89d2bfcc45b40e31cac38a4f2d3740c4c591958d321aff7fc2587b50806` (`logs/07-hash-boot-lab.txt`).
+3. **Fallo del script `verificar-boot-avb.py` (era del mentor):** el script salía con el error `la imagen mide 37396480 bytes y vbmeta espera al menos 38641664`, porque se escribió suponiendo que la imagen nunca sería más corta que lo que declara `vbmeta`. La nuestra lo es (un kernel más pequeño). Se corrigió rellenando con ceros hasta el tamaño declarado (lo que leería AVB de una partición con relleno) y avisando de ello. Resultado tras la corrección: la imagen de fábrica **coincide** y `boot-lab.img` da `be81f7ababbc093a09b779373553b713f6a001179b9dbd09887e247755052fc0` frente a `60291945b91c009b50e0452e…`: **NO coincide**, como se esperaba. Un hash distinto es el esperado y la primera razón es obvia: la imagen mide 1 245 184 bytes menos que la original.
 
 ## Evidencias
 
-(se curan con "verifica img")
+**01 — `boot-lab.img` construida y comprobada (hallazgos #2 y #3)**
+`ls -l` con 37 396 480 B, cabecera 3 con `kernel_size: 17619346`, `RAMDISK IGUAL AL DE FABRICA`, el error del script antes de corregirlo y el `sha256sum`.
+![boot-lab.img construida y comprobada](evidencias/01-boot-lab-construida-y-comprobada.png)
 
 ## Pendientes
 
-- [ ] Paso 1: `artifacts/boot-lab.img` construida y comprobada.
+- [x] Paso 1: `artifacts/px/boot-lab.img` construida y comprobada (solo cambia el kernel; AVB no coincide, como se esperaba).
 - [ ] Paso 2: teléfono en fastboot con `unlocked: yes`.
 - [ ] Paso 3: `fastboot boot` probado.
 - [ ] Paso 4: si arranca, `uname -r` = `4.19.297-uvite`.

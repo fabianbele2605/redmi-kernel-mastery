@@ -9,7 +9,9 @@ Uso:
     log_vbmeta  salida de `avbtool info_image` (por defecto: logs/06-vbmeta-info.txt)
 
 AVB calcula: SHA256( salt || primeros <Image Size> bytes de la imagen ).
-Solo lee archivos; no modifica nada.
+Si la imagen es MÁS CORTA que <Image Size> (por ejemplo, un kernel más pequeño),
+se rellena con ceros hasta ese tamaño, que es lo que leería AVB de una partición
+con relleno. Solo lee archivos; no modifica nada.
 """
 import hashlib
 import re
@@ -33,12 +35,17 @@ def main():
     tam, salt, esperado = int(m.group(1)), m.group(2), m.group(3)
 
     datos = open(imagen, "rb").read()
+    aviso = ""
     if len(datos) < tam:
-        sys.exit(f"{imagen} mide {len(datos)} bytes y vbmeta espera al menos {tam}")
+        aviso = (f"AVISO: la imagen mide {len(datos)} bytes y vbmeta declara {tam}; "
+                 f"se rellena con {tam - len(datos)} ceros para calcular el hash")
+        datos = datos + bytes(tam - len(datos))
     calculado = hashlib.sha256(bytes.fromhex(salt) + datos[:tam]).hexdigest()
 
     print(f"imagen:      {imagen}")
     print(f"partición:   {particion}   (vbmeta cubre los primeros {tam} bytes)")
+    if aviso:
+        print(aviso)
     print(f"esperado:    {esperado}")
     print(f"calculado:   {calculado}")
     print("RESULTADO:  ", "COINCIDE con vbmeta" if calculado == esperado
