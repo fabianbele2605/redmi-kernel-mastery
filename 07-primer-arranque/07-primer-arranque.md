@@ -51,6 +51,15 @@ fastboot getvar unlocked
 fastboot getvar current-slot
 fastboot getvar max-download-size
 fastboot getvar product
+
+# Paso 3: arranque TEMPORAL (no escribe nada en el teléfono)
+fastboot boot artifacts/px/boot-lab.img
+
+# Paso 4: comprobaciones de solo lectura con el kernel nuevo en marcha
+adb shell uname -r                       # 4.19.297-uvite
+adb shell cat /proc/version
+adb shell getprop sys.boot_completed     # 1
+adb shell getenforce                     # Enforcing
 ```
 
 ## Hallazgos reales
@@ -59,6 +68,11 @@ fastboot getvar product
 2. **`boot-lab.img` construida y comprobada (Paso 1):** mide **37 396 480 bytes** (35,7 MiB de los 96 MiB de la partición: cabe de sobra), `unpack_bootimg` la lee como `ANDROID!`, `header version: 3`, `os version 12.0.0`, `os patch level 2023-12`, **`kernel_size: 17619346`** (el de nuestro `Image.gz`) y `ramdisk size: 19769994`; `cmp` confirma que el **ramdisk es idéntico** al de fábrica (`RAMDISK IGUAL AL DE FABRICA`). Solo cambió el kernel. SHA-256: `d8c3f89d2bfcc45b40e31cac38a4f2d3740c4c591958d321aff7fc2587b50806` (`logs/07-hash-boot-lab.txt`).
 3. **Fallo del script `verificar-boot-avb.py` (era del mentor):** el script salía con el error `la imagen mide 37396480 bytes y vbmeta espera al menos 38641664`, porque se escribió suponiendo que la imagen nunca sería más corta que lo que declara `vbmeta`. La nuestra lo es (un kernel más pequeño). Se corrigió rellenando con ceros hasta el tamaño declarado (lo que leería AVB de una partición con relleno) y avisando de ello. Resultado tras la corrección: la imagen de fábrica **coincide** y `boot-lab.img` da `be81f7ababbc093a09b779373553b713f6a001179b9dbd09887e247755052fc0` frente a `60291945b91c009b50e0452e…`: **NO coincide**, como se esperaba. Un hash distinto es el esperado y la primera razón es obvia: la imagen mide 1 245 184 bytes menos que la original.
 4. **El modo fastboot funciona y confirma el estado (Paso 2):** `fastboot devices` ve el teléfono **sin `sudo`** (la regla `udev` y el grupo `plugdev` del Módulo 1 bastan); `unlocked: yes` (el registro del otro PC decía `no` porque era anterior al desbloqueo del 13 de octubre), `current-slot: b`, `max-download-size: 796917760` (≈ 760 MiB: la imagen de 37 MB cabe de sobra) y `product: spes`. Todas son consultas (`getvar`); no se escribió nada en el teléfono. La captura mostraba el número de serie y se tapó.
+5. **`fastboot boot` aceptó la imagen (Paso 3):** `Sending 'boot.img' (36520 KB) OKAY [0.925s]`, `Booting OKAY [0.320s]`, `Finished. Total time: 1.277s`. Responde dos incógnitas: el bootloader **acepta una imagen de cabecera 3 con `fastboot boot`** y **no la rechaza aunque su hash no coincida con `vbmeta`** (bootloader desbloqueado, estado `orange`). No hubo `FAILED` ni reinicio.
+6. **EL TELÉFONO ARRANCÓ ANDROID CON EL KERNEL COMPILADO POR EL USUARIO.** Comprobado por `adb` después de arrancar: `uname -r` = **`4.19.297-uvite`**; `/proc/version` = `Linux version 4.19.297-uvite (fabian@fabian-HP-255-15-6-inch-G10-Notebook-PC) (Android (6443078 based on r383902) clang version 11.0.1 …)`; `uname -a` = `… #1 SMP PREEMPT Tue Oct 13 22:00:29 -05 2026 aarch64`. El de fábrica era `4.19.157-perf-gcb1ffc010755`. El kernel de PixelExperience (más nuevo, de otra ROM y sin 8 funciones de MIUI) **sí** arranca MIUI con el `vendor_boot`, el DTB y el `dtbo` de fábrica: la incógnita principal del módulo queda resuelta a favor.
+7. **Android quedó completamente funcional:** `sys.boot_completed=1`, `init.svc.zygote=running`, `init.svc.surfaceflinger=running`, SELinux **`Enforcing`**, `ro.boot.verifiedbootstate=orange`, `ro.boot.flash.locked=0`, slot `_b`. `uptime` 1 min con `load average: 17.81` (pico normal de arranque). El kernel expone `wlan0`, `p2p0`, `wifi-aware0`, las interfaces del módem (`rmnet_data0…8`, `rmnet_ipa0`), la pantalla (`/sys/class/drm/card0-DSI-1`, `sde-crtc-0`) y la zona térmica `pm6125-tz` a 37 °C. El `techpack/display` y el controlador WiFi compilados en el Módulo 5 **funcionan**.
+8. **Lo que el usuario `shell` no puede leer en este Android de usuario:** `dmesg` (`klogctl: Operation not permitted`), `/proc/cmdline` y `/proc/bus/input/devices` (`Permission denied`). Es la política normal de una ROM `user`; para ver el registro del kernel hará falta otra vía (Módulo 8: `pstore`/`ramoops`, `logcat`, `bugreport` o root). La línea de comandos se conoce por `vendor_boot` (módulo 6, #7).
+9. **Fue un arranque temporal:** `fastboot boot` no escribió nada; `boot_b` sigue siendo el de fábrica. Al reiniciar el teléfono vuelve el kernel `4.19.157-perf-gcb1ffc010755`.
 
 ## Evidencias
 
@@ -70,10 +84,15 @@ fastboot getvar product
 `fastboot devices`, `unlocked: yes`, `current-slot: b`, `max-download-size: 796917760`, `product: spes`. Número de serie tapado.
 ![Estado del teléfono en modo fastboot](evidencias/02-fastboot-estado-unlocked-yes.png)
 
+**03 — `fastboot boot` acepta la imagen (hallazgo #5)**
+`Sending 'boot.img' (36520 KB) OKAY`, `Booting OKAY`, `Finished. Total time: 1.277s`. Sin errores.
+![fastboot boot de boot-lab.img](evidencias/03-fastboot-boot-okay.png)
+
 ## Pendientes
 
 - [x] Paso 1: `artifacts/px/boot-lab.img` construida y comprobada (solo cambia el kernel; AVB no coincide, como se esperaba).
 - [x] Paso 2: teléfono en fastboot con `unlocked: yes`, slot `b`, `max-download-size` 796917760 y producto `spes`.
-- [ ] Paso 3: `fastboot boot` probado.
-- [ ] Paso 4: si arranca, `uname -r` = `4.19.297-uvite`.
+- [x] Paso 3: `fastboot boot artifacts/px/boot-lab.img` aceptado por el bootloader (`OKAY`) y Android arrancó.
+- [x] Paso 4 (parte 1): `uname -r` = `4.19.297-uvite`, `sys.boot_completed=1`, SELinux Enforcing.
+- [ ] Paso 4 (parte 2): el usuario comprueba en el propio teléfono pantalla, táctil, Wi-Fi, sonido y la versión del kernel en Ajustes; foto como evidencia.
 - [ ] Paso 5: reinicio y regreso al kernel de fábrica.
