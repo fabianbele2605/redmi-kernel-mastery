@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Captura el registro del kernel del teléfono conectado y lo deja listo para versionar.
 #
-# uso: bash artifacts/capturar-dmesg.sh <etiqueta>
-#   etiqueta: nombre corto de la prueba, p. ej. "fabrica" o "uvite"
+# uso: bash artifacts/capturar-dmesg.sh <etiqueta> [zip_existente]
+#   etiqueta:        nombre corto de la prueba, p. ej. "fabrica" o "uvite"
+#   zip_existente:   (opcional) un bugreport .zip ya descargado; si se da, NO se genera
+#                    uno nuevo (útil para repetir el análisis sin esperar)
+#
+# OJO: generar un bugreport en este teléfono tarda de 1 a 4 minutos. No lo interrumpas:
+# si cortas la orden en la laptop, el teléfono sigue generándolo y rechaza el siguiente.
 #
 # Produce:
 #   backup/bugreport-<etiqueta>.zip   (datos personales: NO se publica; la carpeta backup/ está ignorada por Git)
@@ -13,6 +18,7 @@
 set -u
 
 etq="${1:?falta la etiqueta, p. ej.: bash artifacts/capturar-dmesg.sh uvite}"
+zip_existente="${2:-}"
 zip="backup/bugreport-${etq}.zip"
 out="logs/08-dmesg-${etq}.txt"
 
@@ -26,9 +32,16 @@ for _ in $(seq 1 60); do
 done
 echo
 echo "kernel en marcha: $(adb shell uname -r | tr -d '\r')"
-echo "dejando 20 s para que los servicios se asienten..."; sleep 20
 
-adb bugreport "$zip" || { echo "FALLO: adb bugreport"; exit 1; }
+if [ -n "$zip_existente" ]; then
+  [ -f "$zip_existente" ] || { echo "no existe $zip_existente"; exit 1; }
+  zip="$zip_existente"
+  echo "usando el bugreport ya descargado: $zip"
+else
+  echo "dejando 20 s para que los servicios se asienten..."; sleep 20
+  echo "generando el bugreport (1 a 4 minutos; NO lo interrumpas)..."
+  adb bugreport "$zip" || { echo "FALLO: adb bugreport"; exit 1; }
+fi
 python3 artifacts/extraer-dmesg.py "$zip" "$out" || exit 1
 
 # --- prueba de fugas -------------------------------------------------------
