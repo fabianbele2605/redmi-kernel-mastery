@@ -1,7 +1,7 @@
 # Módulo 6 — Analizar el `boot.img` original
 
-- Estado: En progreso
-- Fecha: 2026-10-14
+- Estado: Completado
+- Fecha: 2026-10-14 (cierre 2026-10-22)
 - Imágenes: `backup/stock/` (copiadas de la ROM `V14.0.5.0.TGCMIXM`, verificadas con `sha256sum -c logs/03-hash-stock.txt`: las cinco coinciden)
 - Herramienta: `tools/mkbootimg/unpack_bootimg.py` (AOSP `platform-tools-34.0.4`, módulo 1)
 - Objetivo: entender qué hay dentro de la imagen de arranque de fábrica (kernel, ramdisk, Device Tree, línea de comandos), para decidir **qué piezas reutilizamos** y qué piezas sustituye nuestro kernel en el Módulo 7. Todo se hace sobre archivos en el disco: no hace falta el teléfono.
@@ -55,6 +55,12 @@ zcat backup/stock-unpacked/boot/ramdisk | cpio -t | wc -l          # 885 entrada
 zcat backup/stock-unpacked/boot/ramdisk | cpio -t | head -30
 zcat backup/stock-unpacked/boot/ramdisk | cpio -t | grep -c "\.ko$"   # 0
 
+# Paso 6: reconstruir el boot.img con la receta y comprobar (solo lectura; salida en backup/, ignorada por Git)
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel backup/stock-unpacked/boot/kernel --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline '' -o backup/stock-unpacked/boot-rebuilt.img
+ls -l backup/stock-unpacked/boot-rebuilt.img                          # 38641664
+cmp -n 38641664 backup/stock/boot.img backup/stock-unpacked/boot-rebuilt.img && echo "IDENTICOS"
+python3 artifacts/verificar-boot-avb.py backup/stock-unpacked/boot-rebuilt.img
+
 # Paso 5: verificación de arranque (AVB). avbtool.py de AOSP, misma etiqueta que mkbootimg
 mkdir -p tools/avb
 curl -sL "https://android.googlesource.com/platform/external/avb/+/refs/tags/platform-tools-34.0.4/avbtool.py?format=TEXT" | base64 -d > tools/avb/avbtool.py
@@ -82,6 +88,8 @@ python3 tools/avb/avbtool.py info_image --image backup/stock/vbmeta.img | tee lo
 17. **El tamaño que declara `vbmeta` para `boot` (38 641 664 B) es exactamente** `4096` (cabecera) `+` `18 862 488` (kernel) redondeado a páginas de 4 096 B `+` `19 769 994` (ramdisk) redondeado: es el `boot.img` sin el relleno hasta los 96 MiB de la partición.
 18. **La receta reproduce el `boot.img` de fábrica byte por byte** (comprobado por el mentor en una carpeta temporal): `mkbootimg --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel …/kernel --ramdisk …/ramdisk --cmdline ''` da un archivo de **38 641 664 bytes** que `cmp -n 38641664` declara **idéntico** al original. Además `SHA256(salt || imagen)` da `60291945b91c009b50e0452e…`, el `Digest` del descriptor de `boot` en `vbmeta`, tanto para el original como para el reconstruido. Prueba que entendemos el formato y que la receta del Módulo 7 es la correcta. El script `artifacts/verificar-boot-avb.py` repite esa comprobación con cualquier imagen.
 19. **Consecuencia para el Módulo 7:** nuestro `boot.img` (kernel nuevo) tendrá un hash distinto y **no coincidirá con `vbmeta`**. Con el bootloader **desbloqueado** (`orange`), AVB avisa pero deja arrancar; con él bloqueado, no arrancaría. Solo cambia `boot`: `vendor_boot`, `dtbo` y `vbmeta` seguirán siendo los de fábrica, y sus hashes coincidirán. Con nuestro `Image.gz`, el `boot.img` pesaría 37 396 480 B (35,7 MiB de 96) frente a los 38 641 664 B del original. **[VERIFICAR]** que el bootloader acepta `fastboot boot` de una imagen cuyo hash no coincide.
+20. **Comprobado por el usuario: la receta reproduce el `boot.img` de fábrica.** `mkbootimg.py` produjo `boot-rebuilt.img` de **38 641 664 bytes**, `cmp -n 38641664` contra `backup/stock/boot.img` imprimió `IDENTICOS`, y `artifacts/verificar-boot-avb.py` calculó `60291945b91c009b50e0452eef753391d44d4d7880d69667f2a0b0d73d08ac3e`, idéntico al `Digest` del descriptor de `boot` en `vbmeta` (`COINCIDE con vbmeta`). Confirma el hallazgo #18.
+21. **Resumen del módulo — lo que se aprendió:** (1) `boot` y `vendor_boot` son cabecera v3: `boot` lleva solo kernel y ramdisk genérico; el DTB (5,6 MB, varios DTB juntos) y la línea de comandos van en `vendor_boot`, así que **solo hay que sustituir el kernel**; (2) el kernel de fábrica (4.19.157-perf, Clang 10.0.7 del NDK + GNU ld, gzip, 41,1 MB sin comprimir) y el nuestro (4.19.297-uvite, Clang 11 + LLD, 36,7 MB) comparten formato; (3) ninguno de los ramdisks trae módulos `.ko` y ambos kernels son casi monolíticos (5 y 4 `=m`); (4) `vbmeta` tiene la verificación activa (`Flags: 0`) y cubre por hash `boot`, `dtbo` y `vendor_boot`; con el bootloader desbloqueado AVB avisa pero deja arrancar; (5) el sistema es Android 13 sobre un `vendor` de Android 12; (6) la receta de `mkbootimg` reproduce el original al byte, de modo que la única diferencia en el Módulo 7 será el kernel; (7) las trampas: `unpack_bootimg` extrae a `./out` por defecto (ya existe), y `cpio -t` lista sin extraer.
 
 ## Evidencias
 
@@ -117,12 +125,18 @@ python3 tools/avb/avbtool.py info_image --image backup/stock/vbmeta.img | tee lo
 `Hashtree descriptor` con dm-verity versión 1, FEC y `Root Digest` de cada partición.
 ![Hashtree descriptors de mi_ext y vendor](evidencias/08-vbmeta-hashtree-mi-ext-vendor.png)
 
+**09 — Reconstrucción idéntica y hash AVB coincidente (hallazgos #18 y #20)**
+`boot-rebuilt.img` de 38 641 664 B, `cmp` imprime `IDENTICOS` y `verificar-boot-avb.py` da `COINCIDE con vbmeta`.
+![Reconstrucción idéntica del boot.img y hash AVB](evidencias/09-reconstruccion-identica-y-hash-avb.png)
+
 ## Pendientes
 
 - [x] Paso 1: `boot.img` desempaquetado, cabecera versión 3.
 - [x] Paso 2: kernel de fábrica gzip (4.19.157-perf) y receta de reconstrucción.
 - [x] Paso 3: `vendor_boot.img` desempaquetado: el DTB (5,6 MB) y la línea de comandos viajan ahí.
 - [x] Paso 4: ramdisks listados: `vendor_boot` solo trae el `fstab`; ninguno tiene módulos `.ko`.
-- [ ] Paso 5: comparación con nuestra compilación.
-- [x] Paso 5: estado de AVB en `vbmeta`: verificación activa (`Flags: 0`), `boot`, `dtbo` y `vendor_boot` cubiertos por hash.
-- [ ] Paso 6: reconstruir `boot.img` con la receta y comprobar `cmp` y el hash AVB (script `artifacts/verificar-boot-avb.py`).
+- [x] Paso 5: `vbmeta`: verificación activa (`Flags: 0`); `boot`, `dtbo` y `vendor_boot` cubiertos por hash.
+- [x] Paso 6: `boot.img` reconstruido idéntico al original y hash AVB coincidente.
+- [ ] Módulo 7: ¿acepta el bootloader `fastboot boot` de una imagen v3 cuyo hash no coincide con `vbmeta`? (`fastboot getvar all` no lo dice; hay que probarlo).
+- [ ] Módulo 7: cómo decide el bootloader entre Android y el recovery del ramdisk de `boot` (parámetros que añade en tiempo de arranque).
+- [ ] Verificar dónde están los módulos `.ko` del `vendor` en el sistema en marcha (`/vendor/lib/modules`, si existen).
