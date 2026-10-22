@@ -24,7 +24,7 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 - [x] 05. Compilar el kernel sin modificarlo ([módulo](../05-compilar-kernel/05-compilar-kernel.md))
 - [x] 06. Analizar el `boot.img` original ([módulo](../06-analizar-boot-img/06-analizar-boot-img.md))
 - [x] 07. El primer arranque con tu kernel ([módulo](../07-primer-arranque/07-primer-arranque.md))
-- [ ] 08. Depuración: `dmesg`, `pstore`
+- [ ] 08. Depuración: `dmesg`, `pstore` ([módulo](../08-depuracion/08-depuracion.md)) — en progreso
 - [ ] 09. Primer módulo del kernel en C
 - [ ] 10. Medir CPU, térmica y GPU
 - [ ] 11. Rust (kernel en QEMU, programas en el teléfono)
