@@ -60,6 +60,12 @@ adb shell uname -r                       # 4.19.297-uvite
 adb shell cat /proc/version
 adb shell getprop sys.boot_completed     # 1
 adb shell getenforce                     # Enforcing
+
+# Paso 4 (parte 2): estado del módem y del hardware que ve el sistema (solo lectura)
+adb shell getprop gsm.version.baseband
+adb shell getprop gsm.sim.state                     # ABSENT,ABSENT: no hay SIM puesta
+adb shell "ip -brief addr | grep -E 'rmnet|wlan0'"
+adb shell "dumpsys media.camera | grep -m1 'Number of camera devices'"   # 8
 ```
 
 ## Hallazgos reales
@@ -73,6 +79,10 @@ adb shell getenforce                     # Enforcing
 7. **Android quedó completamente funcional:** `sys.boot_completed=1`, `init.svc.zygote=running`, `init.svc.surfaceflinger=running`, SELinux **`Enforcing`**, `ro.boot.verifiedbootstate=orange`, `ro.boot.flash.locked=0`, slot `_b`. `uptime` 1 min con `load average: 17.81` (pico normal de arranque). El kernel expone `wlan0`, `p2p0`, `wifi-aware0`, las interfaces del módem (`rmnet_data0…8`, `rmnet_ipa0`), la pantalla (`/sys/class/drm/card0-DSI-1`, `sde-crtc-0`) y la zona térmica `pm6125-tz` a 37 °C. El `techpack/display` y el controlador WiFi compilados en el Módulo 5 **funcionan**.
 8. **Lo que el usuario `shell` no puede leer en este Android de usuario:** `dmesg` (`klogctl: Operation not permitted`), `/proc/cmdline` y `/proc/bus/input/devices` (`Permission denied`). Es la política normal de una ROM `user`; para ver el registro del kernel hará falta otra vía (Módulo 8: `pstore`/`ramoops`, `logcat`, `bugreport` o root). La línea de comandos se conoce por `vendor_boot` (módulo 6, #7).
 9. **Fue un arranque temporal:** `fastboot boot` no escribió nada; `boot_b` sigue siendo el de fábrica. Al reiniciar el teléfono vuelve el kernel `4.19.157-perf-gcb1ffc010755`.
+10. **El propio teléfono lo confirma:** *Ajustes → Acerca del teléfono → Versión de kernel* muestra **`4.19.297-uvite`**. En la misma pantalla: *Versión de banda base* `MPSS.HA.1.1.c1-00027-KD_ALL_PACK-3.21298.17`, modelo `2201117TL`, almacenamiento 91,9 GB libres de 128 GB. *Información detallada y especificaciones*: RAM 4,0+2,0 GB, CPU **Snapdragon 680 Octa-core Max 2.40 GHz**, Android 13 `TKQ1.221114.001`, MIUI Global 14.0.5 (`TGCMIXM`), parche de seguridad `2023-12-01`. Es la ROM de fábrica entera funcionando sobre un kernel distinto.
+11. **Pruebas físicas hechas por el usuario, con el kernel nuevo: «todo funcionó»** (pantalla, táctil, Wi-Fi, sonido, cámara). La cámara muestra imagen real en el visor con sus modos (Documentos, Video, Foto, Retrato, Nocturno) y los objetivos 0.6 / 1x / 2; el sistema ve **8 dispositivos de cámara** y **46 sensores**. La pantalla de inicio de MIUI se ve normal, con Wi-Fi conectado y batería al 68 %. Con esto, el `techpack/display`, `techpack/camera` y el controlador de Wi-Fi de PixelExperience **funcionan en este teléfono con la ROM de fábrica**, a pesar de que a ese kernel le faltan las 8 funciones propias de MIUI.
+12. **El módem carga, pero no se pudo probar datos/SIM:** `gsm.version.baseband` muestra el firmware `MPSS.HA.1.1.c1-00027-KD_ALL_PACK-3.21298.17`, `persist.radio.multisim.config` es `dsds` y existen las interfaces `rmnet_ipa0` y `rmnet_data0…8` (con `rmnet_data0` activa), pero **`gsm.sim.state` es `ABSENT,ABSENT`: ahora mismo el teléfono no tiene SIM puesta**, así que no hay red móvil que probar (el widget del tiempo dice «Sin datos»). La parte del módem (`rmnet`, `techpack/data`) queda como **pendiente de probar con una SIM**.
+13. **Lo que el usuario `shell` no puede leer:** además de `dmesg`, `/proc/cmdline` y `/proc/bus/input/devices` (hallazgo #8), tampoco `/proc/asound/cards` (`Permission denied`). Misma causa: política de una ROM `user`.
 
 ## Evidencias
 
@@ -88,11 +98,32 @@ adb shell getenforce                     # Enforcing
 `Sending 'boot.img' (36520 KB) OKAY`, `Booting OKAY`, `Finished. Total time: 1.277s`. Sin errores.
 ![fastboot boot de boot-lab.img](evidencias/03-fastboot-boot-okay.png)
 
+**04 — La pantalla de inicio de MIUI funciona con el kernel nuevo (hallazgo #11)**
+Reloj, buscador de Google, iconos, Wi-Fi conectado y batería al 68 %.
+![Pantalla de inicio de MIUI con el kernel 4.19.297-uvite](evidencias/04-pantalla-de-inicio-con-kernel-nuevo.png)
+
+**05 — Ajustes: «Versión de kernel 4.19.297-uvite» (hallazgo #10)**
+La prueba más clara de que el teléfono corre el kernel compilado por el usuario; incluye la banda base y el modelo.
+![Ajustes mostrando Versión de kernel 4.19.297-uvite](evidencias/05-ajustes-version-de-kernel-4-19-297-uvite.png)
+
+**06 — Especificaciones: Snapdragon 680 (hallazgo #10)**
+RAM 4,0+2,0 GB, CPU Snapdragon 680 Octa-core Max 2.40 GHz, Android 13 `TKQ1.221114.001`, MIUI Global 14.0.5.
+![Información detallada y especificaciones](evidencias/06-ajustes-especificaciones-snapdragon-680.png)
+
+**07 — Acerca del teléfono: MIUI 14 (hallazgo #10)**
+`Redmi Note 11`, MIUI Global 14.0.5 (`TGCMIXM`), Android 13, parche `2023-12-01`, 36,1 GB ocupados de 128 GB.
+![Acerca del teléfono](evidencias/07-ajustes-acerca-del-telefono.png)
+
+**08 — La cámara muestra imagen (hallazgo #11)**
+Visor con imagen real, modos Documentos / Video / Foto / Retrato / Nocturno y objetivos 0.6 / 1x / 2.
+![Cámara funcionando con el kernel nuevo](evidencias/08-camara-con-imagen.png)
+
 ## Pendientes
 
 - [x] Paso 1: `artifacts/px/boot-lab.img` construida y comprobada (solo cambia el kernel; AVB no coincide, como se esperaba).
 - [x] Paso 2: teléfono en fastboot con `unlocked: yes`, slot `b`, `max-download-size` 796917760 y producto `spes`.
 - [x] Paso 3: `fastboot boot artifacts/px/boot-lab.img` aceptado por el bootloader (`OKAY`) y Android arrancó.
 - [x] Paso 4 (parte 1): `uname -r` = `4.19.297-uvite`, `sys.boot_completed=1`, SELinux Enforcing.
-- [ ] Paso 4 (parte 2): el usuario comprueba en el propio teléfono pantalla, táctil, Wi-Fi, sonido y la versión del kernel en Ajustes; foto como evidencia.
+- [x] Paso 4 (parte 2): el usuario comprobó pantalla, táctil, Wi-Fi, sonido, cámara y la versión del kernel en Ajustes (fotos como evidencia).
+- [ ] Probar datos móviles y SIM (falta una SIM puesta: `gsm.sim.state: ABSENT`).
 - [ ] Paso 5: reinicio y regreso al kernel de fábrica.
