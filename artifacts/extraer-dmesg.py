@@ -10,7 +10,7 @@ Del bugreport solo se copian estas secciones:
 
 Todo lo demás (cuentas, redes Wi-Fi, apps, IMEI...) NO se toca ni se copia.
 Además se tapan los identificadores que pueden aparecer dentro del propio dmesg
-(número de serie, IMEI/MEID, direcciones MAC, UID de CPU) antes de escribir la salida.
+(número de serie, IMEI/MEID, direcciones MAC, UID de CPU, PARTUUID y UUID de particiones) antes de escribir la salida.
 Solo LEE el zip; no modifica nada.
 """
 import re
@@ -23,6 +23,8 @@ SECCIONES = ("KERNEL LOG", "LAST KMSG")
 TAPAR = [
     (re.compile(r"(androidboot\.(?:serialno|cpuid|meid|imei[0-9]*|wifimacaddr|btmacaddr)=)\S+", re.I), r"\1[TAPADO]"),
     (re.compile(r"(serialno=)\S+", re.I), r"\1[TAPADO]"),
+    (re.compile(r"(PARTUUID=)[0-9A-Fa-f-]{8,}", re.I), r"\1[TAPADO]"),
+    (re.compile(r"\b([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b", re.I), "[UUID-TAPADO]"),
     (re.compile(r"\b([0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5})\b"), "[MAC-TAPADA]"),
     (re.compile(r"\b(\d{15})\b"), "[IMEI?-TAPADO]"),
 ]
