@@ -1,0 +1,48 @@
+From 1fe0e62fab119152d02a11da911b5e0be4d9786b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?fabian=20bele=C3=B1o?= <fabianrobles321@outlook.com>
+Date: Fri, 23 Oct 2026 13:34:41 -0500
+Subject: [PATCH 5/9] lab: KernelSU gancho 1/5 en do_execveat_common
+ (fs/exec.c)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Llama a ksu_handle_execveat (modo ksud/arranque) o a
+ksu_handle_execveat_sucompat (resto) antes de __do_execve_file.
+Segun la guia no-GKI de KernelSU v0.9.5, vía manual.
+---
+ fs/exec.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/fs/exec.c b/fs/exec.c
+index f200fdc04..50a3983ee 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1888,11 +1888,24 @@ static int __do_execve_file(int fd, struct filename *filename,
+ 	return retval;
+ }
+ 
++#ifdef CONFIG_KSU
++extern bool ksu_execveat_hook __read_mostly;
++extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
++			void *envp, int *flags);
++extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
++				 void *argv, void *envp, int *flags);
++#endif
+ static int do_execveat_common(int fd, struct filename *filename,
+ 			      struct user_arg_ptr argv,
+ 			      struct user_arg_ptr envp,
+ 			      int flags)
+ {
++#ifdef CONFIG_KSU
++	if (unlikely(ksu_execveat_hook))
++		ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
++	else
++		ksu_handle_execveat_sucompat(&fd, &filename, &argv, &envp, &flags);
++#endif
+ 	return __do_execve_file(fd, filename, argv, envp, flags, NULL);
+ }
+ 
+-- 
+2.53.0
+

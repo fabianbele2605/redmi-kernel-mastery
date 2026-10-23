@@ -1,0 +1,40 @@
+# insmod/rmmod de hello_lab.ko y hello_mod.ko en el telefono (kernel 4.19.297-uvite)
+# fecha: 2026-10-23 13:52:48
+
+## vermagic de los .ko
+hello_lab: [    4e] vermagic=4.19.297-uvite SMP preempt mod_unload modversions aarch64
+hello_mod: [    4e] vermagic=4.19.297-uvite SMP preempt mod_unload modversions aarch64
+
+## CASO 1: insmod hello_lab.ko (el nodo /proc/hello_lab ya existe por la version integrada)
+insmod: failed to load /data/local/tmp/hello_lab.ko: Out of memory
+codigo_de_salida=1
+Module                  Size  Used by
+[  747.951384] lr : proc_register+0x120/0x1a4
+[  747.951385] sp : ffffff800cca3a50
+--
+[  770.843220] KernelSU: do_execveat_common su found
+[  770.868700] ------------[ cut here ]------------
+[  770.868703] proc_dir_entry '/proc/hello_lab' already registered
+[  770.868719] WARNING: CPU: 7 PID: 14933 at proc_register+0x128/0x1a4
+[  770.868720] Modules linked in: hello_lab(O+) [last unloaded: hello_mod]
+[  770.868726] CPU: 7 PID: 14933 Comm: insmod Tainted: G S      W  O      4.19.297-uvite #11
+[  770.868727] Hardware name: Qualcomm Technologies, Inc. SPES KHAJE IDP nopmi (DT)
+[  770.868729] pstate: 60000005 (nZCv daif -PAN -UAO)
+[  770.868731] pc : proc_register+0x128/0x1a4
+[  770.868733] lr : proc_register+0x120/0x1a4
+[  770.868734] sp : ffffff801e7a3a50
+
+## CASO 2: insmod / cat / rmmod de hello_mod.ko
+insmod=0
+Module                  Size  Used by
+hello_mod              16384  0 
+hola desde el kernel del Redmi Note 11
+lecturas: 1
+hola desde el kernel del Redmi Note 11
+lecturas: 2
+rmmod=0
+ls: /proc/hello_mod: No such file or directory
+Module                  Size  Used by
+[  770.868720] Modules linked in: hello_lab(O+) [last unloaded: hello_mod]
+[  771.811293] hello_mod: cargado, nodo /proc/hello_mod creado (cpus=8, HZ=250)
+[  771.857505] hello_mod: descargado, nodo /proc/hello_mod eliminado

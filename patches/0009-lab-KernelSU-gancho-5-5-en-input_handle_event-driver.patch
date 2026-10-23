@@ -1,0 +1,37 @@
+From a2a37a2c47f202a4429e28f4234989300ba9f765 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?fabian=20bele=C3=B1o?= <fabianrobles321@outlook.com>
+Date: Fri, 23 Oct 2026 13:37:04 -0500
+Subject: [PATCH 9/9] lab: KernelSU gancho 5/5 en input_handle_event
+ (drivers/input/input.c, modo seguro)
+
+---
+ drivers/input/input.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/input/input.c b/drivers/input/input.c
+index 159dd87b9..d8189faec 100644
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -378,10 +378,19 @@ static int input_get_disposition(struct input_dev *dev,
+ 	return disposition;
+ }
+ 
++#ifdef CONFIG_KSU
++extern bool ksu_input_hook __read_mostly;
++extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
++#endif
++
+ static void input_handle_event(struct input_dev *dev,
+ 			       unsigned int type, unsigned int code, int value)
+ {
+ 	int disposition = input_get_disposition(dev, type, code, &value);
++#ifdef CONFIG_KSU
++	if (unlikely(ksu_input_hook))
++		ksu_handle_input_handle_event(&type, &code, &value);
++#endif
+ 
+ 	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
+ 		add_input_randomness(type, code, value);
+-- 
+2.53.0
+

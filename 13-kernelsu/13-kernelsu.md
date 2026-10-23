@@ -1,6 +1,6 @@
 # Módulo 13 — KernelSU (opcional)
 
-- Estado: En progreso (root conseguido; falta aprovecharlo)
+- Estado: Completado (checkpoint cumplido: root funcional con tu kernel y `dmesg` limpio; límites en el hallazgo #23)
 - Fecha: 2026-10-23
 - Kernel: `4.19.297-uvite` (`src/kernel-px`, rama `lab/ksu-01-integracion`, parte de `lab/cambio-02-kernel-init`)
 - KernelSU: **v0.9.5**, commit `b766b98513b5a7eb33bc1c4a76b5702bf1288f07` (29-may-2024), clonado en `src/ksu-official` (ignorado por Git)
@@ -59,6 +59,15 @@ adb shell 'su -c "cat /proc/hello_lab"'                                         
 # Con root: lo que shell no podia
 adb shell 'su -c "cat /sys/block/sda/queue/read_ahead_kb /sys/block/sda/queue/scheduler /proc/sys/kernel/sched_latency_ns; ls -l /proc/sys/vm/drop_caches"'
 adb shell 'su -c "dmesg | grep -i kernelsu | tail -5"'                                    # dmesg directo, sin bugreport
+# Cargar modulos como .ko con root (pendiente desde el modulo 9)
+sed 's/hello_lab/hello_mod/g' modulos/hello_lab/hello_lab.c > modulos/hello_mod/hello_mod.c     # misma fuente, otro nombre
+source artifacts/entorno-px.sh; for m in hello_lab hello_mod; do kmake M="$PWD/modulos/$m" modules; done
+adb push modulos/hello_lab/hello_lab.ko modulos/hello_mod/hello_mod.ko /data/local/tmp/
+adb shell 'su -c "insmod /data/local/tmp/hello_lab.ko"'      # Out of memory (el nodo /proc/hello_lab ya existe)
+adb shell 'su -c "insmod /data/local/tmp/hello_mod.ko; lsmod; cat /proc/hello_mod; rmmod hello_mod; dmesg | grep hello_mod | tail -2"'
+
+# La serie de parches del kernel (0002 es del modulo 11 y de otro arbol)
+git -C src/kernel-px format-patch lab/cambio-02-kernel-init..lab/ksu-01-integracion -o patches --start-number 4    # 0004..0009
 ```
 
 ## Hallazgos reales
@@ -84,6 +93,11 @@ adb shell 'su -c "dmesg | grep -i kernelsu | tail -5"'                          
 18. **Pendiente del módulo 9 cobrado:** con `su`, **`cat /proc/hello_lab` funciona** y devuelve `hola desde el kernel del Redmi Note 11` y `lecturas: 1`, y en la segunda lectura `lecturas: 2` (el contador sube, como programó `hello_show`); el archivo es `-r--r--r-- root root u:object_r:proc:s0`. Como `shell` sigue recibiendo `Permission denied`, queda confirmado que el bloqueo era SELinux y no un fallo del módulo.
 19. **Lo que el root deja ver (para el paso 6 diferido del módulo 12):** `/sys/block/sda/queue/read_ahead_kb = 128`, `scheduler = noop [cfq]`, `sched_latency_ns = 10000000`, `sched_min_granularity_ns = 3000000`, y `/proc/sys/vm/drop_caches` **escribible** (`--w-------`). Para los módulos: `/proc/modules` existe, `modules_disabled = 0`, y están `/system/bin/insmod` y `/system/bin/lsmod`.
 
+20. **`insmod hello_lab.ko` falla, y el mensaje miente.** Con la versión integrada ya cargada, `insmod` da `failed to load … hello_lab.ko: Out of memory` (código 1). **No es falta de memoria:** es el `return -ENOMEM` que tu `hello_lab_init` devuelve cuando `proc_create` falla, y el `dmesg` revela la causa verdadera: `proc_dir_entry '/proc/hello_lab' already registered` (con el rastro `proc_register+0x120`, `init_module+0x24 [hello_lab]`, `Modules linked in: hello_lab(O+)`). `lsmod` quedó vacío: el módulo no se cargó. Es una trampa real del código del módulo 9: un nodo duplicado (`-EEXIST`) se disfraza de `-ENOMEM`.
+21. **Ciclo completo con `hello_mod`** (la misma fuente con otro nombre de nodo; `diff` de `sed` sin otra diferencia). Los dos `.ko` compilaron sin avisos (138 536 bytes) con `vermagic=4.19.297-uvite SMP preempt mod_unload modversions aarch64`, idéntico al del kernel en marcha. `insmod` → código 0; `lsmod` → `hello_mod 16384 0`; `cat /proc/hello_mod` ×2 → `lecturas: 1` y `lecturas: 2`; `dmesg` → `hello_mod: cargado, nodo /proc/hello_mod creado (cpus=8, HZ=250)`; `rmmod` → código 0, `/proc/hello_mod: No such file or directory` y **`hello_mod: descargado, nodo /proc/hello_mod eliminado`**. Es la primera vez que corre la función de salida de un módulo tuyo: como código integrado, `hello_lab_exit` no se ejecutaba nunca (módulo 9, hallazgo #19). Registro crudo: `logs/13-insmod-rmmod.txt`.
+22. **La serie de parches del kernel es reproducible.** `patches/0004` a `0009` (integración y los cinco ganchos) salen de `git format-patch lab/cambio-02-kernel-init..lab/ksu-01-integracion --start-number 4`; el `0002` es del módulo 11 y de otro árbol (Rust), por eso la serie del kernel es `0001`, `0003`, `0004`…`0009`. Verificado: aplicados **en ese orden** sobre los archivos originales de `fourteen`, los diez archivos resultantes son **idénticos byte a byte** a los de la rama `lab/ksu-01-integracion`.
+23. **Qué NO se hizo, y conviene no dar por hecho:** el root existe solo mientras se usa `fastboot boot` (no se escribió nada en el teléfono: al reiniciar vuelve el kernel de fábrica y la app de KernelSU queda instalada pero inactiva); no se probó `ftrace`/`kprobes`; no se probó revertir cada gancho con `git revert` ni el modo seguro (volumen abajo al arrancar); `fs/devpts/inode.c` y `path_umount` no se añadieron.
+
 ## Evidencias
 
 Registros guardados:
@@ -93,6 +107,8 @@ Registros guardados:
 - `logs/13-build-ksu02a-exec.log`, `…02b-open.log`, `…02c-read.log`, `…02d-stat.log`, `…02e-input.log` — la compilación tras cada gancho (hallazgo #12).
 - `logs/13-hash-boot-lab-ksu02.txt`, `logs/08-dmesg-ksu02.txt` — arranque con los cinco ganchos (líneas 1266 a 1490: `/init argc`, `second_stage executed`).
 - `logs/13-hash-manager-apk.txt` y `artifacts/verificar-firma-apk.py` — hash del APK y el analizador de su firma.
+- `logs/13-insmod-rmmod.txt` — `insmod` fallido de `hello_lab.ko` y ciclo completo de `hello_mod.ko` (hallazgos #20 y #21).
+- `patches/0004` a `0009` — la serie de KernelSU (hallazgo #22).
 Capturas (fotos del teléfono):
 
 **00 — `adb install` del gestor (hallazgo #16)**
@@ -114,5 +130,6 @@ Estado, versión 11872, 0 superusuarios, kernel `4.19.297-uvite`, gestor `v0.9.5
 - [x] Paso 1: integración sin ganchos, compilada, arrancada, sin root (esperado).
 - [x] Paso 2: los cinco ganchos manuales, uno por commit y compilados uno a uno (`fs/devpts/inode.c` no hizo falta por ahora).
 - [x] Paso 3: app gestora oficial v0.9.5 instalada **tras comprobar que su firma coincide**; root solo para `shell`.
-- [ ] Paso 4: aprovechar el root: `insmod` de `hello_lab.ko`, leer `/proc/hello_lab`, y el paso 6 diferido del módulo 12 (`drop_caches`).
+- [x] Paso 4 (parte 1): `insmod`/`rmmod` de un `.ko`, y `/proc/hello_lab` leído con root.
+- [ ] Paso 4 (parte 2): el paso 6 diferido del módulo 12 (cambio de rendimiento medido antes y después con `drop_caches`).
 - [ ] Probar la reversibilidad de cada gancho con `git revert`.

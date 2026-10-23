@@ -1,0 +1,47 @@
+From 89acccabe15a353680094e867c372fe4205165d8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?fabian=20bele=C3=B1o?= <fabianrobles321@outlook.com>
+Date: Fri, 23 Oct 2026 13:22:07 -0500
+Subject: [PATCH 4/9] lab: integrar KernelSU v0.9.5 en drivers/kernelsu (sin
+ ganchos)
+
+Enlace simbolico a src/ksu-official/kernel (tag v0.9.5, commit b766b985),
+entrada en drivers/Kconfig y drivers/Makefile. Sin ganchos todavia:
+por si solo no concede root.
+---
+ drivers/Kconfig  | 2 ++
+ drivers/Makefile | 1 +
+ drivers/kernelsu | 1 +
+ 3 files changed, 4 insertions(+)
+ create mode 120000 drivers/kernelsu
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index e0866eda8..3afe38d87 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -232,4 +232,6 @@ source "drivers/sensors/Kconfig"
+ source "drivers/gpu/msm/Kconfig"
+ 
+ source "drivers/energy_model/Kconfig"
++
++source "drivers/kernelsu/Kconfig"
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 9a258f18e..faea05972 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -192,3 +192,4 @@ obj-$(CONFIG_UNISYS_VISORBUS)	+= visorbus/
+ obj-$(CONFIG_SIOX)		+= siox/
+ obj-$(CONFIG_GNSS)		+= gnss/
+ obj-$(CONFIG_SENSORS_SSC)	+= sensors/
++obj-$(CONFIG_KSU)		+= kernelsu/
+diff --git a/drivers/kernelsu b/drivers/kernelsu
+new file mode 120000
+index 000000000..f89dbffe2
+--- /dev/null
++++ b/drivers/kernelsu
+@@ -0,0 +1 @@
++../../ksu-official/kernel
+\ No newline at end of file
+-- 
+2.53.0
+

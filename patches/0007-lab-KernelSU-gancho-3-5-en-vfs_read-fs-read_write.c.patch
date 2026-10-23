@@ -1,0 +1,35 @@
+From 8bf47d179e419922bc164f9d89e2c00a2ed824e7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?fabian=20bele=C3=B1o?= <fabianrobles321@outlook.com>
+Date: Fri, 23 Oct 2026 13:35:51 -0500
+Subject: [PATCH 7/9] lab: KernelSU gancho 3/5 en vfs_read (fs/read_write.c)
+
+---
+ fs/read_write.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 650fc7e0f..f6985684a 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -434,9 +434,18 @@ ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
+ }
+ EXPORT_SYMBOL(kernel_read);
+ 
++#ifdef CONFIG_KSU
++extern bool ksu_vfs_read_hook __read_mostly;
++extern int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
++			size_t *count_ptr, loff_t **pos);
++#endif
+ ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
+ {
+ 	ssize_t ret;
++#ifdef CONFIG_KSU
++	if (unlikely(ksu_vfs_read_hook))
++		ksu_handle_vfs_read(&file, &buf, &count, &pos);
++#endif
+ 
+ 	if (!(file->f_mode & FMODE_READ))
+ 		return -EBADF;
+-- 
+2.53.0
+
