@@ -32,6 +32,8 @@ TAPAR = [
     # el nombre puede llevar espacios. Se aplica DESPUÉS del patrón de MAC, que ya habrá puesto [MAC-TAPADA].
     (re.compile(r"(Connect(?:ing|ed) to )(.+?)( \[MAC-TAPADA\])"), r"\1[SSID-TAPADO]\3"),
     (re.compile(r"((?:ssid|SSID)\s*[=:]\s*)\"?[^\",\n]+\"?"), r"\1[SSID-TAPADO]"),
+    # rutas de apps instaladas (KernelSU las imprime): la carpeta ~~<aleatorio>/<paquete>-<aleatorio>== es propia del teléfono
+    (re.compile(r"/data/app/~~[^/\s]+/[^/\s]+/"), "/data/app/[APP-TAPADA]/"),
     (re.compile(r"\b(\d{15})\b"), "[IMEI?-TAPADO]"),
 ]
 

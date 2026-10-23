@@ -54,8 +54,10 @@ f_mac=$(grep -c -E "\b([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b" "$out")
 # nombre de la red Wi-Fi: toda línea "Connecting to"/"Connected to" debe llevar [SSID-TAPADO]
 f_ssid=$(grep -E "Connect(ing|ed) to " "$out" | grep -v -c "SSID-TAPADO")
 f_ssid2=$(grep -c -i -E "ssid[=:] *[^[ ]" "$out")
-echo "prueba de fugas -> serial:$f_serial  PARTUUID:$f_partuuid  UUID:$f_uuid  15-dígitos:$f_imei  MAC:$f_mac  SSID:$((f_ssid + f_ssid2))"
-if [ $((f_serial + f_partuuid + f_uuid + f_imei + f_mac + f_ssid + f_ssid2)) -ne 0 ]; then
+# rutas de apps instaladas: las carpetas ~~<aleatorio> de /data/app son propias del teléfono
+f_apps=$(grep -c "data/app/~~" "$out")
+echo "prueba de fugas -> serial:$f_serial  PARTUUID:$f_partuuid  UUID:$f_uuid  15-dígitos:$f_imei  MAC:$f_mac  SSID:$((f_ssid + f_ssid2))  APPS:$f_apps"
+if [ $((f_serial + f_partuuid + f_uuid + f_imei + f_mac + f_ssid + f_ssid2 + f_apps)) -ne 0 ]; then
   rm -f "$out"
   echo "FUGAS DETECTADAS: se borró $out. No lo subas; avisa al mentor."
   exit 2
