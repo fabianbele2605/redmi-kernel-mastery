@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+# Servicio de OpenRC: escribe un latido cada segundo y OpenRC lo supervisa (lo relanza si muere).
+
+description="Escribe un latido por segundo en /tmp/mi-latido.log"
+supervisor="supervise-daemon"
+command="/usr/local/bin/mi-latido"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+depend() {
+	need localmount
+}

@@ -47,6 +47,12 @@ sed -n '/=== prueba automatica/,/=== fin/p' logs/14-qemu-alpine.log
 bash modulos/mi_alpine/construir.sh    # incluye usr/local/bin/prueba-red (se activa con lab=red)
 timeout 150 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -nic user,model=virtio-net-pci -append "console=ttyAMA0 panic=-1 lab=red" -no-reboot < /dev/null > logs/14-qemu-red.log 2>&1
 sed -n '/=== prueba de red/,/=== fin/p' logs/14-qemu-red.log
+# Etapa 1, paso 5 (QEMU con red): tu servicio como servicio de OpenRC, supervisado
+#   modulos/mi_alpine/overlay/etc/init.d/mi-latido  (#!/sbin/openrc-run, supervisor="supervise-daemon", need localmount)
+#   modulos/mi_alpine/overlay/usr/local/bin/mi-latido  (un latido por segundo, no termina nunca)
+bash modulos/mi_alpine/construir.sh
+timeout 150 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -nic user,model=virtio-net-pci -append "console=ttyAMA0 panic=-1 lab=red" -no-reboot < /dev/null > logs/14-qemu-openrc.log 2>&1
+sed -n '/--- servicio de OpenRC/,/=== fin/p' logs/14-qemu-openrc.log
 ```
 
 ## Hallazgos reales
@@ -75,6 +81,9 @@ sed -n '/=== prueba de red/,/=== fin/p' logs/14-qemu-red.log
 19. **Red y paquetes en QEMU** (`logs/14-qemu-red.log`, `-nic user,model=virtio-net-pci`, `lab=red`): `eth0` (virtio-net) aparece y se levanta; **DHCP** `lease of 10.0.2.15 obtained from 10.0.2.2` (`10.0.2.15/24`, ruta por defecto vía `10.0.2.2`); `nameserver 10.0.2.3`; `apk update` sobre `https://dl-cdn.alpinelinux.org/alpine/v3.24/{main,community}` → **28 570 paquetes disponibles** (`v3.24.3-39-g7e71067f4e8` y `v3.24.3-38-gc3f47567305`). `apk add openrc` instaló **5 paquetes** (`bridge 1.5-r5`, `ifupdown-ng 0.13.0-r0`, `openrc-user`, `libcap2 2.78-r0`, `openrc 0.63.2-r0`): de 16 a **21 paquetes, 12,8 MiB**; `/sbin/openrc` pasó de «No such file or directory» a `-rwxr-xr-x 67440`. Apagado limpio (código de QEMU 0). La descarga fue por HTTPS y no se usó `--allow-untrusted`, así que `apk` aplicó su verificación de firmas normal con las claves de `alpine-keys`; la verificación no se imprime en la salida, solo se infiere de que no se usó la opción para saltarla.
 20. **Error del mentor en la propia prueba:** la línea `version de openrc` imprimió la descripción («OpenRC manages the services, startup and shutdown of a host») en lugar del número, porque en `apk` 3 la opción `-v` es «detallado» y muestra la descripción; la versión real es `0.63.2-r0`, visible en la instalación. **Limitación:** el paquete se instaló solo en la memoria de esta ejecución (el `initramfs` vive en RAM); al apagar se pierde. Para conservarlo habría que reconstruir el `initramfs` con los archivos ya instalados o usar un disco.
 
+21. **Un servicio propio de OpenRC, arrancado y supervisado** (`logs/14-qemu-openrc.log`). Se escribió `/etc/init.d/mi-latido` (`#!/sbin/openrc-run`, `supervisor="supervise-daemon"`, `need localmount`) y `usr/local/bin/mi-latido`. `rc-service mi-latido start` imprimió `Remounting filesystems … [ ok ]`, `Mounting local filesystems … [ ok ]` y `Starting mi-latido … [ ok ]`: las dos primeras no las escribió el autor, vienen de **resolver la dependencia `need localmount`** (OpenRC arrancó antes el servicio del que dependía el suyo). `status: started`. Árbol de procesos: `336 1 supervise-daemon mi-latido --start --pidfile /run/mi-latido.pid --respawn-delay 2 --respawn-max 5 --respawn-period 1800 …` (PID 336, hijo del PID 1) y `338 336 {mi-latido} /bin/sh /usr/local/bin/mi-latido` (PID 338, hijo del supervisor). **Relanzamiento:** matado el hijo 338 con `kill -9`, el supervisor 336 lanzó el **PID 392** (`26.10s PID 338 latido 5` → `28.51s PID 392 latido 1`, 2,4 s después, coherente con `respawn-delay 2`; inferencia, no medición del supervisor). `rc-service mi-latido stop` → `Stopping mi-latido … [ ok ]`, `status: stopped`; apagado limpio (código 0). **Diferencia con el `respawn` de BusyBox:** `supervise-daemon` limita a **5 relanzamientos cada 1 800 s** por defecto; un servicio que se cae en bucle acaba rindiéndose.
+22. **Errores del mentor en esta prueba.** (a) El primer `grep` para elegir a quién matar (`"[m]i-latido$"` con `awk 'NR==1'`) habría escogido al supervisor, porque `supervise-daemon` también termina su línea de comandos en `mi-latido` y tiene un PID menor: se detectó **antes** de ejecutar leyendo la salida de `ps` anterior y se cambió por `"[/]bin/sh /usr/local/bin/mi-latido"`. (b) `rc-service mi-latido describe` imprimió `reload: no description` en lugar del texto de `description=`; no se investigó. (c) Se preparó a mano `/run/openrc/softlevel` sin saber si OpenRC lo necesitaba sin haber ejecutado su arranque completo; **funcionó**, pero no se comprobó que fuera imprescindible.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -101,6 +110,11 @@ DHCP, DNS, `apk update` (28 570 paquetes) y `apk add openrc` (5 paquetes, 12,8 M
 ![DHCP y apk update](evidencias/07-qemu-red-dhcp-apk-update.png)
 ![apk add openrc](evidencias/08-qemu-red-apk-add-openrc.png)
 
+**09 y 10 — Tu servicio en OpenRC (hallazgo #21)**
+Arranque con dependencia resuelta, árbol de procesos con el supervisor `supervise-daemon`, el hijo matado y relanzado con otro PID, y la parada.
+![servicio arrancado](evidencias/09-openrc-servicio-arrancado-y-supervisado.png)
+![servicio relanzado y parado](evidencias/10-openrc-relanzado-y-parado.png)
+
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 
 ## Pendientes
@@ -110,7 +124,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Etapa 1, paso 1 (QEMU): *initramfs* mínimo con **PID 1 propio** (`mi_init`), arranque y apagado limpios.
 - [x] Etapa 1, pasos 2 y 3: PID 1 con `fork`/`exec`/`wait`, y un Alpine real con tu `inittab` y un servicio propio supervisado.
 - [x] Etapa 1, paso 4: red en QEMU (DHCP, DNS) y `apk add openrc` dentro del sistema.
-- [ ] Etapa 1, siguientes pasos: pasar tu servicio a OpenRC (`/etc/init.d`, `rc-service`, `rc-status`); empaquetar un programa propio como paquete de Alpine (`apk`/`abuild`); usuarios, permisos, *namespaces* y *cgroups*; Wayland/Phosh (opcional).
+- [x] Etapa 1, paso 5: tu servicio como servicio de OpenRC, con dependencia, supervisión y relanzamiento comprobados.
+- [ ] Etapa 1, siguientes pasos: empaquetar un programa propio como paquete de Alpine (`apk`) o Debian (`.deb`); usuarios, permisos, *namespaces* y *cgroups*; Wayland/Phosh (opcional).
 - [ ] **Etapa 3, en el teléfono sin escribir nada:** `fastboot boot` con el kernel propio y un `initramfs` propio, para tener Linux sin Android sin flashear.
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
 - [ ] Verificar la firma PGP del kernel 6.18.58 (pendiente del módulo 11).

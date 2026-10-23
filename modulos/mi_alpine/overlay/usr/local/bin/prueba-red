@@ -20,6 +20,21 @@ echo "--- apk add openrc:"
 apk add openrc 2>&1 | tail -8
 echo "--- despues: $(ls -l /sbin/openrc 2>&1)"
 echo "--- paquetes instalados ahora: $(apk info | wc -l)"
-echo "--- version de openrc: $(apk info -v openrc 2>&1 | head -1)"
+echo "--- version de openrc: $(apk info -a openrc 2>&1 | head -1)"
+echo "--- servicio de OpenRC: mi-latido"
+mkdir -p /run/openrc && touch /run/openrc/softlevel
+rc-service mi-latido describe 2>&1 | tail -2
+rc-service mi-latido start 2>&1 | tail -3
+sleep 4
+echo "--- estado:"; rc-service mi-latido status 2>&1
+echo "--- procesos del servicio:"; ps -o pid,ppid,args | grep -E "supervise|mi-latido" | grep -v grep
+hijo=$(ps -o pid,args | grep "[/]bin/sh /usr/local/bin/mi-latido" | awk 'NR==1{print $1}')
+echo "--- matamos al servicio (el hijo, PID $hijo, no al supervisor) a proposito para ver si OpenRC lo relanza"
+kill -9 "$hijo" 2>&1
+sleep 3
+echo "--- procesos despues:"; ps -o pid,ppid,args | grep -E "supervise|mi-latido" | grep -v grep
+echo "--- latidos:"; cat /tmp/mi-latido.log
+rc-service mi-latido stop 2>&1 | tail -2
+echo "--- estado tras parar:"; rc-service mi-latido status 2>&1
 echo "=== fin de la prueba de red, apagando ==="
 poweroff
