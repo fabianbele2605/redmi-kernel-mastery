@@ -62,6 +62,19 @@ grep -n -i "out of memory" src/kernel-px/include/uapi/asm-generic/errno-base.h  
 tools/clang-r383902/bin/llvm-nm modulos/hello_lab/hello_lab.ko | grep " U "      # 9 símbolos
 ls -l modulos/hello_lab/hello_lab.ko                                              # 137176
 strings modulos/hello_lab/hello_lab.ko | grep -E "hello_lab:|description="
+# Paso 4: integrar en el kernel (3 piezas: archivo .c por enlace simbólico, Kconfig y Makefile) y activar la opción
+ln -s ../../../../modulos/hello_lab/hello_lab.c src/kernel-px/drivers/misc/hello_lab.c
+# (entrada config HELLO_LAB añadida al final de src/kernel-px/drivers/misc/Kconfig: bool, depends on PROC_FS, default n)
+printf 'obj-$(CONFIG_HELLO_LAB)\t+= hello_lab.o\n' >> src/kernel-px/drivers/misc/Makefile
+src/kernel-px/scripts/config --file out-px/.config --enable HELLO_LAB
+kmake olddefconfig 2>&1 | grep -v "unsupported character" | tail -4
+grep -n "HELLO_LAB" out-px/.config                                   # CONFIG_HELLO_LAB=y
+
+# Paso 5: recompilar el kernel y buscar nuestro código dentro
+time kmake -j8 2>&1 | tee logs/09-build-hello.log | tail -16
+ls -l out-px/drivers/misc/hello_lab.o out-px/arch/arm64/boot/Image.gz
+tools/clang-r383902/bin/llvm-nm out-px/vmlinux | grep -i hello
+grep -c "hello_lab" out-px/System.map                                # 3
 ```
 
 ## Hallazgos reales
@@ -80,7 +93,14 @@ strings modulos/hello_lab/hello_lab.ko | grep -E "hello_lab:|description="
 12. **Cómo encontrar el nombre correcto en el propio kernel:** `grep -n -i "out of memory" src/kernel-px/include/uapi/asm-generic/errno-base.h` → `16:#define ENOMEM 12 /* Out of memory */`. Se busca por la descripción que sí se recuerda. Hubo que mostrar las dos palabras una encima de la otra (`ENOME`**`M`** contra `ENOME`**`N`**): en la fuente de la terminal la `N` y la `M` se parecen.
 13. **Compilación correcta con `/proc` (Paso 3):** `CC [M]`, `MODPOST 1 modules`, `LD [M]`; símbolos `U` (nueve): `printk`, `proc_create`, `proc_remove`, `seq_lseek`, `seq_printf`, `seq_puts`, `seq_read`, `single_open`, `single_release`; `hello_lab.ko` de **137 176 bytes** (de 30 168: crece por la información de depuración de `file_operations` y `seq_file`). Sin avisos del compilador.
 14. **El compilador no ve las erratas dentro de comillas:** además de `ENOMEN` había `"…elimiando\n"` (línea 44) y `MODULE_DESCRIPTION("…nod /proc…")` (línea 52). Para el compilador lo que va entre comillas son **datos**, no nombres: se graban tal cual en el `.ko` (`strings` los mostraba: `6hello_lab: descargado, nodo /proc/hello_lab elimiando` y `description=Laboratorio: nod /proc…`) y saldrían en el `dmesg` y en `modinfo`. Solo las encuentra una persona **leyendo** la salida. Tras corregirlas, `strings` muestra `description=Laboratorio: nodo /proc de solo lectura`, `6hello_lab: cargado, nodo /proc/hello_lab creado` y `6hello_lab: descargado, nodo /proc/hello_lab eliminado` (la `6` es el nivel `INFO`, `KERN_INFO`).
-15. **El `.c` final del usuario es idéntico en contenido a la referencia** (`diff -b -w`); solo difiere en espacios y tabuladores (alineación de los `=` en `file_operations`). Se versiona `modulos/hello_lab/hello_lab.c` (1 235 bytes): es código escrito a mano.
+15. **El `.c` final del usuario es idéntico en contenido a la referencia** (`diff -b -w`); solo difiere en espacios y tabuladores (alineación de los `=` en `file_operations`). Se versiona `modulos/hello_lab/hello_lab.c` (1 248 bytes): es código escrito a mano.
+
+16. **Integración en el kernel (Paso 4), tres piezas:** (1) el archivo, por **enlace simbólico** `src/kernel-px/drivers/misc/hello_lab.c -> ../../../../modulos/hello_lab/hello_lab.c` (un solo archivo, el del usuario, versionado en este repositorio); (2) la opción en `drivers/misc/Kconfig` (`config HELLO_LAB`, `bool`, `depends on PROC_FS`, `default n`), añadida al final con `cat >>`; (3) `obj-$(CONFIG_HELLO_LAB) += hello_lab.o` en `drivers/misc/Makefile`. Se activó con `scripts/config --file out-px/.config --enable HELLO_LAB` y `kmake olddefconfig` terminó sin errores: `out-px/.config` línea 1590, **`CONFIG_HELLO_LAB=y`**. Al ser `bool`, el código va dentro de `vmlinux` y no existe modo módulo. El árbol de PixelExperience queda con cambios locales (`Kconfig`, `Makefile` y el enlace) y un `scripts/__pycache__/` sin seguimiento, creado por ejecutar `diffconfig` con `python3`.
+17. **Recompilación incremental (Paso 5): `real 0m35,8s`** (`user 1m29`, `sys 0m54`), con 8 hilos. Solo se compiló `drivers/misc/hello_lab.o` (**115 600 bytes**) y se volvió a enlazar `vmlinux`: `LD vmlinux`, `SORTEX`, `SYSMAP`, `OBJCOPY Image`, `GZIP Image.gz`, `MODPOST 4 modules`. El resultado es `out-px/arch/arm64/boot/Image.gz` de **17 634 827 bytes** (antes 17 619 346: +15 481).
+18. **Tu código dentro de `vmlinux` (`llvm-nm`):** `d __initcall_hello_lab_init6` (la entrada en la **tabla de initcalls**; el `6` es el nivel de `device_initcall`, el que corresponde a `module_init` en código integrado), `t hello_lab_init`, `t hello_open`, `t hello_show`, `d hello_fops`, `b hello_ent` (la variable global, en `.bss`) y `t hello_lab_exit`. `System.map` tiene **3** líneas con `hello_lab`. Ya no hay `init_module`, `cleanup_module` ni `__this_module` (eso era del `.ko`), y los símbolos que eran `U` en el módulo (`printk`, `proc_create`...) son ahora funciones normales del propio kernel. El `grep -i hello` también devolvió ruido ajeno (`br_set_hello_time`, `dev_attr_hello_timer`, `qrtr_hello_work`: temporizadores y trabajos *hello* de la red): el patrón era demasiado amplio.
+19. **Corrección del mentor: `hello_lab_exit` SÍ está en el kernel.** Se predijo que el compilador la descartaría por ser código integrado. En `arch/arm64/kernel/vmlinux.lds.S` hay un comentario que lo explica: `/* .exit.text needed in case of alternative patching */`, con `#define ARM_EXIT_KEEP(x) x` y `#define ARM_EXIT_DISCARD(x)` (vacío): en arm64 **la sección `.exit.text` se conserva**. Lo que sí se descarta (`EXIT_CALL`, líneas 103-106) es la tabla `.exitcall.exit` de **punteros** a funciones de salida (`module_exit(x)` integrado = `__exitcall(x)`, `include/linux/init.h:257`). La función está en memoria, pero nada la llama nunca.
+20. **El crecimiento de 15 KB de `Image.gz` no viene de otra opción:** `diffconfig` entre un `spes-perf_defconfig` limpio y `out-px/.config` da **una sola diferencia, `HELLO_LAB n -> y`**. La `Image` sin comprimir mide **lo mismo** que antes (36 719 104 bytes, por el redondeo de alineación). Los 15 KB son bytes que cambian al desplazarse las direcciones (tablas de reubicación y de símbolos) y comprimen peor.
+21. **Incidente del mentor: un `heredoc` mal cerrado ejecutó texto del documento como comandos.** El script de actualización de este documento contenía, dentro de una cadena, una línea `EOF` (la del ejemplo de `Kconfig`); el *shell* la tomó como el final de su propio `heredoc`, Python no se ejecutó (`SyntaxError`) y **las líneas siguientes se ejecutaron como órdenes**. Efecto real: se añadió una **línea basura al final de `src/kernel-px/drivers/misc/Makefile`** (`obj-$(CONFIG_HELLO_LAB)\t+= hello_lab.o\n`, con las barras escritas literalmente y sin salto de línea). Se detectó revisando el estado antes de volver a compilar (`tail | cat -A` y `git diff`), se comprobó que el resto estaba intacto (una sola entrada en `Kconfig`, una sola línea de `HELLO_LAB` en `.config`, el repositorio principal sin tocar) y se eliminó **solo esa línea**; el `git diff` del `Makefile` quedó con exactamente `+obj-$(CONFIG_HELLO_LAB)<TAB>+= hello_lab.o`. El kernel compilado era válido porque se construyó antes. Lección: un delimitador de `heredoc` no puede aparecer dentro del texto que encierra; para scripts con texto libre, **escribir el script a un archivo** con la herramienta de edición y ejecutarlo después.
 
 ## Evidencias
 
@@ -116,12 +136,25 @@ Mismo mensaje con `36:16`; el `.ko` sigue siendo el viejo (`30168`, 16:35).
 `description=Laboratorio: nodo /proc de solo lectura` y los dos mensajes de `INFO` (`6hello_lab: …`).
 ![strings del .ko sin erratas](evidencias/08-strings-sin-erratas.png)
 
+**09 - Integración en el kernel y opción activada (hallazgo #16)**
+`ln -s`, la entrada de `Kconfig`, la línea del `Makefile`, `scripts/config --enable`, `olddefconfig`, el enlace visto con `ls -l`, el `tail` del `Makefile` y `CONFIG_HELLO_LAB=y`.
+![Integración de hello_lab en el kernel](evidencias/09-integracion-enlace-kconfig-makefile-config.png)
+
+**10 - Recompilación incremental del kernel (hallazgo #17)**
+`LD vmlinux`, `OBJCOPY Image`, `GZIP Image.gz`, `real 0m35,8s`, `hello_lab.o` de 115 600 bytes e `Image.gz` de 17 634 827.
+![Recompilación del kernel con hello_lab](evidencias/10-recompilacion-del-kernel-con-hello-lab.png)
+
+**11 - Tus símbolos dentro de `vmlinux` (hallazgos #18 y #19)**
+`__initcall_hello_lab_init6`, `hello_lab_init`, `hello_lab_exit`, `hello_open`, `hello_show`, `hello_fops`, `hello_ent` y las 3 líneas de `System.map`.
+![Símbolos de hello_lab en vmlinux](evidencias/11-simbolos-de-hello-lab-en-vmlinux.png)
+
 ## Pendientes
 
 - [x] Paso 1: `hello_lab.c` escrito a mano y compilado como `hello_lab.ko` (30 168 B).
 - [x] Paso 2: `.ko` inspeccionado (`file`, `modinfo`, `llvm-nm`, `llvm-objdump`).
 - [x] Paso 3: nodo `/proc/hello_lab` con `seq_file` compilado como `.ko` (137 176 B, 9 símbolos `U`, sin avisos).
-- [ ] Paso 4: módulo integrado en el kernel y kernel recompilado.
-- [ ] Paso 5: `printk` del módulo visto en el `dmesg` del teléfono.
-- [ ] Paso 6: `cat /proc/hello_lab` desde `adb shell`.
+- [x] Paso 4: módulo integrado en el kernel (enlace, `Kconfig`, `Makefile`, `CONFIG_HELLO_LAB=y`).
+- [x] Paso 5: kernel recompilado (35,8 s) con `hello_lab` dentro de `vmlinux`.
+- [ ] Paso 6: arrancar con `fastboot boot` la imagen `boot-lab-hello.img` y ver el `printk` de `hello_lab` en el `dmesg`.
+- [ ] Paso 7: `cat /proc/hello_lab` desde `adb shell` (¿SELinux deja leerlo al usuario `shell`?).
 - [ ] (Módulo 13) Cargarlo como `.ko` con `insmod` cuando haya root.
