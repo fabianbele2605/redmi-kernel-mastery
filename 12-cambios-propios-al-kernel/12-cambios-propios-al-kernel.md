@@ -1,6 +1,6 @@
 # Módulo 12 — Cambios propios al kernel
 
-- Estado: Completado (el paso 6 de la guía queda diferido hasta tener root, ver hallazgo #18)
+- Estado: Completado (el paso 6 se hizo después, con root del módulo 13; ver hallazgos #18 y #19-#23)
 - Fecha: 2026-10-23
 - Kernel: `4.19.297-uvite` (`src/kernel-px`, rama de trabajo `lab/cambio-01-hello-lab`, salida en `out-px/`), Clang 11.0.1 de AOSP
 - Imagen de prueba: `artifacts/px/boot-lab-hello2.img` (`ramoops_memreserve=4M`), arrancada con `fastboot boot`
@@ -63,6 +63,12 @@ sha256sum artifacts/px/boot-lab-revert.img | tee logs/12-hash-boot-lab-revert.tx
 fastboot boot artifacts/px/boot-lab-revert.img && bash artifacts/capturar-dmesg.sh revert
 grep -n -E "Freeing unused kernel memory|uvite: kernel_init|Run /init|hello_lab" logs/08-dmesg-revert.txt
 git -C src/kernel-px checkout lab/cambio-02-kernel-init     # volver a la rama buena
+# Paso 6 (diferido en su dia, hecho en el modulo 13 con root): read_ahead_kb de /data, medido
+adb shell 'su -c "mount | grep \" /data \""'                                   # /dev/block/dm-40 type f2fs ... inlinecrypt
+adb shell 'su -c "cat /sys/block/sda/queue/read_ahead_kb /sys/block/dm-40/queue/read_ahead_kb"'   # 128 y 512 KB: /data usa dm-40, no sda
+bash artifacts/medir-readahead.sh r1   3 512  2048 1024     # tanda 1: A=512 primero, B=2048 despues
+bash artifacts/medir-readahead.sh ctrl 3 512  512  1024     # control A/A: el mismo valor dos veces
+bash artifacts/medir-readahead.sh inv  3 2048 512  1024     # orden invertido: B primero
 ```
 
 ## Hallazgos reales
@@ -89,6 +95,12 @@ git -C src/kernel-px checkout lab/cambio-02-kernel-init     # volver a la rama b
 
 18. **El paso 6 (cambio de rendimiento) no se puede medir sin root, y por eso se difiere.** Antes de elegir el cambio se comprobó qué puede leer y hacer el usuario `shell`: `/sys/block/*/queue/read_ahead_kb` no es legible, `/sys/block/sda/queue/scheduler` da `Permission denied`, `sched_latency_ns`, `sched_min_granularity_ns` y `sched_wakeup_granularity_ns` no son legibles, `/proc/sys/vm/drop_caches` **no se puede escribir** y el `dd` de Android rechaza `iflag=direct` (`dd: bad iflag=direct`). Sin vaciar la caché de páginas ni poder leer el parámetro que se cambiaría, una medida de «antes y después» mediría la caché y no el cambio; y el módulo 10 mostró que la misma medida varía entre repeticiones iguales (frecuencia media de los grandes: 2 304, 2 392 y 2 400 MHz). El kernel usa `CONFIG_DEFAULT_IOSCHED="cfq"` y `CONFIG_HZ=250`. **Decisión:** no inventar un cambio sin forma de medirlo; el paso 6 queda pendiente hasta tener root (módulo 13).
 
+19. **Antes de medir, el dispositivo correcto.** El plan era cambiar `read_ahead_kb` de `sda` (128 KB), pero `/data` es **`f2fs` sobre `/dev/block/dm-40`** (con `inlinecrypt`), y `dm-40` tiene **512 KB**. Cambiar `sda` no habría tocado nada de lo que lee el archivo de prueba. Se descubrió **leyendo el montaje antes de tocar nada**.
+20. **Diseño del experimento: una sola variable y reversible.** `artifacts/medir-readahead.sh` cambia solo `/sys/block/dm-40/queue/read_ahead_kb` (512 KB frente a 2048 KB), lee en secuencia un archivo de 1 GB con `dd bs=64k`, **vacía la caché antes de cada lectura** (`drop_caches`), alterna los valores y restaura el original aunque se interrumpa (`trap`). `artifacts/ra-una-lectura.sh` es la parte que corre en el teléfono; el `date +%s%N` de Android funciona (mide 1 031 ms tras `sleep 1`). `quiet` varió de 29,15 a 29,77 °C: sin efecto térmico.
+21. **La primera tanda engañaba.** `r1` (512 primero, 2048 después): 512 KB = 1 524 ms de media (672 MB/s) y 2048 KB = 1 157 ms (886 MB/s), **+31,7 %**, y los rangos no se solapaban. Pero el diseño tenía un fallo del mentor: dentro de cada pareja siempre iba primero el valor de partida. Se añadieron dos controles.
+22. **El control A/A mostró que el ruido es del tamaño del efecto.** `ctrl` (512 contra 512): parejas (1 077, 1 411), (1 420, 1 415), (1 121, 1 416) ms; **dos lecturas idénticas difieren hasta un 32 %**. Con todos los datos juntos los rangos **sí se solapan** (dos lecturas a 512 KB, 1 077 y 1 121 ms, fueron más rápidas que la peor de 2048 KB, 1 189 ms): la «separación» de `r1` fue suerte de una muestra pequeña. La segunda lectura de cada pareja salió igual o más lenta, al revés de lo que favorecería a 2048 KB, así que el orden no explica la mejora.
+23. **Resultado, con sus límites.** Con las 18 lecturas (`r1`, `ctrl`, `inv`): 512 KB, n = 12, media **1 365 ms**, mediana 1 413, rango 1 077–1 571; 2048 KB, n = 6, media **1 116 ms**, mediana 1 103, rango 1 025–1 189. **−18,2 % de tiempo** (−21,9 % por medianas), prueba de permutación **p = 0,0015**; por tandas: **−24,1 %** (`r1`) y **−18,4 %** (`inv`, orden invertido). Es decir: **más lectura anticipada acelera la lectura secuencial en torno a un 18-24 %**. No se puede generalizar: es una lectura secuencial sintética (archivo de ceros, bloques de 64 KB), el mejor caso para la lectura anticipada; no dice nada de lecturas aleatorias (abrir apps) ni del coste en memoria; y los resultados a 512 KB son **bimodales** (~1 100 y ~1 415 ms con el mismo ajuste), señal de un factor no controlado. El cambio es en **tiempo de ejecución** (no recompila el kernel) y **se pierde al reiniciar**: el valor original (512 KB) se restauró al terminar cada tanda.
+
 ## Evidencias
 
 Este módulo se documenta con los registros guardados, sin capturas de pantalla:
@@ -98,6 +110,7 @@ Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - `logs/12-build-kernel-init.log` y `logs/12-hash-boot-lab-kinit.txt` — el cambio 3 (ver hallazgo #11 sobre el registro).
 - `logs/08-dmesg-kinit.txt` — líneas 1290-1292: `Freeing…` / `uvite: kernel_init…` / `Run /init`; control en 8439-8440.
 - `patches/0003-lab-mensaje-al-terminar-kernel_init.patch` — el parche del cambio 3.
+- `logs/12-readahead-r1.csv`, `logs/12-readahead-ctrl.csv`, `logs/12-readahead-inv.csv` — las 18 lecturas del paso 6 (hallazgos #21 a #23); scripts `artifacts/medir-readahead.sh` y `artifacts/ra-una-lectura.sh`.
 - `logs/12-build-revert.log`, `logs/12-hash-boot-lab-revert.txt` y `logs/08-dmesg-revert.txt` — la prueba de reversibilidad (líneas 1277-1278 del `dmesg` y 8125-8127 del arranque anterior).
 
 ## Pendientes
@@ -108,5 +121,5 @@ Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - [x] Paso 4 de la guía: `pstore`/`ramoops` (módulo 8).
 - [x] Primer commit de la serie y parche equivalente al `0001`.
 - [x] Paso 5 de la guía: función no crítica **del propio árbol del kernel** modificada (`kernel_init`), con prueba en el `dmesg` y parche `0003` exportado.
-- [ ] Paso 6 de la guía: un cambio de rendimiento con mediciones antes y después. **Diferido** al módulo 13: hace falta root para `drop_caches` y para leer `/sys/block/*/queue/*` y los parámetros del planificador.
+- [x] Paso 6 de la guía: cambio de rendimiento con mediciones antes y después (hecho en el módulo 13 con root): `read_ahead_kb` de `dm-40`, 512 → 2048 KB, −18 % a −24 % de tiempo en lectura secuencial, con control A/A y orden invertido. No se generaliza (hallazgo #23).
 - [x] Reversibilidad: `git revert` del cambio 3, recompilado y arrancado; su línea desaparece del `dmesg` y los otros cambios siguen.
