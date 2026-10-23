@@ -1,0 +1,6 @@
+# Descripcion del initramfs para gen_init_cpio (no necesita root).
+# formato: dir <ruta> <modo> <uid> <gid> | nod <ruta> <modo> <uid> <gid> <b|c> <mayor> <menor> | file <ruta> <origen> <modo> <uid> <gid>
+dir /dev 755 0 0
+nod /dev/console 600 0 0 c 5 1
+dir /proc 755 0 0
+file /init mi_init 755 0 0
