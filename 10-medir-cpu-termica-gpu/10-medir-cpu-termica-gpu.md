@@ -2,7 +2,7 @@
 
 - Estado: Completado (con limitaciones, ver Pendientes)
 - Fecha: 2026-10-22
-- Teléfono: Redmi Note 11 (`spes`), MIUI V14.0.5.0.TGCMIXM, **kernel de fábrica** `4.19.157-perf` (todas las medidas son del sistema original, sin tocar nada)
+- Teléfono: Redmi Note 11 (`spes`), MIUI V14.0.5.0.TGCMIXM, corriendo **tu kernel** `4.19.297-uvite` (el de `boot-lab-hello.img`, arrancado con `fastboot boot` en el módulo 9; uptime de 9 625 s al comprobarlo a las 22:28, es decir, arrancó a las ~19:48 y no se reinició). Las medidas **no** son del kernel de fábrica.
 - Árbol leído: `src/kernel-px` (PixelExperience, 4.19.297), archivo `arch/arm64/boot/dts/vendor/qcom/bengal-thermal.dtsi`
 - Objetivo: tener datos antes de cambiar nada (**medir ≠ optimizar**): temperaturas, frecuencias y qué las limita, con tres repeticiones de 10 minutos.
 
@@ -60,7 +60,7 @@ Antes de cada repetición se esperó a que `quiet-therm-usr` bajara a ≈31 °C 
    Media de la frecuencia de los grandes bajo carga: **2 365 MHz**, rango **2 304–2 400 MHz**. Con **una sola** repetición habríamos escrito «frecuencia sostenida: 2 208 MHz» (rep. 1) o «2 400 MHz» (rep. 3), y las dos habrían sido verdad ese día y falsas como línea base. La causa de la diferencia (ambiente, posición del teléfono, cable) **no se midió**.
 10. **Los pequeños limitaron en la rep. 1 antes de lo que dice el DTS.** Empezaron a oscilar (1 517 / 1 805 / 1 901 MHz) con `quiet` en 40,53 °C, y su disparo es a 41,0 °C. Es posible que la zona que leí (`quiet-therm-usr`) no dé exactamente la misma lectura que `quiet-therm-step`, pero **no está comprobado**.
 11. **Los sensores de placa se enfrían lento, los de la CPU rápido.** Al parar la carga, `cpuss0` baja de ~85 a ~45 °C en 10 s, mientras que `quiet` tarda unos 5-10 minutos en volver a 31 °C (de 36,5 °C a 30,96 °C ocurrió con el teléfono quieto, sin tiempo medido con precisión).
-12. **Limitación de la fuente:** las medidas son del kernel de fábrica (`4.19.157-perf`) y los disparos están leídos del DTS del árbol PixelExperience (`4.19.297`). Los números concuerdan (umbral de 40 °C), pero **no se ha leído el DTB original** del teléfono (está en `vendor_boot`).
+12. **Corrección del mentor: el kernel medido fue el tuyo, no el de fábrica.** El documento decía «kernel de fábrica `4.19.157-perf`» y no se había comprobado. Al abrir Termux (módulo 11), `uname -r` dio `4.19.297-uvite`, y `/proc/uptime` (9 625 s a las 22:28) lo confirma: el teléfono no se reinició desde el `fastboot boot` del módulo 9. Consecuencias: (a) los **drivers** (cpufreq, térmica, GPU) son los del árbol PixelExperience, y **no se sabe** si el kernel de fábrica se comporta igual; (b) el **DTB** que usó el kernel es el de fábrica (vive en `vendor_boot`, que no tocamos), pero los disparos del hallazgo #7 se leyeron del **DTS del árbol PixelExperience**, no de ese DTB. Los números concuerdan con el umbral de 40 °C, pero queda sin comprobar que sea el mismo archivo.
 13. **Condiciones no controladas:** teléfono enchufado durante toda la carga (la batería sube de 29–30 a 35–36 °C y sus propios disparos de 39–45 °C, `batt-trip*`, pueden actuar sobre la carga), no se anotó la temperatura de la habitación.
 
 ## Evidencias
@@ -107,4 +107,5 @@ Los datos completos están en `logs/10-medicion-carga10-{1,2,3}.csv` (141 muestr
 - [ ] Averiguar por qué `pm6125-tz` (37 000) y `rf-pa1-therm-usr` (~49,9 °C) apenas cambian con la carga.
 - [ ] Comprobar si `quiet-therm-usr` y `quiet-therm-step` leen lo mismo (hallazgo #10).
 - [ ] Leer el DTB original (en `vendor_boot`) y confirmar que los disparos coinciden con los del árbol PixelExperience.
+- [ ] Repetir una repetición de 10 minutos con el **kernel de fábrica** (reiniciar el teléfono) para comparar con el `uvite`: ahora mismo la línea base es la de tu kernel.
 - [ ] Medir la GPU con una carga gráfica propia (en este módulo solo se lee `gpu-usr`).
