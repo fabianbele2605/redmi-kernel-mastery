@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Variante de LABORATORIO de sm6225-xiaomi-spes-sm5602.dts para entregarla con kexec
+ * (sin el bootloader, que normalmente rellena la RAM y aplica la capa dtbo):
+ *  - memoria: solo el tramo limpio de 3 GiB (80000000-13fffffff) que ve el 4.19 en /proc/iomem;
+ *    lo que hay por debajo es memoria del firmware (modem, DSP, pantalla) en uso.
+ *  - ramoops en 0x5d000000 con el mismo reparto que el DTB de fabrica (lo copia spesn.dts),
+ *    para poder leer el registro despues con el kernel 4.19 desde /sys/fs/pstore.
+ */
+#include "sm6225-xiaomi-spes-sm5602.dts"
+
+&{/memory@80000000} {
+	reg = <0x0 0x80000000 0x0 0xc0000000>;
+};
+
+&{/reserved-memory} {
+	#address-cells = <2>;
+	#size-cells = <2>;
+	ranges;
+
+	ramoops@5d000000 {
+		compatible = "ramoops";
+		reg = <0x0 0x5d000000 0x0 0x400000>;
+		record-size = <0x80000>;
+		pmsg-size = <0x200000>;
+		console-size = <0x100000>;
+	};
+};

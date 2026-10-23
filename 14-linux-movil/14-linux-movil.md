@@ -114,6 +114,22 @@ fdtoverlay -i sm6225-xiaomi-spes-sm5602.dtb -o /tmp/ov.dtb /tmp/dtbo/31.dtbo    
 make ... DTC_FLAGS="-@" qcom/sm6225-xiaomi-spes-sm5602.dtb && fdtoverlay ...                # FDT_ERR_NOTFOUND
 ```
 
+```bash
+# Etapa 3b: preparar el salto con kexec desde tu 4.19 al kernel principal (sin tocar el telefono todavia)
+cd src/kernel-px && git checkout -b lab/kexec-01          # rama aparte; CONFIG_KEXEC=y en spes-perf_defconfig y arreglo de proc-fns.h
+cd ~/Escritorio/Mobil && source artifacts/entorno-px.sh && kmake -j12                              # 11 min 24 s, 0 errores
+llvm-nm out-px/vmlinux | grep -E "sys_kexec_load|machine_kexec|kernel_kexec"                        # __arm64_sys_kexec_load, machine_kexec, kernel_kexec
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel artifacts/px/Image-kexec.gz --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline 'ramoops_memreserve=4M' -o artifacts/px/boot-lab-kexec.img
+# kexec-tools 2.0.32 para ARM64, estatico
+wget https://cdn.kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-2.0.32.tar.xz; sha256sum -c sha256sums.asc.1 --ignore-missing
+cd src/kexec-tools && ./configure --host=aarch64-linux-gnu CFLAGS="-O2 -static" LDFLAGS="-static" && make -j12      # build/sbin/kexec, 1 005 000 bytes
+# kernel principal con pstore integrado y DTB de laboratorio
+src/linux-sm6225/scripts/config --file out-sm6225/.config -e PSTORE_CONSOLE -e PSTORE_RAM -e PSTORE_PMSG
+make -C src/linux-sm6225 O=$PWD/out-sm6225 ARCH=arm64 LLVM=1 -j12 Image                              # 3 min 54 s
+bash modulos/sm6225/construir-dtb.sh                                                                 # out-sm6225/lab.dtb
+git -C src/kernel-px format-patch lab/ksu-01-integracion..lab/kexec-01 -o patches --start-number 10  # 0010 y 0011
+```
+
 ## Hallazgos reales
 
 1. **La búsqueda web estaba desactualizada.** Decía que el paquete `device-xiaomi-spes` de postmarketOS estaba en `testing`. El repositorio real (`pmaports`, commit `c7940da`, 23-oct-2026) lo tiene en **`device/archived/`**, y el `APKBUILD` de dispositivo y de kernel empiezan con **`# Archived: unmaintained`** y `maintainer=""`: archivado y sin mantenedor.
@@ -175,6 +191,11 @@ make ... DTC_FLAGS="-@" qcom/sm6225-xiaomi-spes-sm5602.dtb && fdtoverlay ...    
 47. **Límite de la simulación:** en la prueba 1, `fdtoverlay` dejó `model = "…Khaje SoC"`, mientras que el kernel del teléfono vio `SPES KHAJE IDP nopmi`: el *bootloader* de Qualcomm hace algo más que aplicar los fragmentos (probablemente fusiona también propiedades de la raíz de la capa). La simulación es una buena aproximación, no una réplica exacta.
 48. **Consecuencia: `fastboot boot` no sirve para probar el kernel principal en este teléfono**, porque el *bootloader* aplica siempre su capa a cualquier DTB, se elige por el chip y no se puede esquivar cambiando el DTB. **Caminos posibles, ninguno probado:** (a) **escribir una `dtbo` distinta** (primera escritura en el teléfono; hay copia de la de fábrica, hash `1e83752b…` en `logs/03-hash-stock.txt` para `vbmeta`; la de `dtbo` es `0db044d8…`) y Android no arrancaría hasta restaurarla; (b) **`kexec`** desde un kernel que ya arrancó por el camino normal: exige recompilar el 4.19 con `CONFIG_KEXEC=y` y un `kexec` de ARM64, y el salto en teléfonos Qualcomm es poco fiable (el módem y los DSP ya están en marcha); (c) una `vendor_boot` propia con otro DTB base: no resuelve la capa `dtbo`.
 
+49. **Tu 4.19 con `KEXEC`: dos problemas, ambos míos o del árbol, resueltos.** (a) **Error del mentor:** el `printf 'CONFIG_KEXEC=y\n' >>` pegó la opción a la última línea porque `spes-perf_defconfig` **no acaba en salto de línea**, dejando `CONFIG_IPC_LOGGING=yCONFIG_KEXEC=y` (y rompiendo `IPC_LOGGING`); el commit decía `1 insertion(+), 1 deletion(-)` y yo esperaba solo una inserción; se detectó leyendo ese `1 deletion`, y se corrigió con `--amend` (commit local sin publicar) añadiendo `\nCONFIG_KEXEC=y\n`. (b) **Fallo real del árbol del fabricante, oculto hasta hoy porque `KEXEC` nunca estuvo activo:** `arch/arm64/include/asm/proc-fns.h:35` declara `cpu_soft_restart(phys_addr_t, unsigned long)` (2 argumentos, de una función en ensamblador de `mm/proc.S` que **nadie llama**) y `arch/arm64/kernel/cpu-reset.h:19` define otra `static inline` con 4 argumentos, la que usa `machine_kexec.c`: `error: static declaration of 'cpu_soft_restart' follows non-static declaration`. Arreglo mínimo: quitar esas 2 líneas de `proc-fns.h`. Compilación: **11 min 24 s, 0 errores, 2 avisos**; en `vmlinux`: `__arm64_sys_kexec_load`, `kernel_kexec`, `machine_kexec`, `machine_kexec_prepare`, `__cpu_soft_restart`. Parches `patches/0010` y `0011`, **verificados aplicándolos en orden sobre los archivos de la rama anterior** (un primer intento de comprobación sobre el árbol donde ya estaban aplicados daba un falso fallo).
+50. **`kexec-tools 2.0.32` para ARM64, estático.** Tarball `kexec-tools-2.0.32.tar.xz` (325 392 bytes, SHA-256 `8f81422a…0a5d`, verificado contra el `.asc` de `kernel.org`); `./configure --host=aarch64-linux-gnu CFLAGS="-O2 -static"`, `make`: `build/sbin/kexec`, **1 005 000 bytes**, ELF aarch64 estático (SHA-256 `440127ac…98a96d`), con `kexec-image-arm64`, `kexec-vmlinuz-arm64` y `kexec-elf-arm64`. **Error del mentor:** la primera «verificación» dio `linux-6.18.58.tar.xz: OK` porque `wget` no sobrescribe y se comprobó el `sha256sums.asc` viejo del kernel; el correcto era `sha256sums.asc.1`.
+51. **Preparar el kernel principal para un salto sin *bootloader*.** (a) Su DTB trae `memory@80000000 { reg = <0 0x80000000 0 0> }` (**tamaño 0**: lo rellena el *bootloader*; con `kexec` nadie lo haría y el kernel moriría sin memoria). (b) No reserva `ramoops@5d000000`; la variante hermana `spesn.dts` sí lo hace con los **mismos valores que el DTB de fábrica** (`console-size 0x100000`, `pmsg-size 0x200000`, `record-size 0x80000`, `reg 0x5d000000 / 0x400000`, que se leyeron en `/proc/device-tree/reserved-memory/ramoops@5D000000` del teléfono). (c) Su `.config` tenía `# CONFIG_PSTORE_CONSOLE is not set` y `PSTORE_RAM=m`. **Diseño:** `modulos/sm6225/sm6225-xiaomi-spes-sm5602-lab.dts` incluye el `.dts` original y fija solo `memory@80000000` a **3 GiB limpios** (`0x80000000`, `0xc0000000`, el tramo `80000000-13fffffff` de `/proc/iomem`; lo de abajo es memoria del *firmware* en uso: módem, DSP, pantalla) y añade el nodo `ramoops` igual que el de fábrica; `kexec` cargará con `--mem-min/--mem-max` dentro de ese tramo. DTB `lab.dtb`: **105 210 bytes**. `.config`: `PSTORE_CONSOLE=y`, `PSTORE_RAM=y`, `PSTORE_PMSG=y`; `Image` de **49 568 256 bytes** (3 min 54 s, 0 errores, 28 símbolos de `ramoops`/`pstore`).
+52. **El DTB principal tiene un `simple-framebuffer`** en `0x5c000000` (`0xf00000` bytes, 1080×2400, `a8r8g8b8`, `stride 0x10e0`), y esa región figura como `reserved` en el `/proc/iomem` del teléfono: es la memoria de pantalla del *bootloader*. Con `kexec`, **no se sabe** si seguirá mostrándose o si el controlador de pantalla de Xiaomi la apaga al apagarse.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -235,7 +256,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Compilar `v7.2.1-sm6225` con `sm6225_defconfig` y nuestro Clang (hecho; falló una vez por un archivo ausente en la rama y se arregló desactivando la opción huérfana).
 - [x] Probar el kernel principal con `fastboot boot` en versión 2 con DTB: aceptado pero **no arranca** (hallazgo #41).
 - [x] Prueba de control: el *bootloader* **acepta la versión 2** y aplica la capa de la placa (hallazgos #43 a #47).
-- [ ] Decidir cómo entregar el DTB del kernel principal: `kexec` desde el 4.19 (recompilarlo con `CONFIG_KEXEC=y` y conseguir un `kexec` de ARM64) o escribir una `dtbo` distinta (hallazgo #48).
+- [x] Preparar el salto con `kexec` (4.19 con `KEXEC`, `kexec` ARM64, kernel principal con `pstore`, DTB de laboratorio): todo compilado y verificado, **sin ejecutar nada en el teléfono todavía** (hallazgos #49 a #52).
+- [ ] **Hacer el salto**: arrancar `boot-lab-kexec.img`, subir `out-kexec/`, `kexec -l` (solo carga), y solo después `kexec -e`.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.

@@ -1,0 +1,48 @@
+make: se entra en el directorio '/home/fabian/Escritorio/Mobil/src/linux-sm6225'
+make[1]: se entra en el directorio '/home/fabian/Escritorio/Mobil/out-sm6225'
+  SYNC    include/config/auto.conf
+  CC      lib/reed_solomon/reed_solomon.o
+  UPD     kernel/config_data
+  GZIP    kernel/config_data.gz
+  CC      kernel/configs.o
+  CC      fs/pstore/inode.o
+  CC      fs/pstore/platform.o
+  CC      fs/pstore/pmsg.o
+  CC      fs/pstore/ram.o
+  CC      fs/pstore/ram_core.o
+  AR      lib/reed_solomon/built-in.a
+  AR      lib/built-in.a
+  AR      kernel/built-in.a
+  AR      fs/pstore/built-in.a
+  AR      fs/built-in.a
+  AR      built-in.a
+  AR      built-in-fixup.a
+  COPY    vmlinux.a
+  LD      vmlinux.o
+  MODPOST vmlinux.symvers
+  CC      .vmlinux.export.o
+  UPD     include/generated/utsversion.h
+  CC      init/version-timestamp.o
+  KSYMS   .tmp_vmlinux0.kallsyms.S
+  AS      .tmp_vmlinux0.kallsyms.o
+  LD      .tmp_vmlinux1
+  NM      .tmp_vmlinux1.syms
+  KSYMS   .tmp_vmlinux1.kallsyms.S
+  AS      .tmp_vmlinux1.kallsyms.o
+  LD      .tmp_vmlinux2
+  NM      .tmp_vmlinux2.syms
+  KSYMS   .tmp_vmlinux2.kallsyms.S
+  AS      .tmp_vmlinux2.kallsyms.o
+  LD      vmlinux.unstripped
+  NM      System.map
+  SORTTAB vmlinux.unstripped
+  OBJCOPY vmlinux
+  GEN     modules.builtin.modinfo
+  GEN     modules.builtin
+  OBJCOPY arch/arm64/boot/Image
+make[1]: se sale del directorio '/home/fabian/Escritorio/Mobil/out-sm6225'
+make: se sale del directorio '/home/fabian/Escritorio/Mobil/src/linux-sm6225'
+
+real	3m54,287s
+user	5m14,750s
+sys	2m49,246s

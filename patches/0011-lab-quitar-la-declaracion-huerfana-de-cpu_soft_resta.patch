@@ -1,0 +1,29 @@
+From f8d7e1d9014ad7d20f407add906b2dbde3b1928a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?fabian=20bele=C3=B1o?= <fabianrobles321@outlook.com>
+Date: Fri, 23 Oct 2026 18:41:09 -0500
+Subject: [PATCH 11/11] lab: quitar la declaracion huerfana de cpu_soft_restart
+ en proc-fns.h
+
+Chocaba con la version static inline de arch/arm64/kernel/cpu-reset.h al
+activar CONFIG_KEXEC (machine_kexec.c incluye cpu-reset.h y la llama con 4
+argumentos). La funcion en ensamblador de mm/proc.S no la llama nadie.
+---
+ arch/arm64/include/asm/proc-fns.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/arch/arm64/include/asm/proc-fns.h b/arch/arm64/include/asm/proc-fns.h
+index 9da52c2c6..2408fb6f8 100644
+--- a/arch/arm64/include/asm/proc-fns.h
++++ b/arch/arm64/include/asm/proc-fns.h
+@@ -32,8 +32,6 @@ extern void cpu_cache_off(void);
+ extern void cpu_do_idle(void);
+ extern void cpu_do_switch_mm(unsigned long pgd_phys, struct mm_struct *mm);
+ extern void cpu_reset(unsigned long addr) __attribute__((noreturn));
+-void cpu_soft_restart(phys_addr_t cpu_reset,
+-		unsigned long addr) __attribute__((noreturn));
+ extern void cpu_do_suspend(struct cpu_suspend_ctx *ptr);
+ extern u64 cpu_do_resume(phys_addr_t ptr, u64 idmap_ttbr);
+ 
+-- 
+2.53.0
+

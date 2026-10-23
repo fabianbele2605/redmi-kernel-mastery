@@ -14,6 +14,7 @@ docs/agent/rol.txt
 docs/agent/rol2.txt
 out-px/
 out-rust/
+out-kexec/
 out-sm6225/
 out-initramfs/
 artifacts/px/

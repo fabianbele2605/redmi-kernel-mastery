@@ -1,0 +1,72 @@
+make: se entra en el directorio '/home/fabian/Escritorio/Mobil/src/kernel-px'
+  GEN     ./Makefile
+scripts/kconfig/conf  --syncconfig Kconfig
+  GEN     ./Makefile
+-- KernelSU version: 11872
+-- KernelSU Manager signature size: 0x033b
+-- KernelSU Manager signature hash: c371061b19d8c7d7d6133c6a9bafe198fa944e50c1b31c9d8daa8d7f1fc2d2d6
+-- Did you know you can backport path_umount to fs/namespace.c from 5.9?
+-- Read: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#how-to-backport-path-umount
+  Using /home/fabian/Escritorio/Mobil/src/kernel-px as source for kernel
+  CALL    /home/fabian/Escritorio/Mobil/src/kernel-px/scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  CC      init/initramfs.o
+  CC      arch/arm64/mm/init.o
+  CC      arch/arm64/mm/mmu.o
+  CC      arch/arm64/kernel/setup.o
+  CC      arch/arm64/kernel/traps.o
+  CC      arch/arm64/kernel/smp.o
+  CC      arch/arm64/kernel/machine_kexec.o
+  AS      arch/arm64/kernel/relocate_kernel.o
+  AS      arch/arm64/kernel/cpu-reset.o
+  CC      arch/arm64/kernel/crash_core.o
+  CC      kernel/panic.o
+In file included from /home/fabian/Escritorio/Mobil/src/kernel-px/arch/arm64/kernel/machine_kexec.c:27:
+/home/fabian/Escritorio/Mobil/src/kernel-px/arch/arm64/kernel/cpu-reset.h:19:31: error: static declaration of 'cpu_soft_restart' follows non-static declaration
+static inline void __noreturn cpu_soft_restart(unsigned long entry,
+                              ^
+/home/fabian/Escritorio/Mobil/src/kernel-px/arch/arm64/include/asm/proc-fns.h:35:6: note: previous declaration is here
+void cpu_soft_restart(phys_addr_t cpu_reset,
+     ^
+/home/fabian/Escritorio/Mobil/src/kernel-px/arch/arm64/kernel/machine_kexec.c:218:58: error: too many arguments to function call, expected 2, have 4
+        cpu_soft_restart(reboot_code_buffer_phys, kimage->head, kimage->start, 0);
+        ~~~~~~~~~~~~~~~~                                        ^~~~~~~~~~~~~~~~
+/home/fabian/Escritorio/Mobil/src/kernel-px/arch/arm64/include/asm/proc-fns.h:35:1: note: 'cpu_soft_restart' declared here
+void cpu_soft_restart(phys_addr_t cpu_reset,
+^
+2 errors generated.
+make[2]: *** [/home/fabian/Escritorio/Mobil/src/kernel-px/scripts/Makefile.build:339: arch/arm64/kernel/machine_kexec.o] Error 1
+make[2]: *** Se espera a que terminen otras tareas....
+  AR      init/built-in.a
+  CC      kernel/sysctl.o
+  CC      fs/open.o
+  CC      fs/file_table.o
+  CC      kernel/ksysfs.o
+  CC      kernel/reboot.o
+  CC      fs/namei.o
+  CC      security/security.o
+  AR      arch/arm64/mm/built-in.a
+make[1]: *** [/home/fabian/Escritorio/Mobil/src/kernel-px/Makefile:1213: arch/arm64/kernel] Error 2
+make[1]: *** Se espera a que terminen otras tareas....
+  CC      block/blk-mq.o
+  CC      kernel/events/core.o
+  CC      kernel/printk/printk.o
+  CC      fs/attr.o
+  CHK     kernel/kheaders_data.tar.xz
+  CC      kernel/crash_core.o
+  CC      kernel/kexec_core.o
+  CC      kernel/kexec.o
+  GEN     kernel/kheaders_data.tar.xz
+  AR      security/built-in.a
+  AR      block/built-in.a
+  AR      kernel/printk/built-in.a
+  AR      fs/built-in.a
+  AR      kernel/events/built-in.a
+  CC      kernel/kheaders.o
+  AR      kernel/built-in.a
+make: *** [Makefile:153: sub-make] Error 2
+make: se sale del directorio '/home/fabian/Escritorio/Mobil/src/kernel-px'
+
+real	0m30,829s
+user	1m12,078s
+sys	0m45,574s
