@@ -4,6 +4,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+#include <linux/cpumask.h>
 
 static struct proc_dir_entry *hello_ent;
 static unsigned long lecturas;
@@ -34,7 +35,8 @@ static int __init hello_lab_init(void)
 		 hello_ent = proc_create("hello_lab", 0444, NULL, &hello_fops);
 		 if (!hello_ent)
 		 		  return -ENOMEM;
-		 pr_info("hello_lab: cargado, nodo /proc/hello_lab creado\n");
+		 pr_info("hello_lab: cargado, nodo /proc/hello_lab creado (cpus=%u, HZ=%d)\n",
+				 num_online_cpus(), HZ);
 		 return 0;
 }
 

@@ -1,0 +1,1 @@
+06b17a10fae0274da8a3f4952c9ab69e9bbba6f0b9905ece065da4fbc1d1309a  artifacts/px/boot-lab-hello2.img
