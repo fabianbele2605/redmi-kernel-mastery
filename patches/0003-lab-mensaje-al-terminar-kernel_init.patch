@@ -1,0 +1,27 @@
+From 52174c250e4b8d135b9c8d78deaf98029576b57f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?fabian=20bele=C3=B1o?= <fabianrobles321@outlook.com>
+Date: Fri, 23 Oct 2026 13:00:17 -0500
+Subject: [PATCH] lab: mensaje al terminar kernel_init
+
+Un pr_info justo despues de rcu_end_inkernel_boot() en init/main.c,
+antes de run_init_process(). Comprobado en el dmesg del telefono:
+aparece entre 'Freeing unused kernel memory' y 'Run /init as init process'.
+---
+ init/main.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/init/main.c b/init/main.c
+index 3e73c74db..1ed656166 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -1115,6 +1115,7 @@ static int __ref kernel_init(void *unused)
+ 	numa_default_policy();
+ 
+ 	rcu_end_inkernel_boot();
++	pr_info("uvite: kernel_init termina el arranque del kernel\n");
+ 
+ 	if (ramdisk_execute_command) {
+ 		ret = run_init_process(ramdisk_execute_command);
+-- 
+2.53.0
+

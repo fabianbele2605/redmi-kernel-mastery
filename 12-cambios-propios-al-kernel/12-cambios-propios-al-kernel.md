@@ -38,6 +38,19 @@ adb reboot bootloader && fastboot boot artifacts/px/boot-lab-hello2.img
 # Paso 5: comprobar en el dmesg del teléfono
 bash artifacts/capturar-dmesg.sh hello2          # logs/08-dmesg-hello2.txt (1 a 4 min; no interrumpir)
 grep -n "hello_lab" logs/08-dmesg-hello2.txt
+# Cambio 3 (en el propio kernel): una línea en init/main.c, rama aparte
+cd ~/Escritorio/Mobil/src/kernel-px && git checkout -b lab/cambio-02-kernel-init
+# en kernel_init(), justo después de rcu_end_inkernel_boot();:
+#     pr_info("uvite: kernel_init termina el arranque del kernel\n");
+source artifacts/entorno-px.sh && time kmake -j12 2>&1 | tee logs/12-build-kernel-init.log | tail -8        # real 22,2 s
+cp out-px/arch/arm64/boot/Image.gz artifacts/px/Image-kinit.gz
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel artifacts/px/Image-kinit.gz --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline 'ramoops_memreserve=4M' -o artifacts/px/boot-lab-kinit.img
+sha256sum artifacts/px/boot-lab-kinit.img | tee logs/12-hash-boot-lab-kinit.txt
+adb reboot bootloader && fastboot boot artifacts/px/boot-lab-kinit.img
+bash artifacts/capturar-dmesg.sh kinit
+grep -n -E "Freeing unused kernel memory|uvite: kernel_init|Run /init" logs/08-dmesg-kinit.txt
+cd src/kernel-px && git add init/main.c && git commit -m "lab: mensaje al terminar kernel_init"
+git format-patch -1 -o ~/Escritorio/Mobil/patches --start-number 3     # patches/0003-lab-mensaje-al-terminar-kernel_init.patch
 ```
 
 ## Hallazgos reales
@@ -51,12 +64,22 @@ grep -n "hello_lab" logs/08-dmesg-hello2.txt
 7. **La prueba de fugas con la comprobación del Wi-Fi pasó** (`serial:0 PARTUUID:0 UUID:0 15-dígitos:0 MAC:0 SSID:0`): es la primera captura hecha con el script corregido tras el hallazgo #28 del módulo 9. En el archivo, la línea `Connecting to` sale como `[SSID-TAPADO]`, y no hay «FLIA» ni «BELENO».
 8. **Limitación del diseño por enlace simbólico.** `drivers/misc/hello_lab.c` es un enlace a `modulos/hello_lab/hello_lab.c`. **El cambio 2 vive en el archivo del repositorio del curso, no en el del kernel**, así que `git format-patch` sobre `src/kernel-px` saldría vacío para él. Se versiona con un commit en el repositorio del curso (reversible igual con `git revert`). Para los cambios que sí toquen archivos del propio árbol del kernel, el flujo de parche de la guía se aplica tal cual.
 
+9. **Cambio 3, en el propio kernel: una línea en `init/main.c`.** En `kernel_init()` (`init/main.c:1096`), después de `rcu_end_inkernel_boot();` (línea 1117): `pr_info("uvite: kernel_init termina el arranque del kernel\n");`. Está sobre la rama `lab/cambio-02-kernel-init`, que cuelga de `lab/cambio-01-hello-lab`. El punto se eligió **leyendo el código**: el mensaje `Run %s as init process` lo imprime `run_init_process()` (línea 1040), que se llama **después** de `rcu_end_inkernel_boot()`; por tanto la línea nueva debía caer entre `Freeing unused kernel memory` y `Run /init`. Esa predicción se fijó **antes** de compilar.
+10. **Errores del mentor en este paso.** (a) Dijo que este cambio compilaría más despacio por tocar una pieza central: **tardó 22,2 s**, menos que el cambio 2 (28,6 s); lo caro es el reenlazado, no el archivo. (b) Al preparar la predicción, un `grep ... | head -6` cortó la salida y se afirmó que `Freeing unused kernel memory` **no estaba** en el `dmesg`; sí estaba (línea 1286). Moraleja: un `head` oculta resultados; antes de afirmar que algo no existe hay que buscarlo sin recortar.
+11. **El registro de compilación no contiene la compilación de `main.c`.** `logs/12-build-kernel-init.log` solo muestra `CC init/version.o` y el reenlazado; `out-px/init/main.o` es de las 12:52:57 y el registro empieza a las 12:53:04: **alguien compiló una vez antes** (probablemente la orden se ejecutó dos veces). El resultado es válido (`main.o` contiene el texto nuevo, es posterior a `main.c` y `vmlinux` es posterior a `main.o`), pero el registro no es la compilación completa.
+12. **Imagen y arranque.** `boot-lab-kinit.img` (37 412 864 B), SHA-256 `7576108121576043f3c77449f3feda6c60d650dd0c0b7385c67def29061d9683`. `fastboot boot`: `Sending 'boot.img' (36536 KB) OKAY [0.867s]`, `Booting OKAY [0.318s]`. Android arrancó con `4.19.297-uvite` y un uptime de 84 s (arranque nuevo).
+13. **Comprobado en el `dmesg` del teléfono, con control incluido** (`logs/08-dmesg-kinit.txt`): `[2.073305] Freeing unused kernel memory: 1280K`, **`[2.073397] uvite: kernel_init termina el arranque del kernel`**, `[2.073401] Run /init as init process` (líneas 1290-1292): entre las dos, como se predijo, y a 4 µs de `Run /init`. El mismo archivo trae `LAST KMSG` (el arranque anterior, sin el cambio): ahí `Freeing…` y `Run /init` aparecen **seguidas** (líneas 8439-8440), sin la línea nueva. La prueba de fugas pasó (`SSID:0`).
+14. **Commit y parche del cambio 3.** `52174c250 lab: mensaje al terminar kernel_init`, exportado con `git format-patch -1 --start-number 3` a **`patches/0003-lab-mensaje-al-terminar-kernel_init.patch`** (1 archivo, 1 línea). Su cabecera `From:` lleva la identidad fijada en el hallazgo #2. Verificado: **aplica limpio sobre el `init/main.c` de `fourteen`** y se rechaza al aplicarlo dos veces.
+
 ## Evidencias
 
 Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - `logs/12-build-hello2.log` — compilación incremental (28,6 s; `CC drivers/misc/hello_lab.o`).
 - `logs/12-hash-boot-lab-hello2.txt` — SHA-256 de la imagen probada.
 - `logs/08-dmesg-hello2.txt` — `dmesg` del arranque nuevo; línea 457: `hello_lab: … (cpus=8, HZ=250)`.
+- `logs/12-build-kernel-init.log` y `logs/12-hash-boot-lab-kinit.txt` — el cambio 3 (ver hallazgo #11 sobre el registro).
+- `logs/08-dmesg-kinit.txt` — líneas 1290-1292: `Freeing…` / `uvite: kernel_init…` / `Run /init`; control en 8439-8440.
+- `patches/0003-lab-mensaje-al-terminar-kernel_init.patch` — el parche del cambio 3.
 
 ## Pendientes
 
@@ -65,6 +88,6 @@ Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - [x] Paso 3 de la guía: nodo `/proc` de solo lectura integrado (módulo 9).
 - [x] Paso 4 de la guía: `pstore`/`ramoops` (módulo 8).
 - [x] Primer commit de la serie y parche equivalente al `0001`.
-- [ ] Paso 5 de la guía: modificar una función no crítica **del propio árbol del kernel**, con prueba, y exportarla con `git format-patch`.
+- [x] Paso 5 de la guía: función no crítica **del propio árbol del kernel** modificada (`kernel_init`), con prueba en el `dmesg` y parche `0003` exportado.
 - [ ] Paso 6 de la guía: un cambio de rendimiento, solo con las mediciones del módulo 10 antes y después.
 - [ ] Probar la reversibilidad: `git revert` de un commit de la serie y comprobar que el kernel vuelve a comportarse como antes.
