@@ -27,7 +27,7 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 - [x] 08. Depuración: `dmesg`, `pstore` ([módulo](../08-depuracion/08-depuracion.md))
 - [x] 09. Primer módulo del kernel en C ([módulo](../09-primer-modulo-c/09-primer-modulo-c.md))
 - [x] 10. Medir CPU, térmica y GPU ([módulo](../10-medir-cpu-termica-gpu/10-medir-cpu-termica-gpu.md))
-- [ ] 11. Rust (kernel en QEMU, programas en el teléfono)
+- [x] 11. Rust (kernel en QEMU, programas en el teléfono) ([módulo](../11-rust/11-rust.md))
 - [ ] 12. Cambios propios al kernel
 - [ ] 13. KernelSU (opcional)
 - [ ] 14. Linux móvil y sistema propio
