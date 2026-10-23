@@ -33,6 +33,16 @@ bash artifacts/respaldar-particiones.sh                                         
 cat modulos/mi_init/mi_init.c                                   # escrito a mano: mount /proc, getpid(), uptime, version, reboot(RB_POWER_OFF)
 bash modulos/mi_init/construir.sh                               # gcc -static (aarch64) + gen_init_cpio + gzip -> out-initramfs/mi_init.cpio.gz
 timeout 40 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_init.cpio.gz -append "console=ttyAMA0 panic=-1" -no-reboot < /dev/null > logs/14-qemu-mi-init.log 2>&1; echo $?
+# Etapa 1, paso 2 (QEMU): tu PID 1 lanza y espera a un hijo (fork/exec/waitpid)
+bash modulos/mi_init/construir.sh      # ahora compila mi_init y hijo, 5 entradas en el initramfs
+timeout 40 qemu-system-aarch64 ... -initrd out-initramfs/mi_init.cpio.gz ... > logs/14-qemu-mi-init2.log 2>&1
+# Etapa 1, paso 3: un Alpine real (minirootfs 3.24.3) con tu inittab y tu propio servicio
+wget https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.3-aarch64.tar.gz
+echo "4d3f80afaebd447c5591a63a73bde380a149fe8b2d85488cafabb2ff97551f50  alpine-minirootfs-3.24.3-aarch64.tar.gz" | sha256sum -c     # OK
+mkdir -p src/alpine-rootfs && tar -xzf downloads/alpine-minirootfs-3.24.3-aarch64.tar.gz -C src/alpine-rootfs --no-same-owner
+bash modulos/mi_alpine/construir.sh    # carpeta + overlay -> gen_initramfs.sh -u squash -g squash -> out-initramfs/mi_alpine.cpio.gz
+timeout 60 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -append "console=ttyAMA0 panic=-1 lab=auto" -no-reboot < /dev/null > logs/14-qemu-alpine.log 2>&1
+sed -n '/=== prueba automatica/,/=== fin/p' logs/14-qemu-alpine.log
 ```
 
 ## Hallazgos reales
@@ -52,6 +62,11 @@ timeout 40 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -k
 12. **Tu propio PID 1 arranca un sistema operativo de 273 KiB.** `mi_init.c` (31 líneas, escrito a mano, idéntico al dictado y sin avisos con `-Wall -Wextra`) se compila como binario **estático** de ARM64 (597 920 bytes sin símbolos) y se empaqueta con `gen_init_cpio` en un `initramfs` de **cuatro entradas** (`dev`, `dev/console`, `proc`, `init`) comprimido a **279 541 bytes**. Un nodo `/dev/console` es necesario para que el `printf` del PID 1 tenga salida, y normalmente crear un nodo exige root; `gen_init_cpio` lo describe en un archivo de texto (`modulos/mi_init/initramfs.lista`) sin necesitarlo.
 13. **Resultado en QEMU** (`logs/14-qemu-mi-init.log`, el mismo kernel 6.18.58 del módulo 11): `[0.781737] Run /init as init process`, **`mi_init: hola, soy el PID 1`**, `/proc/uptime: 0.80 0.00`, `/proc/version: Linux version 6.18.58 …`, `mi_init: apagando`, y **código de salida de QEMU 0** (apagado limpio por `reboot(RB_POWER_OFF)`; 124 habría significado que se agotó el `timeout`). **Sin pánico**, a diferencia del módulo 11. El segundo valor de `/proc/uptime` (CPU inactiva acumulada) es 0,00: en 0,8 s el procesador no tuvo ningún instante libre. Un PID 1 que simplemente terminara habría provocado un pánico del kernel, por eso termina apagando la máquina.
 
+14. **Tu PID 1 lanza y espera a un hijo.** Con `fork`/`execl`/`waitpid` (`mi_init.c` + `hijo.c`; ambos compilan sin avisos con `-Wall -Wextra`): `hijo: soy el PID 53 y mi padre es el PID 1`, `mi_init: el hijo 53 termino con codigo 7`, apagado limpio (código de QEMU 0). **El hijo es el PID 53 y no el 2** porque los PID 2 a 52 los ocupan hilos del propio kernel creados antes de `/init`. El `return 7` de `hijo.c` llega hasta `WEXITSTATUS` en el padre: es lo que usa todo gestor de servicios para saber si algo acabó bien o mal.
+15. **La imagen mínima de Alpine no trae OpenRC, aunque su `inittab` lo invoque.** `alpine-minirootfs-3.24.3-aarch64.tar.gz` (4 029 999 bytes, SHA-256 `4d3f80af…1f50` verificado: `OK`; el hash se leyó del mismo servidor de Alpine, así que prueba integridad y no autenticidad, y la firma PGP no se verificó) desempaquetada son 8,9 MB y 515 archivos, **16 paquetes** (`busybox`, `musl`, `apk-tools`, `alpine-baselayout`...) y **ni `/sbin/openrc` ni `/etc/init.d`**; `/sbin/init` es un enlace a `/bin/busybox` (dinámico, con musl). Por eso se usa el `init` de BusyBox con un `inittab` propio, y OpenRC quedaría para instalarlo después con `apk`.
+16. **`inittab` propio y servicio propio** (`modulos/mi_alpine/overlay/`): `sysinit` monta `/proc`, `/sys` y `/dev` (devtmpfs) y pone el nombre `fabian-lab`; `respawn` supervisa `mi-servicio` (da 3 latidos y termina) y una consola serie; `once` ejecuta `arranque`, que solo actúa si el kernel recibió `lab=auto`. `gen_initramfs.sh -u squash -g squash` deja todo como root sin ser root, y `extras.lista` aporta `/dev/console` y el enlace `/init -> /sbin/init`. **Error del mentor:** se supuso que `gen_initramfs.sh` buscaba `gen_init_cpio` junto a sí mismo; falló con `usr/gen_init_cpio: not found` porque lo busca con **ruta relativa** a la carpeta de ejecución, y se corrigió ejecutándolo desde `out-rust/`. Resultado: **4 028 819 bytes, 519 entradas**.
+17. **Resultado en QEMU** (`logs/14-qemu-alpine.log`): `Linux 6.18.58`, `hostname: fabian-lab`, `uptime: 9.22s`, `Alpine 3.24.3`, apagado limpio (código 0). `ps`: `1 /init` y `2 [kthreadd]` son los únicos sin padre; todos los `[kworker/…]`, `[rcu_preempt]`, `[kswapd0]`... cuelgan del PID 2; de usuario solo `57 {arranque}` y `58 sleep 100000` (padre 1). **El servicio fue supervisado:** `1.16s PID 59 latido 1,2,3` → `5.24s PID 69 latido 1,2,3` → `9.32s PID 82 latido 1`: tres PID distintos para el mismo servicio. Entre una vida y la siguiente pasa **cerca de 1 s** (medido en el registro; no se comprobó si es una espera deliberada de BusyBox). Su ausencia en el `ps` (ejecutado a los ~9,2 s) se debe a que la tercera vida aún no había arrancado.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -60,6 +75,19 @@ timeout 40 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -k
 `Run /init as init process`, `mi_init: hola, soy el PID 1`, `/proc/uptime`, `/proc/version` y `mi_init: apagando`; código de salida 0.
 ![mi_init en QEMU](evidencias/02-qemu-mi-init-pid-1.png)
 
+**03 — Tu PID 1 con un hijo (hallazgo #14)**
+`hijo: soy el PID 53 y mi padre es el PID 1`, `el hijo 53 termino con codigo 7`.
+![hijo y padre](evidencias/03-qemu-mi-init-con-hijo.png)
+
+**04 — Descarga y verificación de Alpine (hallazgo #15)**
+`alpine-minirootfs-3.24.3-aarch64.tar.gz: OK`.
+![descarga de Alpine](evidencias/04-descarga-alpine-minirootfs-sha256.png)
+
+**05 y 06 — Alpine arrancado en QEMU con tu inittab (hallazgo #17)**
+Tabla de procesos (`kthreadd` como PID 2, `{arranque}` y `sleep` como únicos de usuario) y los latidos de `mi-servicio` con tres PID distintos.
+![procesos 1](evidencias/05-qemu-alpine-procesos-parte-1.png)
+![procesos 2 y latidos](evidencias/06-qemu-alpine-procesos-y-latidos.png)
+
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 
 ## Pendientes
@@ -67,7 +95,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Compatibilidad: estado del puerto, variante propia, mapa de particiones y veredicto.
 - [x] Respaldo de las particiones propias del teléfono, verificado por hash.
 - [x] Etapa 1, paso 1 (QEMU): *initramfs* mínimo con **PID 1 propio** (`mi_init`), arranque y apagado limpios.
-- [ ] Etapa 1, siguientes pasos: que el PID 1 lance y recoja procesos hijos (`fork`/`exec`/`wait`), un *shell* (BusyBox), luego un sistema tipo Alpine con servicios (OpenRC/`systemd`) y un servicio propio; empaquetar un programa; usuarios, permisos, *namespaces* y *cgroups*.
+- [x] Etapa 1, pasos 2 y 3: PID 1 con `fork`/`exec`/`wait`, y un Alpine real con tu `inittab` y un servicio propio supervisado.
+- [ ] Etapa 1, siguientes pasos: red en QEMU y `apk add openrc` dentro del sistema (instalar un paquete de verdad) y pasar el servicio a OpenRC; empaquetar un programa propio; usuarios, permisos, *namespaces* y *cgroups*; Wayland/Phosh (opcional).
 - [ ] **Etapa 3, en el teléfono sin escribir nada:** `fastboot boot` con el kernel propio y un `initramfs` propio, para tener Linux sin Android sin flashear.
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
 - [ ] Verificar la firma PGP del kernel 6.18.58 (pendiente del módulo 11).

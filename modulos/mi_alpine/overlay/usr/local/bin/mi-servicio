@@ -1,0 +1,6 @@
+#!/bin/sh
+# Servicio propio: da 3 latidos y termina. BusyBox init (accion "respawn") lo vuelve a lanzar.
+for n in 1 2 3; do
+	echo "$(cut -d' ' -f1 /proc/uptime)s PID $$ latido $n" >> /tmp/mi-servicio.log
+	sleep 1
+done

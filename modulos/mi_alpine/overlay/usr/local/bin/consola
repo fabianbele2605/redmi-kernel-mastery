@@ -1,0 +1,6 @@
+#!/bin/sh
+# Consola en el puerto serie. En modo automatico (lab=auto) no hay nadie escribiendo: se queda dormida.
+case "$(cat /proc/cmdline)" in
+*lab=auto*) exec sleep 100000 ;;
+esac
+exec /bin/sh

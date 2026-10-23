@@ -1,0 +1,3 @@
+# Entradas que no salen de la carpeta (no necesitan root gracias a gen_init_cpio):
+nod /dev/console 600 0 0 c 5 1
+slink /init /sbin/init 777 0 0

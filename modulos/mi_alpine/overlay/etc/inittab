@@ -1,0 +1,10 @@
+# inittab propio para BusyBox init (sin OpenRC, que la imagen minima de Alpine no trae)
+# formato: <tty>:<ignorado>:<accion>:<programa>
+::sysinit:/bin/mount -t proc proc /proc
+::sysinit:/bin/mount -t sysfs sysfs /sys
+::sysinit:/bin/mount -t devtmpfs devtmpfs /dev
+::sysinit:/bin/hostname fabian-lab
+::once:/usr/local/bin/arranque
+ttyAMA0::respawn:/usr/local/bin/consola
+::respawn:/usr/local/bin/mi-servicio
+::shutdown:/bin/umount -a -r
