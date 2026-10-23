@@ -43,6 +43,10 @@ mkdir -p src/alpine-rootfs && tar -xzf downloads/alpine-minirootfs-3.24.3-aarch6
 bash modulos/mi_alpine/construir.sh    # carpeta + overlay -> gen_initramfs.sh -u squash -g squash -> out-initramfs/mi_alpine.cpio.gz
 timeout 60 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -append "console=ttyAMA0 panic=-1 lab=auto" -no-reboot < /dev/null > logs/14-qemu-alpine.log 2>&1
 sed -n '/=== prueba automatica/,/=== fin/p' logs/14-qemu-alpine.log
+# Etapa 1, paso 4 (QEMU con red): instalar un paquete de verdad con apk
+bash modulos/mi_alpine/construir.sh    # incluye usr/local/bin/prueba-red (se activa con lab=red)
+timeout 150 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -nic user,model=virtio-net-pci -append "console=ttyAMA0 panic=-1 lab=red" -no-reboot < /dev/null > logs/14-qemu-red.log 2>&1
+sed -n '/=== prueba de red/,/=== fin/p' logs/14-qemu-red.log
 ```
 
 ## Hallazgos reales
@@ -67,6 +71,10 @@ sed -n '/=== prueba automatica/,/=== fin/p' logs/14-qemu-alpine.log
 16. **`inittab` propio y servicio propio** (`modulos/mi_alpine/overlay/`): `sysinit` monta `/proc`, `/sys` y `/dev` (devtmpfs) y pone el nombre `fabian-lab`; `respawn` supervisa `mi-servicio` (da 3 latidos y termina) y una consola serie; `once` ejecuta `arranque`, que solo actúa si el kernel recibió `lab=auto`. `gen_initramfs.sh -u squash -g squash` deja todo como root sin ser root, y `extras.lista` aporta `/dev/console` y el enlace `/init -> /sbin/init`. **Error del mentor:** se supuso que `gen_initramfs.sh` buscaba `gen_init_cpio` junto a sí mismo; falló con `usr/gen_init_cpio: not found` porque lo busca con **ruta relativa** a la carpeta de ejecución, y se corrigió ejecutándolo desde `out-rust/`. Resultado: **4 028 819 bytes, 519 entradas**.
 17. **Resultado en QEMU** (`logs/14-qemu-alpine.log`): `Linux 6.18.58`, `hostname: fabian-lab`, `uptime: 9.22s`, `Alpine 3.24.3`, apagado limpio (código 0). `ps`: `1 /init` y `2 [kthreadd]` son los únicos sin padre; todos los `[kworker/…]`, `[rcu_preempt]`, `[kswapd0]`... cuelgan del PID 2; de usuario solo `57 {arranque}` y `58 sleep 100000` (padre 1). **El servicio fue supervisado:** `1.16s PID 59 latido 1,2,3` → `5.24s PID 69 latido 1,2,3` → `9.32s PID 82 latido 1`: tres PID distintos para el mismo servicio. Entre una vida y la siguiente pasa **cerca de 1 s** (medido en el registro; no se comprobó si es una espera deliberada de BusyBox). Su ausencia en el `ps` (ejecutado a los ~9,2 s) se debe a que la tercera vida aún no había arrancado.
 
+18. **El kernel de QEMU ya tenía todo lo necesario para la red:** `VIRTIO_NET=y`, `VIRTIO_PCI=y`, `NET`, `INET`, `PACKET`, y también `NAMESPACES` (`PID_NS`, `NET_NS`, `USER_NS`, `UTS_NS`, `IPC_NS`) y `CGROUPS` (`MEMCG`, `CGROUP_PIDS`) para el punto de seguridad de la guía. Corrección del mentor: un `ls … | awk` de `resolv.conf` y `network/interfaces` imprimió «existe el archivo» y parecía que existían; era el mensaje de error («No existe el archivo…») partido por `awk`. **Ninguno de los dos existía**; no hizo falta crearlos porque `udhcpc` genera `resolv.conf` con su `default.script`.
+19. **Red y paquetes en QEMU** (`logs/14-qemu-red.log`, `-nic user,model=virtio-net-pci`, `lab=red`): `eth0` (virtio-net) aparece y se levanta; **DHCP** `lease of 10.0.2.15 obtained from 10.0.2.2` (`10.0.2.15/24`, ruta por defecto vía `10.0.2.2`); `nameserver 10.0.2.3`; `apk update` sobre `https://dl-cdn.alpinelinux.org/alpine/v3.24/{main,community}` → **28 570 paquetes disponibles** (`v3.24.3-39-g7e71067f4e8` y `v3.24.3-38-gc3f47567305`). `apk add openrc` instaló **5 paquetes** (`bridge 1.5-r5`, `ifupdown-ng 0.13.0-r0`, `openrc-user`, `libcap2 2.78-r0`, `openrc 0.63.2-r0`): de 16 a **21 paquetes, 12,8 MiB**; `/sbin/openrc` pasó de «No such file or directory» a `-rwxr-xr-x 67440`. Apagado limpio (código de QEMU 0). La descarga fue por HTTPS y no se usó `--allow-untrusted`, así que `apk` aplicó su verificación de firmas normal con las claves de `alpine-keys`; la verificación no se imprime en la salida, solo se infiere de que no se usó la opción para saltarla.
+20. **Error del mentor en la propia prueba:** la línea `version de openrc` imprimió la descripción («OpenRC manages the services, startup and shutdown of a host») en lugar del número, porque en `apk` 3 la opción `-v` es «detallado» y muestra la descripción; la versión real es `0.63.2-r0`, visible en la instalación. **Limitación:** el paquete se instaló solo en la memoria de esta ejecución (el `initramfs` vive en RAM); al apagar se pierde. Para conservarlo habría que reconstruir el `initramfs` con los archivos ya instalados o usar un disco.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -88,6 +96,11 @@ Tabla de procesos (`kthreadd` como PID 2, `{arranque}` y `sleep` como únicos de
 ![procesos 1](evidencias/05-qemu-alpine-procesos-parte-1.png)
 ![procesos 2 y latidos](evidencias/06-qemu-alpine-procesos-y-latidos.png)
 
+**07 y 08 — Red y paquetes en QEMU (hallazgo #19)**
+DHCP, DNS, `apk update` (28 570 paquetes) y `apk add openrc` (5 paquetes, 12,8 MiB; `/sbin/openrc` aparece).
+![DHCP y apk update](evidencias/07-qemu-red-dhcp-apk-update.png)
+![apk add openrc](evidencias/08-qemu-red-apk-add-openrc.png)
+
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 
 ## Pendientes
@@ -96,7 +109,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Respaldo de las particiones propias del teléfono, verificado por hash.
 - [x] Etapa 1, paso 1 (QEMU): *initramfs* mínimo con **PID 1 propio** (`mi_init`), arranque y apagado limpios.
 - [x] Etapa 1, pasos 2 y 3: PID 1 con `fork`/`exec`/`wait`, y un Alpine real con tu `inittab` y un servicio propio supervisado.
-- [ ] Etapa 1, siguientes pasos: red en QEMU y `apk add openrc` dentro del sistema (instalar un paquete de verdad) y pasar el servicio a OpenRC; empaquetar un programa propio; usuarios, permisos, *namespaces* y *cgroups*; Wayland/Phosh (opcional).
+- [x] Etapa 1, paso 4: red en QEMU (DHCP, DNS) y `apk add openrc` dentro del sistema.
+- [ ] Etapa 1, siguientes pasos: pasar tu servicio a OpenRC (`/etc/init.d`, `rc-service`, `rc-status`); empaquetar un programa propio como paquete de Alpine (`apk`/`abuild`); usuarios, permisos, *namespaces* y *cgroups*; Wayland/Phosh (opcional).
 - [ ] **Etapa 3, en el teléfono sin escribir nada:** `fastboot boot` con el kernel propio y un `initramfs` propio, para tener Linux sin Android sin flashear.
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
 - [ ] Verificar la firma PGP del kernel 6.18.58 (pendiente del módulo 11).

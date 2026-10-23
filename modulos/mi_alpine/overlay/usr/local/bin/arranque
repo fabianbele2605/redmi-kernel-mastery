@@ -2,6 +2,7 @@
 # Se ejecuta una vez al terminar el arranque. Solo actua si el kernel recibio "lab=auto":
 # entonces espera, muestra el estado del sistema y lo apaga.
 case "$(cat /proc/cmdline)" in
+*lab=red*) exec /usr/local/bin/prueba-red ;;
 *lab=auto*) ;;
 *) exit 0 ;;
 esac
