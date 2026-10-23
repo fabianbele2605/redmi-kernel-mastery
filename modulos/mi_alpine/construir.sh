@@ -14,6 +14,7 @@ GEN_CPIO=out-rust/usr/gen_init_cpio            # compilado con el kernel de out-
 rm -rf "$OUT/alpine" && mkdir -p "$OUT"
 cp -a "$ROOT" "$OUT/alpine"
 cp -a "$AQUI/overlay/." "$OUT/alpine/"          # tus archivos pisan los de Alpine (p. ej. etc/inittab)
+aarch64-linux-gnu-gcc -static -O2 -Wall -Wextra -o "$OUT/alpine/usr/local/bin/hog" "$AQUI/hog.c"   # tu programa de memoria
 chmod 755 "$OUT/alpine/usr/local/bin/"* "$OUT/alpine/etc/init.d/"*
 # gen_initramfs.sh llama a "usr/gen_init_cpio" con ruta RELATIVA: hay que ejecutarlo desde out-rust/
 RAIZ=$(pwd)

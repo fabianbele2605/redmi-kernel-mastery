@@ -4,6 +4,7 @@
 case "$(cat /proc/cmdline)" in
 *lab=red*) exec /usr/local/bin/prueba-red ;;
 *lab=ns*) exec /usr/local/bin/prueba-ns ;;
+*lab=cg*) exec /usr/local/bin/prueba-cg ;;
 *lab=auto*) ;;
 *) exit 0 ;;
 esac

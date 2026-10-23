@@ -59,6 +59,11 @@ bash modulos/mi_alpine/construir.sh
 timeout 60 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -append "console=ttyAMA0 panic=-1 lab=ns" -no-reboot < /dev/null > logs/14-qemu-ns.log 2>&1
 sed -n '/=== prueba de namespaces/,/=== fin/p' logs/14-qemu-ns.log
 grep -n "_NS_INIT_INO" src/linux-6.18.58/include/uapi/linux/nsfs.h            # los inodos de los namespaces iniciales
+# Etapa 1, paso 7 (QEMU): cgroup2, limite de memoria de 20 MiB
+cat modulos/mi_alpine/hog.c                        # escrito a mano: reserva y TOCA 1 MiB en bucle
+bash modulos/mi_alpine/construir.sh                # compila hog (estatico) dentro del sistema; prueba-cg se activa con lab=cg
+timeout 60 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -append "console=ttyAMA0 panic=-1 lab=cg" -no-reboot < /dev/null > logs/14-qemu-cg.log 2>&1
+sed -n '/=== prueba de cgroups/,/=== fin/p' logs/14-qemu-cg.log
 ```
 
 ## Hallazgos reales
@@ -92,6 +97,10 @@ grep -n "_NS_INIT_INO" src/linux-6.18.58/include/uapi/linux/nsfs.h            # 
 
 23. **Los cinco *namespaces* aislados, comprobados por su huella.** `unshare -p -f --mount-proc -u -n -i` (BusyBox) en QEMU (`logs/14-qemu-ns.log`, sin red): **FUERA** `pid:[4026531836]`, `net:[4026531833]`, `uts:[4026531838]`, `mnt:[4026531832]`, `ipc:[4026531839]`; **DENTRO** `pid:[4026532148]`, `net:[4026532149]`, `uts:[4026532146]`, `mnt:[4026532145]`, `ipc:[4026532147]`: los cinco distintos. Se comprobó en el código (`include/uapi/linux/nsfs.h`, líneas 48-55) que los de «FUERA» son **exactamente los *namespaces* iniciales** (`PID_NS_INIT_INO = 0xEFFFFFFC`, `UTS = 0xEFFFFFFE`, `IPC = 0xEFFFFFFF`, `NET = 0xEFFFFFF9`, `MNT = 0xEFFFFFF8`). Dentro: **`mi PID = 1`**, `hostname = contenedor-lab` (fuera sigue `fabian-lab`), **solo `lo:`** frente a `lo: eth0:` fuera, y `ps` ve **2 procesos** (el `sh` como PID 1 con padre `0`, porque su padre real está fuera del *namespace*, y el propio `ps` con PID 13) frente a 57 líneas fuera. Los PID 2 a 12 los consumieron los `readlink`, `hostname`, `ip`, `awk`, `tr` que lanza el script dentro. No se aisló el *namespace* de usuario (`-U`): en esta prueba ya se es root dentro del sistema de QEMU.
 24. **BusyBox trae lo necesario para esto sin instalar nada:** `unshare`, `nsenter`, `ip` y `hostname` (comprobado con `busybox --list`); `--mount-proc` montó un `/proc` propio y por eso `ps` ve solo los procesos del *namespace* nuevo.
+
+25. **El kernel mata a un proceso por pasarse del límite de su grupo, y solo a ese.** `hog.c` (22 líneas, escrito a mano, idéntico al dictado, sin avisos con `-Wall -Wextra`) reserva y **toca** 1 MiB en bucle; se mete en un grupo de `cgroup2` (`mount -t cgroup2`, controladores `cpuset cpu io memory hugetlb pids`, `echo +memory > cgroup.subtree_control`, `mkdir lab`, `memory.max = 20971520`). Resultado (`logs/14-qemu-cg.log`): `hog invoked oom-killer`, **`oom-kill:constraint=CONSTRAINT_MEMCG … oom_memcg=/lab,task_memcg=/lab,task=hog,pid=80`** y `Memory cgroup out of memory: Killed process 80 (hog) total-vm:21656kB, anon-rss:20352kB …`; **código de salida 137** (128 + 9, `SIGKILL`); `memory.events`: `max 35`, `oom 1`, `oom_kill 1`; **`memory.peak = 20971520`** (exactamente el límite). `CONSTRAINT_MEMCG` indica que el criterio fue el límite del grupo y no la memoria del sistema (`MemTotal: 988280 kB`): el resto siguió funcionando y la prueba terminó apagando con normalidad.
+26. **La memoria se cuenta al tocarla, no al reservarla.** El rastro de la pila del OOM lo muestra: `do_page_fault → handle_mm_fault → __mem_cgroup_charge → try_charge_memcg → out_of_memory`; el fallo vino de un fallo de página provocado por el `memset`. `hog` imprimió **19 líneas completas** (el archivo tiene 20 y la última es `Killed`, del *shell*): llegó a 19 MiB y murió al tocar el 20º, porque a la cuenta del grupo se suman ~90 KB de memoria del kernel y tablas de páginas (`kernel 90112`, `pagetables 81920`, `anon 20877312` = 19,9 MiB).
+27. **Sin recuperación posible antes de matar.** En las estadísticas del grupo `pgscan 0`, `pgsteal 0`, `pswpout 0`: no había páginas de archivo que liberar ni swap adonde enviar la memoria anónima (`dispositivos de swap en ESTE sistema: 0`, `SwapTotal: 0 kB`, **medido dentro de QEMU**). **Error del mentor:** el primer comprobante de swap leyó `/proc/swaps` de la laptop (`/swap.img`) y se comentó como si fuera del sistema de QEMU; se corrigió midiéndolo dentro de la prueba antes de ejecutarla. **Limitaciones:** el informe de OOM trae un *Call trace* completo, normal en un OOM (el kernel dice `Not tainted`); el contador `max 35` de `memory.events` y el `failcnt 18` del informe son contadores distintos y no se averiguó cómo se relacionan; solo se probó el controlador `memory` (no `cpu` ni `pids`).
 
 ## Evidencias
 
@@ -128,6 +137,10 @@ Arranque con dependencia resuelta, árbol de procesos con el supervisor `supervi
 Los cinco inodos de los *namespaces* iniciales frente a los cinco nuevos; PID 1, hostname, red y procesos visibles dentro.
 ![namespaces](evidencias/11-namespaces-fuera-y-dentro.png)
 
+**12 — Un cgroup de memoria mata a un proceso (hallazgos #25 a #27)**
+`hog` invoca al OOM-killer dentro del grupo `/lab` con `CONSTRAINT_MEMCG`; la ruta de fallo de página en la pila; el límite de 20 MiB.
+![cgroup OOM](evidencias/12-cgroup-oom-kill.png)
+
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 
 ## Pendientes
@@ -138,7 +151,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Etapa 1, pasos 2 y 3: PID 1 con `fork`/`exec`/`wait`, y un Alpine real con tu `inittab` y un servicio propio supervisado.
 - [x] Etapa 1, paso 4: red en QEMU (DHCP, DNS) y `apk add openrc` dentro del sistema.
 - [x] Etapa 1, paso 5: tu servicio como servicio de OpenRC, con dependencia, supervisión y relanzamiento comprobados.
-- [ ] Etapa 1, siguientes pasos: empaquetar un programa propio como paquete de Alpine (`apk`) o Debian (`.deb`); usuarios, permisos, *namespaces* y *cgroups*; Wayland/Phosh (opcional).
+- [x] Etapa 1, pasos 6 y 7: *namespaces* (`unshare`: PID, red, nombre, montajes, IPC) y *cgroups* (límite de memoria con OOM de grupo).
+- [ ] Etapa 1, pendiente (opcional): empaquetar un programa propio como paquete de Alpine (`apk`) o Debian (`.deb`); usuarios y permisos; los controladores `cpu` y `pids` de los *cgroups*; Wayland/Phosh.
 - [ ] **Etapa 3, en el teléfono sin escribir nada:** `fastboot boot` con el kernel propio y un `initramfs` propio, para tener Linux sin Android sin flashear.
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
 - [ ] Verificar la firma PGP del kernel 6.18.58 (pendiente del módulo 11).

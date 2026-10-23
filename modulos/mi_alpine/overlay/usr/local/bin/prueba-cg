@@ -1,0 +1,28 @@
+#!/bin/sh
+# Prueba de cgroups v2, limite de memoria (se activa con lab=cg en la linea de comandos del kernel).
+sleep 1
+CG=/sys/fs/cgroup
+echo "=== prueba de cgroups (memoria) ==="
+mount -t cgroup2 none "$CG" 2>&1
+echo "--- montado: $(grep cgroup2 /proc/mounts | cut -d' ' -f1-3)"
+echo "--- controladores disponibles en la raiz: $(cat "$CG/cgroup.controllers")"
+echo +memory > "$CG/cgroup.subtree_control"
+mkdir "$CG/lab"
+echo "--- controladores en el grupo lab: $(cat "$CG/lab/cgroup.controllers")"
+echo 20971520 > "$CG/lab/memory.max"
+echo "--- memory.max del grupo lab = $(cat "$CG/lab/memory.max") bytes (20 MiB)"
+echo "--- memoria total del sistema: $(grep MemTotal /proc/meminfo)"
+echo "--- dispositivos de swap en ESTE sistema: $(($(wc -l < /proc/swaps) - 1))   (SwapTotal: $(grep SwapTotal /proc/meminfo | tr -s ' '))"
+echo "--- lanzando hog DENTRO del grupo (se mete a si mismo en cgroup.procs y luego exec):"
+sh -c 'echo $$ > /sys/fs/cgroup/lab/cgroup.procs; exec /usr/local/bin/hog' > /tmp/hog.out 2>&1
+estado=$?
+echo "--- codigo de salida de hog: $estado   (137 = 128 + 9, es decir, SIGKILL)"
+echo "--- lineas que alcanzo a imprimir: $(wc -l < /tmp/hog.out)"
+echo "--- su ultima linea: $(tail -1 /tmp/hog.out)"
+echo "--- memory.events del grupo:"
+cat "$CG/lab/memory.events"
+echo "--- memory.peak (maximo usado) = $(cat "$CG/lab/memory.peak" 2>&1) bytes"
+echo "--- dmesg (lo que dijo el kernel):"
+dmesg | grep -i -E "memory cgroup out of memory|killed process|oom-kill" | cut -c1-210 | head -4
+echo "=== fin de la prueba de cgroups, apagando ==="
+poweroff
