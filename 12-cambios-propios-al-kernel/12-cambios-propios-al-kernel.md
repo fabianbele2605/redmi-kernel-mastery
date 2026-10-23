@@ -1,6 +1,6 @@
 # Módulo 12 — Cambios propios al kernel
 
-- Estado: En progreso
+- Estado: Completado (el paso 6 de la guía queda diferido hasta tener root, ver hallazgo #18)
 - Fecha: 2026-10-23
 - Kernel: `4.19.297-uvite` (`src/kernel-px`, rama de trabajo `lab/cambio-01-hello-lab`, salida en `out-px/`), Clang 11.0.1 de AOSP
 - Imagen de prueba: `artifacts/px/boot-lab-hello2.img` (`ramoops_memreserve=4M`), arrancada con `fastboot boot`
@@ -87,6 +87,8 @@ git -C src/kernel-px checkout lab/cambio-02-kernel-init     # volver a la rama b
 16. **Recompilación y arranque con el cambio deshecho.** 21,6 s reales, 0 errores y 0 avisos; esta vez el registro **sí** contiene `CC init/main.o` (línea 5) y la cadena `uvite: kernel_init` **ya no está en `vmlinux`** (0 apariciones). `boot-lab-revert.img`, SHA-256 `f55a9ff7b3bf69c6b0b1b96ec3e8982bbbdeeeed0d686316bd5d1f313eb36253`; `fastboot boot` `OKAY [0.869s]` / `OKAY [0.317s]`; uptime de 40 s (arranque nuevo).
 17. **Comprobado en el `dmesg` (`logs/08-dmesg-revert.txt`), con el arranque anterior como control en el mismo archivo.** Arranque actual (cambio 3 revertido), líneas 1277-1278: `[1.873630] Freeing unused kernel memory` y `[1.873721] Run /init as init process`, **seguidas, sin la línea de `uvite`**. `LAST KMSG` (el arranque anterior, con el cambio 3), líneas 8125-8127: `Freeing…` / **`[2.073397] uvite: kernel_init termina el arranque del kernel`** / `Run /init`. Y **`hello_lab … (cpus=8, HZ=250)` sigue presente** (línea 458): el revert de un commit no afectó a los otros dos cambios de la serie. Prueba de fugas: `SSID:0`; sin «FLIA» ni «BELENO».
 
+18. **El paso 6 (cambio de rendimiento) no se puede medir sin root, y por eso se difiere.** Antes de elegir el cambio se comprobó qué puede leer y hacer el usuario `shell`: `/sys/block/*/queue/read_ahead_kb` no es legible, `/sys/block/sda/queue/scheduler` da `Permission denied`, `sched_latency_ns`, `sched_min_granularity_ns` y `sched_wakeup_granularity_ns` no son legibles, `/proc/sys/vm/drop_caches` **no se puede escribir** y el `dd` de Android rechaza `iflag=direct` (`dd: bad iflag=direct`). Sin vaciar la caché de páginas ni poder leer el parámetro que se cambiaría, una medida de «antes y después» mediría la caché y no el cambio; y el módulo 10 mostró que la misma medida varía entre repeticiones iguales (frecuencia media de los grandes: 2 304, 2 392 y 2 400 MHz). El kernel usa `CONFIG_DEFAULT_IOSCHED="cfq"` y `CONFIG_HZ=250`. **Decisión:** no inventar un cambio sin forma de medirlo; el paso 6 queda pendiente hasta tener root (módulo 13).
+
 ## Evidencias
 
 Este módulo se documenta con los registros guardados, sin capturas de pantalla:
@@ -106,5 +108,5 @@ Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - [x] Paso 4 de la guía: `pstore`/`ramoops` (módulo 8).
 - [x] Primer commit de la serie y parche equivalente al `0001`.
 - [x] Paso 5 de la guía: función no crítica **del propio árbol del kernel** modificada (`kernel_init`), con prueba en el `dmesg` y parche `0003` exportado.
-- [ ] Paso 6 de la guía: un cambio de rendimiento, solo con las mediciones del módulo 10 antes y después.
+- [ ] Paso 6 de la guía: un cambio de rendimiento con mediciones antes y después. **Diferido** al módulo 13: hace falta root para `drop_caches` y para leer `/sys/block/*/queue/*` y los parámetros del planificador.
 - [x] Reversibilidad: `git revert` del cambio 3, recompilado y arrancado; su línea desaparece del `dmesg` y los otros cambios siguen.

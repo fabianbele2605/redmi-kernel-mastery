@@ -28,6 +28,6 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 - [x] 09. Primer módulo del kernel en C ([módulo](../09-primer-modulo-c/09-primer-modulo-c.md))
 - [x] 10. Medir CPU, térmica y GPU ([módulo](../10-medir-cpu-termica-gpu/10-medir-cpu-termica-gpu.md))
 - [x] 11. Rust (kernel en QEMU, programas en el teléfono) ([módulo](../11-rust/11-rust.md))
-- [ ] 12. Cambios propios al kernel ([módulo](../12-cambios-propios-al-kernel/12-cambios-propios-al-kernel.md)) — en progreso
+- [x] 12. Cambios propios al kernel ([módulo](../12-cambios-propios-al-kernel/12-cambios-propios-al-kernel.md)) — paso 6 diferido hasta tener root
 - [ ] 13. KernelSU (opcional)
 - [ ] 14. Linux móvil y sistema propio
