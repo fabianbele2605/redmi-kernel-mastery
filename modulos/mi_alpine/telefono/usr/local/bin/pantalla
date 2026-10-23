@@ -1,0 +1,23 @@
+#!/bin/sh
+# Dibuja en la pantalla (tty1) datos REALES del sistema y los repite en /dev/kmsg.
+# Un ciclo cada 5 segundos. No necesita teclado ni red.
+n=0
+while true; do
+	n=$((n + 1))
+	{
+		echo "=== fabian-lab: Linux $(uname -r) en un Redmi Note 11 ==="
+		echo "arranque: $(uname -v | cut -c1-60)"
+		echo "uptime: $(cut -d' ' -f1 /proc/uptime) s   ciclo $n"
+		echo "CPUs: $(grep -c '^processor' /proc/cpuinfo)   $(grep MemTotal /proc/meminfo | tr -s ' ')"
+		echo "interfaces: $(ip -o link show | awk '{print $2}' | tr '\n' ' ')"
+		echo "framebuffer: $(ls /dev/fb* /dev/dri/* 2>/dev/null | tr '\n' ' ')"
+		echo "USB (UDC): $(ls /sys/class/udc 2>/dev/null | tr '\n' ' ')"
+		echo "bateria: $(for b in /sys/class/power_supply/*; do [ -r $b/capacity ] && printf '%s=%s%% ' $(basename $b) $(cat $b/capacity); done)"
+		echo "temperaturas (mC):"
+		for z in /sys/class/thermal/thermal_zone*; do
+			[ -r $z/temp ] && printf '  %s %s\n' "$(cat $z/type)" "$(cat $z/temp)"
+		done | head -12
+		echo "remoteprocs: $(for r in /sys/class/remoteproc/*; do [ -r $r/state ] && printf '%s=%s ' $(cat $r/name) $(cat $r/state); done)"
+	} | tee /dev/kmsg
+	sleep 5
+done

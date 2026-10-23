@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Empaqueta Alpine minirootfs + tus archivos (overlay) como initramfs.
 # uso: bash modulos/mi_alpine/construir.sh        (desde ~/Escritorio/Mobil)
-# produce: out-initramfs/mi_alpine.cpio.gz
+# produce: out-initramfs/mi_alpine.cpio.gz   (o mi_alpine_tel.cpio.gz con el argumento "telefono")
 set -eu
 AQUI=modulos/mi_alpine
 ROOT=src/alpine-rootfs                         # tar.gz de Alpine desempaquetado (verificado por hash)
@@ -14,11 +14,16 @@ GEN_CPIO=out-rust/usr/gen_init_cpio            # compilado con el kernel de out-
 rm -rf "$OUT/alpine" && mkdir -p "$OUT"
 cp -a "$ROOT" "$OUT/alpine"
 cp -a "$AQUI/overlay/." "$OUT/alpine/"          # tus archivos pisan los de Alpine (p. ej. etc/inittab)
+NOMBRE=mi_alpine
+if [ "${1:-}" = "telefono" ]; then               # variante del telefono: consola en pantalla (tty1)
+	cp -a "$AQUI/telefono/." "$OUT/alpine/"
+	NOMBRE=mi_alpine_tel
+fi
 aarch64-linux-gnu-gcc -static -O2 -Wall -Wextra -o "$OUT/alpine/usr/local/bin/hog" "$AQUI/hog.c"   # tu programa de memoria
 chmod 755 "$OUT/alpine/usr/local/bin/"* "$OUT/alpine/etc/init.d/"*
 # gen_initramfs.sh llama a "usr/gen_init_cpio" con ruta RELATIVA: hay que ejecutarlo desde out-rust/
 RAIZ=$(pwd)
-( cd out-rust && sh "$RAIZ/$KSRC/usr/gen_initramfs.sh" -o "$RAIZ/$OUT/mi_alpine.cpio" -u squash -g squash "$RAIZ/$OUT/alpine" "$RAIZ/$AQUI/extras.lista" )
-gzip -9 -f "$OUT/mi_alpine.cpio"
-echo "initramfs: $(stat -c %s "$OUT/mi_alpine.cpio.gz") bytes -> $OUT/mi_alpine.cpio.gz"
-echo "entradas: $(gzip -dc "$OUT/mi_alpine.cpio.gz" | cpio -t 2>/dev/null | wc -l)"
+( cd out-rust && sh "$RAIZ/$KSRC/usr/gen_initramfs.sh" -o "$RAIZ/$OUT/$NOMBRE.cpio" -u squash -g squash "$RAIZ/$OUT/alpine" "$RAIZ/$AQUI/extras.lista" )
+gzip -9 -f "$OUT/$NOMBRE.cpio"
+echo "initramfs: $(stat -c %s "$OUT/$NOMBRE.cpio.gz") bytes -> $OUT/$NOMBRE.cpio.gz"
+echo "entradas: $(gzip -dc "$OUT/$NOMBRE.cpio.gz" | cpio -t 2>/dev/null | wc -l)"
