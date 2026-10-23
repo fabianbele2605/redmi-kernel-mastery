@@ -1,0 +1,64 @@
+make: se entra en el directorio '/home/fabian/Escritorio/Mobil/src/linux-sm6225'
+make[1]: se entra en el directorio '/home/fabian/Escritorio/Mobil/out-sm6225'
+  SYNC    include/config/auto.conf
+  UPD     kernel/config_data
+  GZIP    kernel/config_data.gz
+  CC      kernel/configs.o
+  AR      kernel/built-in.a
+  AR      drivers/gpu/drm/panel/built-in.a
+  CC      drivers/gpu/drm/bridge/aux-bridge.o
+  AR      drivers/gpu/drm/hisilicon/built-in.a
+  CC      drivers/gpu/drm/bridge/aux-hpd-bridge.o
+  AR      drivers/gpu/drm/bridge/analogix/built-in.a
+  AR      drivers/gpu/drm/mxsfb/built-in.a
+  CC      drivers/gpu/drm/sysfb/drm_sysfb.o
+  CC      drivers/gpu/drm/bridge/imx/imx8mp-hdmi-tx-connector-fixup.o
+  AR      drivers/gpu/drm/bridge/cadence/built-in.a
+  DTC     drivers/gpu/drm/bridge/imx/imx8mp-hdmi-tx-connector-fixup.dtbo
+  AR      drivers/gpu/drm/tiny/built-in.a
+  AR      drivers/gpu/drm/bridge/synopsys/built-in.a
+  AR      drivers/gpu/drm/xlnx/built-in.a
+  WRAP    drivers/gpu/drm/bridge/imx/imx8mp-hdmi-tx-connector-fixup.dtbo.S
+  CC      drivers/gpu/drm/sysfb/drm_sysfb_modeset.o
+  AR      drivers/gpu/drm/gud/built-in.a
+  CC      drivers/gpu/drm/sysfb/simpledrm.o
+  AR      drivers/gpu/drm/sitronix/built-in.a
+  AS      drivers/gpu/drm/bridge/imx/imx8mp-hdmi-tx-connector-fixup.dtbo.o
+  AR      drivers/gpu/drm/solomon/built-in.a
+  AR      drivers/gpu/drm/bridge/imx/built-in.a
+  AR      drivers/gpu/drm/bridge/built-in.a
+  AR      drivers/gpu/drm/sysfb/built-in.a
+  AR      drivers/gpu/drm/built-in.a
+  AR      drivers/gpu/built-in.a
+  AR      drivers/built-in.a
+  AR      built-in.a
+  AR      built-in-fixup.a
+  COPY    vmlinux.a
+  LD      vmlinux.o
+  MODPOST vmlinux.symvers
+  CC      .vmlinux.export.o
+  UPD     include/generated/utsversion.h
+  CC      init/version-timestamp.o
+  KSYMS   .tmp_vmlinux0.kallsyms.S
+  AS      .tmp_vmlinux0.kallsyms.o
+  LD      .tmp_vmlinux1
+  NM      .tmp_vmlinux1.syms
+  KSYMS   .tmp_vmlinux1.kallsyms.S
+  AS      .tmp_vmlinux1.kallsyms.o
+  LD      .tmp_vmlinux2
+  NM      .tmp_vmlinux2.syms
+  KSYMS   .tmp_vmlinux2.kallsyms.S
+  AS      .tmp_vmlinux2.kallsyms.o
+  LD      vmlinux.unstripped
+  NM      System.map
+  SORTTAB vmlinux.unstripped
+  OBJCOPY vmlinux
+  GEN     modules.builtin.modinfo
+  GEN     modules.builtin
+  OBJCOPY arch/arm64/boot/Image
+make[1]: se sale del directorio '/home/fabian/Escritorio/Mobil/out-sm6225'
+make: se sale del directorio '/home/fabian/Escritorio/Mobil/src/linux-sm6225'
+
+real	0m33,755s
+user	1m5,809s
+sys	0m30,723s
