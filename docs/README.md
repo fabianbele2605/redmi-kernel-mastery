@@ -30,4 +30,4 @@ Guía de módulos: [GUIA_PASO_A_PASO.md](GUIA_PASO_A_PASO.md) · Prompt del ment
 - [x] 11. Rust (kernel en QEMU, programas en el teléfono) ([módulo](../11-rust/11-rust.md))
 - [x] 12. Cambios propios al kernel ([módulo](../12-cambios-propios-al-kernel/12-cambios-propios-al-kernel.md))
 - [x] 13. KernelSU (opcional) ([módulo](../13-kernelsu/13-kernelsu.md))
-- [ ] 14. Linux móvil y sistema propio
+- [ ] 14. Más allá de Android: Linux móvil ([módulo](../14-linux-movil/14-linux-movil.md)) — en progreso
