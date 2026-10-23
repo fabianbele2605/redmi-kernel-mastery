@@ -87,6 +87,18 @@ dtc -I dtb -O dts out-sm6225/arch/arm64/boot/dts/qcom/sm6225-xiaomi-spes-sm5602.
 fastboot --help | grep -E "dtb|header-version"                                                 # --dtb DTB (header v2), --header-version
 ```
 
+```bash
+# Etapa 3, primera prueba en el telefono: kernel principal 7.2.1 con su DTB, imagen v2, desde RAM
+bash modulos/mi_alpine/construir.sh telefono        # initramfs con consola en pantalla (tty1): out-initramfs/mi_alpine_tel.cpio.gz
+gzip -9 -c out-sm6225/arch/arm64/boot/Image > out-initramfs/Image-sm6225.gz                 # 18 143 860 bytes
+python3 tools/mkbootimg/mkbootimg.py --header_version 2 --kernel out-initramfs/Image-sm6225.gz --ramdisk out-initramfs/mi_alpine_tel.cpio.gz --dtb out-sm6225/arch/arm64/boot/dts/qcom/sm6225-xiaomi-spes-sm5602.dtb --cmdline "console=tty0 loglevel=7 rdinit=/init" --base 0 --kernel_offset 0x8000 --ramdisk_offset 0x1000000 --second_offset 0x8000 --tags_offset 0x100 --dtb_offset 0x1f00000 --pagesize 4096 -o artifacts/px/boot-sm6225-v2.img    # 22 560 768 bytes
+adb reboot bootloader && fastboot boot artifacts/px/boot-sm6225-v2.img                      # OKAY / OKAY, pero el telefono NO sale de fastboot
+lsusb | grep 18d1; fastboot devices; fastboot getvar product; fastboot getvar current-slot  # sigue en fastboot, vivo
+fastboot reboot                                                                              # Android de fabrica, kernel 4.19.157-perf
+# Prueba de control: separar el DTB base de fabrica de vendor_boot
+python3 tools/mkbootimg/unpack_bootimg.py --boot_img backup/stock/vendor_boot.img --out /tmp/vb   # 18 DTB, 5 598 424 bytes
+```
+
 ## Hallazgos reales
 
 1. **La búsqueda web estaba desactualizada.** Decía que el paquete `device-xiaomi-spes` de postmarketOS estaba en `testing`. El repositorio real (`pmaports`, commit `c7940da`, 23-oct-2026) lo tiene en **`device/archived/`**, y el `APKBUILD` de dispositivo y de kernel empiezan con **`# Archived: unmaintained`** y `maintainer=""`: archivado y sin mantenedor.
@@ -138,6 +150,10 @@ fastboot --help | grep -E "dtb|header-version"                                  
 39. **`sm6225_defconfig` activa lo que le faltaba a tu 4.19:** `DEVTMPFS` y `DEVTMPFS_MOUNT`, `PID_NS`, `USER_NS`, `DRM_MSM` con `DSI`, **`DRM_PANEL_SAMSUNG_S6E3FC_UNKNOWN`**, **`FRAMEBUFFER_CONSOLE`** y `DRM_FBDEV_EMULATION` (texto en pantalla), `USB_CONFIGFS_{ACM,ECM,NCM,RNDIS}`, `ATH10K_SNOC`, `CPU_THERMAL`, `CPU_FREQ_THERMAL`, `QCOM_TSENS`, `QCOM_Q6V5_{MSS,PAS}`, `SCSI_UFS_QCOM`; **no** activa Rust. Calidad del controlador del panel: su cabecera dice `Copyright (c) 2026 FIXME` y `Generated with linux-mdss-dsi-panel-driver-generator`: código generado, aún con marcas de «por completar».
 40. **Cómo entregar el DTB: dos vías posibles, ninguna probada.** (a) **`kexec`** desde tu 4.19 con root: **tu kernel 4.19 no lo admite** (`# CONFIG_KEXEC is not set`) y el teléfono no tiene `kexec` (el `/usr/sbin/kexec` que aparecía era el de la laptop, x86); haría falta recompilar el 4.19 y conseguir un `kexec` de ARM64, y en teléfonos Qualcomm el salto es poco fiable porque módem y DSP ya están en marcha (no probado). (b) **`fastboot boot --header-version 2 --dtb <dtb> …`**: `fastboot 34.0.5` ofrece `--dtb` («DTB para cabecera versión 2») y `--header-version`, de modo que puede construir al vuelo una imagen con DTB y arrancarla desde la RAM sin flashear. **Se desconoce si el *bootloader* acepta una imagen v2** (las imágenes de postmarketOS se convierten a v3 según la wiki) **ni si el `dtbo` de Xiaomi se aplica o rechaza sobre el DTB principal.**
 
+41. **Primera prueba del kernel principal en el teléfono: el *bootloader* acepta la imagen, pero no la arranca.** `artifacts/px/boot-sm6225-v2.img` (versión 2, 22 560 768 bytes, SHA-256 `91a7830c…bc88a`; verificada desempaquetándola: DTB de 82 060 bytes, kernel `Image.gz` de 18 143 860 y *initramfs* de Alpine idénticos a los originales; `--cmdline "console=tty0 loglevel=7 rdinit=/init"`). `fastboot boot`: `Sending 'boot.img' (22032 KB) OKAY [0.722s]`, `Booting OKAY [0.318s]`. **Pero el teléfono no salió del modo `fastboot`**: la pantalla se quedó en el logo de Xiaomi con el candado abierto (foto), `lsusb` seguía mostrando `18d1:d00d … (fastboot)`, `fastboot devices` lo listaba y respondía a consultas (`product: spes`, `current-slot: b`, `unlocked: yes`, `is-userspace: no`, `slot-count: 2`, `max-download-size: 796917760`). **En las ocho pruebas anteriores, tras `Booting OKAY` el teléfono sí salía de `fastboot`.** Se creyó primero que estaba colgado (más de 2 minutos con el logo); fue `lsusb` el que mostró que el *bootloader* seguía vivo. `fastboot reboot` devolvió Android de fábrica (`4.19.157-perf-gcb1ffc010755`, ranura `_b`; sin `su`, como esperaba). **Error del mentor:** se anunciaron cuatro resultados posibles y el real (un quinto: `OKAY` y no arrancar) no estaba entre ellos.
+42. **El `vendor_boot` de fábrica trae 18 DTB, y el de tu chip es genérico.** Separados por su firma `d00dfeed` y su tamaño, **solo uno** tiene `qcom,msm-id = <0x206 0x10000>`: el nº 8, de 338 817 bytes, con `qcom,board-id = <0x00 0x00>` y `model = "Qualcomm Technologies, Inc. Khaje SoC"`. Lo específico de la placa `spes` no está ahí: el *bootloader* lo añade aplicando una **capa (`dtbo`)** de la partición `dtbo`, elegida por `board-id`. El arranque de Android es «DTB base del chip + capa de la placa». **Hipótesis, no comprobada:** el *bootloader* intenta aplicar esa capa de Xiaomi sobre el DTB completo del kernel principal y aborta; otras posibles causas son que no acepte una imagen versión 2 (la wiki dice que las imágenes de postmarketOS se pasan a v3) o el formato del kernel.
+43. **Imagen de control para separar las causas, cambiando una sola cosa:** `artifacts/px/boot-4_19-v2.img` (37 773 312 bytes, SHA-256 `51e81cba…3ab`): versión 2, **tu kernel 4.19 `ksu02` (que sabemos que arranca)**, el *ramdisk* de fábrica y el **DTB base nº 8 de fábrica**, con la línea de comandos que antes aportaba `vendor_boot` (`console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x4a90000 androidboot.hardware=qcom … buildvariant=user ramoops_memreserve=4M`; la `boot.img` de fábrica traía la suya vacía). Verificada desempaquetándola. Si el teléfono **sale de `fastboot`** con esta imagen, el *bootloader* acepta la versión 2 y el problema es el DTB o el kernel principal; si **sigue en `fastboot`**, el problema es la versión 2 en sí.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -177,6 +193,11 @@ Los cinco inodos de los *namespaces* iniciales frente a los cinco nuevos; PID 1,
 `hog` invoca al OOM-killer dentro del grupo `/lab` con `CONSTRAINT_MEMCG`; la ruta de fallo de página en la pila; el límite de 20 MiB.
 ![cgroup OOM](evidencias/12-cgroup-oom-kill.png)
 
+**13 y 14 — Primera prueba del kernel principal en el teléfono (hallazgo #41)**
+`fastboot` acepta la imagen versión 2 (`OKAY`/`OKAY`) y el teléfono se queda con el logo de Xiaomi y el candado abierto: sigue en `fastboot`.
+![fastboot OKAY](evidencias/13-fastboot-boot-kernel-principal-ok.png)
+![logo de Xiaomi](evidencias/14-logo-xiaomi-se-queda-en-fastboot.png)
+
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 
 ## Pendientes
@@ -191,7 +212,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [ ] Etapa 1, pendiente (opcional): empaquetar un programa propio como paquete de Alpine (`apk`) o Debian (`.deb`); usuarios y permisos; los controladores `cpu` y `pids` de los *cgroups*; Wayland/Phosh.
 - [ ] Averiguar **cómo entregar el DTB del kernel principal** con `boot.img` v3 (¿se puede con `fastboot boot`, o exige flashear `vendor_boot`?) y qué contiene la ranura `a`.
 - [x] Compilar `v7.2.1-sm6225` con `sm6225_defconfig` y nuestro Clang (hecho; falló una vez por un archivo ausente en la rama y se arregló desactivando la opción huérfana).
-- [ ] Probar `fastboot boot --header-version 2 --dtb … Image.gz initramfs` con el kernel principal y un `initramfs` de Alpine adaptado (consola en `tty1`, informe en `/dev/kmsg`).
+- [x] Probar el kernel principal con `fastboot boot` en versión 2 con DTB: aceptado pero **no arranca** (hallazgo #41).
+- [ ] **Prueba de control** (hallazgo #43): `fastboot boot artifacts/px/boot-4_19-v2.img` (kernel 4.19 + DTB base de fábrica, versión 2) para saber si el *bootloader* acepta la versión 2.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
