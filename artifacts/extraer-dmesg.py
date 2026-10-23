@@ -10,7 +10,9 @@ Del bugreport solo se copian estas secciones:
 
 Todo lo demás (cuentas, redes Wi-Fi, apps, IMEI...) NO se toca ni se copia.
 Además se tapan los identificadores que pueden aparecer dentro del propio dmesg
-(número de serie, IMEI/MEID, direcciones MAC, UID de CPU, PARTUUID y UUID de particiones) antes de escribir la salida.
+(número de serie, IMEI/MEID, direcciones MAC, UID de CPU, PARTUUID, UUID de particiones y el
+NOMBRE DE LA RED WI-FI, que el controlador escribe como "Connecting to <nombre> <MAC>")
+antes de escribir la salida.
 Solo LEE el zip; no modifica nada.
 """
 import re
@@ -26,6 +28,10 @@ TAPAR = [
     (re.compile(r"(PARTUUID=)[0-9A-Fa-f-]{8,}", re.I), r"\1[TAPADO]"),
     (re.compile(r"\b([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b", re.I), "[UUID-TAPADO]"),
     (re.compile(r"\b([0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5})\b"), "[MAC-TAPADA]"),
+    # nombre de la red Wi-Fi (SSID): el controlador escribe "Connecting to <NOMBRE> <MAC>" SIN la palabra ssid;
+    # el nombre puede llevar espacios. Se aplica DESPUÉS del patrón de MAC, que ya habrá puesto [MAC-TAPADA].
+    (re.compile(r"(Connect(?:ing|ed) to )(.+?)( \[MAC-TAPADA\])"), r"\1[SSID-TAPADO]\3"),
+    (re.compile(r"((?:ssid|SSID)\s*[=:]\s*)\"?[^\",\n]+\"?"), r"\1[SSID-TAPADO]"),
     (re.compile(r"\b(\d{15})\b"), "[IMEI?-TAPADO]"),
 ]
 

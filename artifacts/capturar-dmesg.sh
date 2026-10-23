@@ -51,8 +51,11 @@ f_partuuid=$(grep -c -E "PARTUUID=[0-9a-fA-F]" "$out")
 f_uuid=$(grep -c -E "\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b" "$out")
 f_imei=$(grep -c -E "\b[0-9]{15}\b" "$out")
 f_mac=$(grep -c -E "\b([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b" "$out")
-echo "prueba de fugas -> serial:$f_serial  PARTUUID:$f_partuuid  UUID:$f_uuid  15-dígitos:$f_imei  MAC:$f_mac"
-if [ $((f_serial + f_partuuid + f_uuid + f_imei + f_mac)) -ne 0 ]; then
+# nombre de la red Wi-Fi: toda línea "Connecting to"/"Connected to" debe llevar [SSID-TAPADO]
+f_ssid=$(grep -E "Connect(ing|ed) to " "$out" | grep -v -c "SSID-TAPADO")
+f_ssid2=$(grep -c -i -E "ssid[=:] *[^[ ]" "$out")
+echo "prueba de fugas -> serial:$f_serial  PARTUUID:$f_partuuid  UUID:$f_uuid  15-dígitos:$f_imei  MAC:$f_mac  SSID:$((f_ssid + f_ssid2))"
+if [ $((f_serial + f_partuuid + f_uuid + f_imei + f_mac + f_ssid + f_ssid2)) -ne 0 ]; then
   rm -f "$out"
   echo "FUGAS DETECTADAS: se borró $out. No lo subas; avisa al mentor."
   exit 2
