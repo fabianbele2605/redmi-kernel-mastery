@@ -75,6 +75,17 @@ time kmake -j8 2>&1 | tee logs/09-build-hello.log | tail -16
 ls -l out-px/drivers/misc/hello_lab.o out-px/arch/arm64/boot/Image.gz
 tools/clang-r383902/bin/llvm-nm out-px/vmlinux | grep -i hello
 grep -c "hello_lab" out-px/System.map                                # 3
+
+# Paso 6: imagen con el kernel nuevo, arranque temporal y lectura
+cp out-px/arch/arm64/boot/Image.gz artifacts/px/Image-hello.gz
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel artifacts/px/Image-hello.gz --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline 'ramoops_memreserve=4M' -o artifacts/px/boot-lab-hello.img
+sha256sum artifacts/px/boot-lab-hello.img | tee logs/09-hash-boot-lab-hello.txt
+adb reboot bootloader
+fastboot boot artifacts/px/boot-lab-hello.img
+adb shell cat /proc/hello_lab                       # cat: /proc/hello_lab: Permission denied
+adb shell ls -lZ /proc/hello_lab                    # ls: /proc/hello_lab: Permission denied
+bash artifacts/capturar-dmesg.sh hello              # logs/08-dmesg-hello.txt (1 a 4 min; no interrumpir)
+grep -n "hello_lab" logs/08-dmesg-hello.txt | cut -c1-170
 ```
 
 ## Hallazgos reales
@@ -101,6 +112,13 @@ grep -c "hello_lab" out-px/System.map                                # 3
 19. **Corrección del mentor: `hello_lab_exit` SÍ está en el kernel.** Se predijo que el compilador la descartaría por ser código integrado. En `arch/arm64/kernel/vmlinux.lds.S` hay un comentario que lo explica: `/* .exit.text needed in case of alternative patching */`, con `#define ARM_EXIT_KEEP(x) x` y `#define ARM_EXIT_DISCARD(x)` (vacío): en arm64 **la sección `.exit.text` se conserva**. Lo que sí se descarta (`EXIT_CALL`, líneas 103-106) es la tabla `.exitcall.exit` de **punteros** a funciones de salida (`module_exit(x)` integrado = `__exitcall(x)`, `include/linux/init.h:257`). La función está en memoria, pero nada la llama nunca.
 20. **El crecimiento de 15 KB de `Image.gz` no viene de otra opción:** `diffconfig` entre un `spes-perf_defconfig` limpio y `out-px/.config` da **una sola diferencia, `HELLO_LAB n -> y`**. La `Image` sin comprimir mide **lo mismo** que antes (36 719 104 bytes, por el redondeo de alineación). Los 15 KB son bytes que cambian al desplazarse las direcciones (tablas de reubicación y de símbolos) y comprimen peor.
 21. **Incidente del mentor: un `heredoc` mal cerrado ejecutó texto del documento como comandos.** El script de actualización de este documento contenía, dentro de una cadena, una línea `EOF` (la del ejemplo de `Kconfig`); el *shell* la tomó como el final de su propio `heredoc`, Python no se ejecutó (`SyntaxError`) y **las líneas siguientes se ejecutaron como órdenes**. Efecto real: se añadió una **línea basura al final de `src/kernel-px/drivers/misc/Makefile`** (`obj-$(CONFIG_HELLO_LAB)\t+= hello_lab.o\n`, con las barras escritas literalmente y sin salto de línea). Se detectó revisando el estado antes de volver a compilar (`tail | cat -A` y `git diff`), se comprobó que el resto estaba intacto (una sola entrada en `Kconfig`, una sola línea de `HELLO_LAB` en `.config`, el repositorio principal sin tocar) y se eliminó **solo esa línea**; el `git diff` del `Makefile` quedó con exactamente `+obj-$(CONFIG_HELLO_LAB)<TAB>+= hello_lab.o`. El kernel compilado era válido porque se construyó antes. Lección: un delimitador de `heredoc` no puede aparecer dentro del texto que encierra; para scripts con texto libre, **escribir el script a un archivo** con la herramienta de edición y ejecutarlo después.
+
+22. **Paso 6: imagen con `hello_lab` dentro y arranque temporal.** `boot-lab-hello.img` (kernel `Image-hello.gz` + ramdisk de fábrica + `cmdline 'ramoops_memreserve=4M'`), SHA-256 `99da4356e7087a1c6955ba5e390724de2e4a6aa4f4c9651d67dea78f4067402c` (`logs/09-hash-boot-lab-hello.txt`). `fastboot boot`: `Sending 'boot.img' (36536 KB) OKAY [1.195s]`, `Booting OKAY [0.317s]`, `Finished. Total time: 1.544s`. El teléfono arrancó Android con `4.19.297-uvite`.
+23. **`cat /proc/hello_lab` da `Permission denied`, no `No such file or directory`** (el usuario lo ejecutó dos veces; `ls -lZ /proc/hello_lab` también: `Permission denied`). La diferencia prueba que el nodo **existe**: `cat /proc/no_existe_este` da `No such file or directory`. Es decir, `hello_lab_init` se ejecutó al arrancar y `proc_create` funcionó. Otros nodos de `/proc` sí se pueden leer (`/proc/uptime` → `167.30 789.02`, `/proc/version`).
+24. **La prueba definitiva, en el `dmesg` del propio teléfono** (`logs/08-dmesg-hello.txt`, 33 607 líneas, prueba de fugas a 0; el archivo tiene el `dmesg` de esta sesión hasta la línea 8 406 y a continuación `LAST KMSG`): **`<6>[    1.195224] hello_lab: cargado, nodo /proc/hello_lab creado`**. Tu `printk`, a **1,195 s** del arranque. Aparece **después** de `pstore: Registered ramoops as persistent store backend` (0,2749 s): el `device_initcall` de nivel 6 de `hello_lab_init` corre tras el registro de `pstore`.
+25. **Quién lo bloquea: SELinux, con la política de la ROM.** Cuatro denegaciones (`permissive=0`, es decir, haciéndose cumplir): dos `{ read }` de `comm="cat"` sobre `name="hello_lab"` (a los 96,8 s y 135,4 s, las dos lecturas del usuario) y dos `{ getattr }` de `comm="ls"` sobre `path="/proc/hello_lab"` (167,1 s y 167,3 s), siempre con `scontext=u:r:shell:s0`, **`tcontext=u:object_r:proc:s0`**, `tclass=file`, `dev="proc"`, `ino=4026532365`. Los nodos de `/proc` que nadie etiqueta reciben la etiqueta genérica `proc`, a la que el dominio `shell` no tiene acceso; los que se leen llevan una propia (`u:object_r:proc_uptime:s0`, `u:object_r:proc_version:s0`).
+26. **Trasladar el nodo a sysfs no lo arregla** (sondeado desde `adb shell`): las entradas con etiqueta específica se leen (`/sys/class/thermal/thermal_zone0/type` → `u:object_r:sysfs_thermal:s0`, `pm6125-tz`), pero los nodos con la etiqueta genérica `sysfs` o sin etiqueta conocida dan `Permission denied` (`/sys/kernel/uevent_seqnum`, `/sys/power/state`) o aparecen como `-?????????` (`fscaps`, `notes`, `kheaders.tar.xz`, `always_kmsg_dump`, `console_suspend`). Salidas posibles: **root** (KernelSU, módulo 13), cambiar la política de SELinux de la ROM (fuera de lo que se toca) o limitarse a `printk`. `adb root` no existe en una ROM `user`.
+27. **Resumen del módulo — lo que se aprendió:** (1) un módulo del kernel son dos funciones (`init`/`exit`) más metadatos; compila contra **tu** kernel (`vermagic 4.19.297-uvite SMP preempt mod_unload modversions aarch64`) y su único símbolo externo era `printk`; (2) su `init_module` son 8 instrucciones ARM64 con reubicaciones que el kernel rellena al cargarlo; (3) el compilador solo ve **nombres**, no el texto entre comillas: el typo `ENOMEN` lo paró y `elimiando`/`nod` pasaron; (4) un error de compilador se lee de izquierda a derecha (`archivo:línea:columna: error:`), las tres líneas `*** Error` de `make` son un mismo fallo, y si un error no cambia es que no se arregló la causa; (5) `/proc` en 4.19 usa `file_operations` + `seq_file` (en 5.6+ es `proc_ops`), y **la limpieza (`proc_remove`) es obligatoria**; (6) integrar código en el kernel son tres piezas (archivo, `Kconfig`, `Makefile`) y se comparte como un **parche** (`patches/0001-…`); (7) en arm64 el código de `__exit` se conserva en `vmlinux` aunque nada lo llame; (8) un nodo `/proc` creado por tu código **existe pero no lo puede leer `shell`** por SELinux: leerlo exige root; (9) `printk` + `dmesg` sigue siendo el canal que sí funciona sin permisos especiales.
 
 ## Evidencias
 
@@ -148,6 +166,10 @@ Mismo mensaje con `36:16`; el `.ko` sigue siendo el viejo (`30168`, 16:35).
 `__initcall_hello_lab_init6`, `hello_lab_init`, `hello_lab_exit`, `hello_open`, `hello_show`, `hello_fops`, `hello_ent` y las 3 líneas de `System.map`.
 ![Símbolos de hello_lab en vmlinux](evidencias/11-simbolos-de-hello-lab-en-vmlinux.png)
 
+**12 - `cat /proc/hello_lab` denegado (hallazgos #22 y #23)**
+Construir la imagen, `sha256sum`, `fastboot boot` con `OKAY` y las dos lecturas con `Permission denied`.
+![cat de /proc/hello_lab denegado](evidencias/12-fastboot-boot-hello-y-cat-denegado.png)
+
 ## Pendientes
 
 - [x] Paso 1: `hello_lab.c` escrito a mano y compilado como `hello_lab.ko` (30 168 B).
@@ -155,6 +177,6 @@ Mismo mensaje con `36:16`; el `.ko` sigue siendo el viejo (`30168`, 16:35).
 - [x] Paso 3: nodo `/proc/hello_lab` con `seq_file` compilado como `.ko` (137 176 B, 9 símbolos `U`, sin avisos).
 - [x] Paso 4: módulo integrado en el kernel (enlace, `Kconfig`, `Makefile`, `CONFIG_HELLO_LAB=y`).
 - [x] Paso 5: kernel recompilado (35,8 s) con `hello_lab` dentro de `vmlinux`.
-- [ ] Paso 6: arrancar con `fastboot boot` la imagen `boot-lab-hello.img` y ver el `printk` de `hello_lab` en el `dmesg`.
-- [ ] Paso 7: `cat /proc/hello_lab` desde `adb shell` (¿SELinux deja leerlo al usuario `shell`?).
+- [x] Paso 6: `fastboot boot` de `boot-lab-hello.img`; el `printk` de `hello_lab` aparece en el `dmesg` a 1,195 s.
+- [x] Paso 7: `cat /proc/hello_lab` desde `adb shell`: **no**, SELinux (`avc: denied { read }`, `u:r:shell:s0` contra `u:object_r:proc:s0`); requiere root.
 - [ ] (Módulo 13) Cargarlo como `.ko` con `insmod` cuando haya root.
