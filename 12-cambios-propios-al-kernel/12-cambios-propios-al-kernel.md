@@ -51,6 +51,18 @@ bash artifacts/capturar-dmesg.sh kinit
 grep -n -E "Freeing unused kernel memory|uvite: kernel_init|Run /init" logs/08-dmesg-kinit.txt
 cd src/kernel-px && git add init/main.c && git commit -m "lab: mensaje al terminar kernel_init"
 git format-patch -1 -o ~/Escritorio/Mobil/patches --start-number 3     # patches/0003-lab-mensaje-al-terminar-kernel_init.patch
+# Reversibilidad: deshacer el cambio 3 con git revert, en una rama desechable
+cd ~/Escritorio/Mobil/src/kernel-px
+git checkout -b lab/prueba-revert
+git revert --no-edit HEAD                                   # d6656e06d Revert "lab: mensaje al terminar kernel_init"
+git diff lab/cambio-01-hello-lab --stat -- init/main.c      # vacio: main.c vuelve a ser el de antes del cambio 3
+cd ~/Escritorio/Mobil && source artifacts/entorno-px.sh && time kmake -j12 2>&1 | tee logs/12-build-revert.log | tail -6     # real 21,6 s
+cp out-px/arch/arm64/boot/Image.gz artifacts/px/Image-revert.gz
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel artifacts/px/Image-revert.gz --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline 'ramoops_memreserve=4M' -o artifacts/px/boot-lab-revert.img
+sha256sum artifacts/px/boot-lab-revert.img | tee logs/12-hash-boot-lab-revert.txt
+fastboot boot artifacts/px/boot-lab-revert.img && bash artifacts/capturar-dmesg.sh revert
+grep -n -E "Freeing unused kernel memory|uvite: kernel_init|Run /init|hello_lab" logs/08-dmesg-revert.txt
+git -C src/kernel-px checkout lab/cambio-02-kernel-init     # volver a la rama buena
 ```
 
 ## Hallazgos reales
@@ -71,6 +83,10 @@ git format-patch -1 -o ~/Escritorio/Mobil/patches --start-number 3     # patches
 13. **Comprobado en el `dmesg` del teléfono, con control incluido** (`logs/08-dmesg-kinit.txt`): `[2.073305] Freeing unused kernel memory: 1280K`, **`[2.073397] uvite: kernel_init termina el arranque del kernel`**, `[2.073401] Run /init as init process` (líneas 1290-1292): entre las dos, como se predijo, y a 4 µs de `Run /init`. El mismo archivo trae `LAST KMSG` (el arranque anterior, sin el cambio): ahí `Freeing…` y `Run /init` aparecen **seguidas** (líneas 8439-8440), sin la línea nueva. La prueba de fugas pasó (`SSID:0`).
 14. **Commit y parche del cambio 3.** `52174c250 lab: mensaje al terminar kernel_init`, exportado con `git format-patch -1 --start-number 3` a **`patches/0003-lab-mensaje-al-terminar-kernel_init.patch`** (1 archivo, 1 línea). Su cabecera `From:` lleva la identidad fijada en el hallazgo #2. Verificado: **aplica limpio sobre el `init/main.c` de `fourteen`** y se rechaza al aplicarlo dos veces.
 
+15. **`git revert` deshace un cambio sin borrar historia.** En la rama desechable `lab/prueba-revert`, `git revert --no-edit HEAD` creó `d6656e06d Revert "lab: mensaje al terminar kernel_init"` (`1 file changed, 1 deletion(-)`) **encima** de `52174c250`, que sigue en el historial. `git diff lab/cambio-01-hello-lab -- init/main.c` salió vacío y `git diff fourteen -- init/main.c` también: `init/main.c` quedó idéntico al original. La rama se conservó como constancia del ejercicio.
+16. **Recompilación y arranque con el cambio deshecho.** 21,6 s reales, 0 errores y 0 avisos; esta vez el registro **sí** contiene `CC init/main.o` (línea 5) y la cadena `uvite: kernel_init` **ya no está en `vmlinux`** (0 apariciones). `boot-lab-revert.img`, SHA-256 `f55a9ff7b3bf69c6b0b1b96ec3e8982bbbdeeeed0d686316bd5d1f313eb36253`; `fastboot boot` `OKAY [0.869s]` / `OKAY [0.317s]`; uptime de 40 s (arranque nuevo).
+17. **Comprobado en el `dmesg` (`logs/08-dmesg-revert.txt`), con el arranque anterior como control en el mismo archivo.** Arranque actual (cambio 3 revertido), líneas 1277-1278: `[1.873630] Freeing unused kernel memory` y `[1.873721] Run /init as init process`, **seguidas, sin la línea de `uvite`**. `LAST KMSG` (el arranque anterior, con el cambio 3), líneas 8125-8127: `Freeing…` / **`[2.073397] uvite: kernel_init termina el arranque del kernel`** / `Run /init`. Y **`hello_lab … (cpus=8, HZ=250)` sigue presente** (línea 458): el revert de un commit no afectó a los otros dos cambios de la serie. Prueba de fugas: `SSID:0`; sin «FLIA» ni «BELENO».
+
 ## Evidencias
 
 Este módulo se documenta con los registros guardados, sin capturas de pantalla:
@@ -80,6 +96,7 @@ Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - `logs/12-build-kernel-init.log` y `logs/12-hash-boot-lab-kinit.txt` — el cambio 3 (ver hallazgo #11 sobre el registro).
 - `logs/08-dmesg-kinit.txt` — líneas 1290-1292: `Freeing…` / `uvite: kernel_init…` / `Run /init`; control en 8439-8440.
 - `patches/0003-lab-mensaje-al-terminar-kernel_init.patch` — el parche del cambio 3.
+- `logs/12-build-revert.log`, `logs/12-hash-boot-lab-revert.txt` y `logs/08-dmesg-revert.txt` — la prueba de reversibilidad (líneas 1277-1278 del `dmesg` y 8125-8127 del arranque anterior).
 
 ## Pendientes
 
@@ -90,4 +107,4 @@ Este módulo se documenta con los registros guardados, sin capturas de pantalla:
 - [x] Primer commit de la serie y parche equivalente al `0001`.
 - [x] Paso 5 de la guía: función no crítica **del propio árbol del kernel** modificada (`kernel_init`), con prueba en el `dmesg` y parche `0003` exportado.
 - [ ] Paso 6 de la guía: un cambio de rendimiento, solo con las mediciones del módulo 10 antes y después.
-- [ ] Probar la reversibilidad: `git revert` de un commit de la serie y comprobar que el kernel vuelve a comportarse como antes.
+- [x] Reversibilidad: `git revert` del cambio 3, recompilado y arrancado; su línea desaparece del `dmesg` y los otros cambios siguen.
