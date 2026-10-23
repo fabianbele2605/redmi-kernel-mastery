@@ -53,6 +53,12 @@ sed -n '/=== prueba de red/,/=== fin/p' logs/14-qemu-red.log
 bash modulos/mi_alpine/construir.sh
 timeout 150 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -nic user,model=virtio-net-pci -append "console=ttyAMA0 panic=-1 lab=red" -no-reboot < /dev/null > logs/14-qemu-openrc.log 2>&1
 sed -n '/--- servicio de OpenRC/,/=== fin/p' logs/14-qemu-openrc.log
+# Etapa 1, paso 6 (QEMU): namespaces con unshare, comparados desde fuera y desde dentro
+#   modulos/mi_alpine/overlay/usr/local/bin/prueba-ns   (se activa con lab=ns)
+bash modulos/mi_alpine/construir.sh
+timeout 60 qemu-system-aarch64 -machine virt -cpu cortex-a72 -m 1G -nographic -kernel out-rust/arch/arm64/boot/Image -initrd out-initramfs/mi_alpine.cpio.gz -append "console=ttyAMA0 panic=-1 lab=ns" -no-reboot < /dev/null > logs/14-qemu-ns.log 2>&1
+sed -n '/=== prueba de namespaces/,/=== fin/p' logs/14-qemu-ns.log
+grep -n "_NS_INIT_INO" src/linux-6.18.58/include/uapi/linux/nsfs.h            # los inodos de los namespaces iniciales
 ```
 
 ## Hallazgos reales
@@ -84,6 +90,9 @@ sed -n '/--- servicio de OpenRC/,/=== fin/p' logs/14-qemu-openrc.log
 21. **Un servicio propio de OpenRC, arrancado y supervisado** (`logs/14-qemu-openrc.log`). Se escribió `/etc/init.d/mi-latido` (`#!/sbin/openrc-run`, `supervisor="supervise-daemon"`, `need localmount`) y `usr/local/bin/mi-latido`. `rc-service mi-latido start` imprimió `Remounting filesystems … [ ok ]`, `Mounting local filesystems … [ ok ]` y `Starting mi-latido … [ ok ]`: las dos primeras no las escribió el autor, vienen de **resolver la dependencia `need localmount`** (OpenRC arrancó antes el servicio del que dependía el suyo). `status: started`. Árbol de procesos: `336 1 supervise-daemon mi-latido --start --pidfile /run/mi-latido.pid --respawn-delay 2 --respawn-max 5 --respawn-period 1800 …` (PID 336, hijo del PID 1) y `338 336 {mi-latido} /bin/sh /usr/local/bin/mi-latido` (PID 338, hijo del supervisor). **Relanzamiento:** matado el hijo 338 con `kill -9`, el supervisor 336 lanzó el **PID 392** (`26.10s PID 338 latido 5` → `28.51s PID 392 latido 1`, 2,4 s después, coherente con `respawn-delay 2`; inferencia, no medición del supervisor). `rc-service mi-latido stop` → `Stopping mi-latido … [ ok ]`, `status: stopped`; apagado limpio (código 0). **Diferencia con el `respawn` de BusyBox:** `supervise-daemon` limita a **5 relanzamientos cada 1 800 s** por defecto; un servicio que se cae en bucle acaba rindiéndose.
 22. **Errores del mentor en esta prueba.** (a) El primer `grep` para elegir a quién matar (`"[m]i-latido$"` con `awk 'NR==1'`) habría escogido al supervisor, porque `supervise-daemon` también termina su línea de comandos en `mi-latido` y tiene un PID menor: se detectó **antes** de ejecutar leyendo la salida de `ps` anterior y se cambió por `"[/]bin/sh /usr/local/bin/mi-latido"`. (b) `rc-service mi-latido describe` imprimió `reload: no description` en lugar del texto de `description=`; no se investigó. (c) Se preparó a mano `/run/openrc/softlevel` sin saber si OpenRC lo necesitaba sin haber ejecutado su arranque completo; **funcionó**, pero no se comprobó que fuera imprescindible.
 
+23. **Los cinco *namespaces* aislados, comprobados por su huella.** `unshare -p -f --mount-proc -u -n -i` (BusyBox) en QEMU (`logs/14-qemu-ns.log`, sin red): **FUERA** `pid:[4026531836]`, `net:[4026531833]`, `uts:[4026531838]`, `mnt:[4026531832]`, `ipc:[4026531839]`; **DENTRO** `pid:[4026532148]`, `net:[4026532149]`, `uts:[4026532146]`, `mnt:[4026532145]`, `ipc:[4026532147]`: los cinco distintos. Se comprobó en el código (`include/uapi/linux/nsfs.h`, líneas 48-55) que los de «FUERA» son **exactamente los *namespaces* iniciales** (`PID_NS_INIT_INO = 0xEFFFFFFC`, `UTS = 0xEFFFFFFE`, `IPC = 0xEFFFFFFF`, `NET = 0xEFFFFFF9`, `MNT = 0xEFFFFFF8`). Dentro: **`mi PID = 1`**, `hostname = contenedor-lab` (fuera sigue `fabian-lab`), **solo `lo:`** frente a `lo: eth0:` fuera, y `ps` ve **2 procesos** (el `sh` como PID 1 con padre `0`, porque su padre real está fuera del *namespace*, y el propio `ps` con PID 13) frente a 57 líneas fuera. Los PID 2 a 12 los consumieron los `readlink`, `hostname`, `ip`, `awk`, `tr` que lanza el script dentro. No se aisló el *namespace* de usuario (`-U`): en esta prueba ya se es root dentro del sistema de QEMU.
+24. **BusyBox trae lo necesario para esto sin instalar nada:** `unshare`, `nsenter`, `ip` y `hostname` (comprobado con `busybox --list`); `--mount-proc` montó un `/proc` propio y por eso `ps` ve solo los procesos del *namespace* nuevo.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -114,6 +123,10 @@ DHCP, DNS, `apk update` (28 570 paquetes) y `apk add openrc` (5 paquetes, 12,8 M
 Arranque con dependencia resuelta, árbol de procesos con el supervisor `supervise-daemon`, el hijo matado y relanzado con otro PID, y la parada.
 ![servicio arrancado](evidencias/09-openrc-servicio-arrancado-y-supervisado.png)
 ![servicio relanzado y parado](evidencias/10-openrc-relanzado-y-parado.png)
+
+**11 — Namespaces, fuera y dentro (hallazgos #23 y #24)**
+Los cinco inodos de los *namespaces* iniciales frente a los cinco nuevos; PID 1, hostname, red y procesos visibles dentro.
+![namespaces](evidencias/11-namespaces-fuera-y-dentro.png)
 
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 

@@ -1,0 +1,23 @@
+#!/bin/sh
+# Prueba de namespaces (se activa con lab=ns en la linea de comandos del kernel).
+sleep 1
+echo "=== prueba de namespaces ==="
+echo "--- applets de BusyBox: $(busybox --list | grep -E '^(unshare|nsenter|ip|hostname)$' | tr '\n' ' ')"
+echo "--- FUERA: namespaces de este proceso (el numero es el inodo, una huella unica):"
+for t in pid net uts mnt ipc; do echo "  $t -> $(readlink /proc/self/ns/$t)"; done
+echo "--- FUERA: hostname = $(hostname)"
+echo "--- FUERA: interfaces = $(ip -o link show | awk '{print $2}' | tr '\n' ' ')"
+echo "--- FUERA: procesos que veo = $(ps | wc -l) lineas"
+echo "--- unshare -p -f --mount-proc -u -n -i  (PID, montajes de /proc, hostname, red, IPC nuevos):"
+unshare -p -f --mount-proc -u -n -i sh -c '
+	echo "  DENTRO: mi PID = $$   (esperado 1)"
+	for t in pid net uts mnt ipc; do echo "  $t -> $(readlink /proc/self/ns/$t)"; done
+	hostname contenedor-lab
+	echo "  DENTRO: hostname = $(hostname)"
+	echo "  DENTRO: interfaces = $(ip -o link show | awk "{print \$2}" | tr "\n" " ")"
+	echo "  DENTRO: procesos que veo:"
+	ps -o pid,ppid,args
+'
+echo "--- FUERA de nuevo: hostname = $(hostname)   (no debe haber cambiado)"
+echo "=== fin de la prueba de namespaces, apagando ==="
+poweroff

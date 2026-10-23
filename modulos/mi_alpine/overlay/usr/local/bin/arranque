@@ -3,6 +3,7 @@
 # entonces espera, muestra el estado del sistema y lo apaga.
 case "$(cat /proc/cmdline)" in
 *lab=red*) exec /usr/local/bin/prueba-red ;;
+*lab=ns*) exec /usr/local/bin/prueba-ns ;;
 *lab=auto*) ;;
 *) exit 0 ;;
 esac
