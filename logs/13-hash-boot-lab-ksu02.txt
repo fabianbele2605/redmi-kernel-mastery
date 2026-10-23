@@ -1,0 +1,1 @@
+6c046ffdd6822e9fe6fd617b307654a1d064357b6abf0643dc0eaedff97bb17e  artifacts/px/boot-lab-ksu02.img

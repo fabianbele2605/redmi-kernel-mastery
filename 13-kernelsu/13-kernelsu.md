@@ -1,6 +1,6 @@
 # Módulo 13 — KernelSU (opcional)
 
-- Estado: En progreso
+- Estado: En progreso (root conseguido; falta aprovecharlo)
 - Fecha: 2026-10-23
 - Kernel: `4.19.297-uvite` (`src/kernel-px`, rama `lab/ksu-01-integracion`, parte de `lab/cambio-02-kernel-init`)
 - KernelSU: **v0.9.5**, commit `b766b98513b5a7eb33bc1c4a76b5702bf1288f07` (29-may-2024), clonado en `src/ksu-official` (ignorado por Git)
@@ -36,6 +36,29 @@ adb reboot bootloader && fastboot boot artifacts/px/boot-lab-ksu01.img
 adb shell 'su -c id'                                        # su: inaccessible or not found (esperado)
 bash artifacts/capturar-dmesg.sh ksu01                      # logs/08-dmesg-ksu01.txt
 grep -n -i "kernelsu" logs/08-dmesg-ksu01.txt | head
+# Paso 2: los 5 ganchos manuales, uno por commit, cada uno compilado antes de comitar (21-23 s cada compilacion)
+#   fs/exec.c           do_execveat_common  -> ksu_handle_execveat / ksu_handle_execveat_sucompat   (1fe0e62fa)
+#   fs/open.c           do_faccessat        -> ksu_handle_faccessat                                (69d9a13b0)
+#   fs/read_write.c     vfs_read            -> ksu_handle_vfs_read                                 (8bf47d179)
+#   fs/stat.c           vfs_statx           -> ksu_handle_stat                                     (ad8d8e10b)
+#   drivers/input/input.c input_handle_event -> ksu_handle_input_handle_event (modo seguro)        (a2a37a2c4)
+llvm-objdump -d --no-show-raw-insn out-px/vmlinux --disassemble-symbols=do_execveat_common | grep "bl.*ksu_"   # comprueba la llamada enlazada
+cp out-px/arch/arm64/boot/Image.gz artifacts/px/Image-ksu02.gz
+python3 tools/mkbootimg/mkbootimg.py --header_version 3 --os_version 12.0.0 --os_patch_level 2023-12 --kernel artifacts/px/Image-ksu02.gz --ramdisk backup/stock-unpacked/boot/ramdisk --cmdline 'ramoops_memreserve=4M' -o artifacts/px/boot-lab-ksu02.img
+adb reboot bootloader && fastboot boot artifacts/px/boot-lab-ksu02.img && bash artifacts/capturar-dmesg.sh ksu02
+
+# Paso 3: app gestora oficial, con su firma comprobada antes
+curl -sL -o downloads/KernelSU_v0.9.5_11872-release.apk https://github.com/tiann/KernelSU/releases/download/v0.9.5/KernelSU_v0.9.5_11872-release.apk
+sha256sum downloads/KernelSU_v0.9.5_11872-release.apk | tee logs/13-hash-manager-apk.txt
+python3 -I artifacts/verificar-firma-apk.py downloads/KernelSU_v0.9.5_11872-release.apk    # 827 bytes (0x033b), c371061b...
+adb install downloads/KernelSU_v0.9.5_11872-release.apk                                   # Success
+#   en el teléfono: app KernelSU > Superusuario > mostrar apps del sistema > Shell > interruptor
+adb shell 'id'; adb shell 'su -c id'                                                        # uid=2000(shell) / uid=0(root) context=u:r:su:s0
+adb shell 'su -c "cat /proc/hello_lab"'                                                     # modulo 9: ahora se lee
+
+# Con root: lo que shell no podia
+adb shell 'su -c "cat /sys/block/sda/queue/read_ahead_kb /sys/block/sda/queue/scheduler /proc/sys/kernel/sched_latency_ns; ls -l /proc/sys/vm/drop_caches"'
+adb shell 'su -c "dmesg | grep -i kernelsu | tail -5"'                                    # dmesg directo, sin bugreport
 ```
 
 ## Hallazgos reales
@@ -52,18 +75,44 @@ grep -n -i "kernelsu" logs/08-dmesg-ksu01.txt | head
 10. **Fuga que el mentor casi deja pasar:** KernelSU imprime la ruta de cada app y **87 de esas líneas llevaban carpetas aleatorias propias del teléfono** (`/data/app/~~<aleatorio>==/<paquete>-<aleatorio>==/base.apk`). Se añadió al extractor una regla que las cambia por `[APP-TAPADA]` y a la prueba de fugas el contador `APPS`; el registro se regeneró desde su `.zip` (0 rutas `~~` restantes, 87 tapadas) **antes** de versionarlo. Los ocho registros anteriores tenían 0 de esas rutas.
 11. **Limitación conocida de privacidad (no corregida):** los mensajes de SELinux (`avc: granted/denied`) citan rutas como `/data/data/com.facebook.katana/…` (paquetes comunes, aquí preinstalados en la ROM). Aparecen también en los registros ya publicados (4 a 13 líneas cada uno). Tapar esos nombres exigiría reescribir lo publicado.
 
+12. **Los cinco ganchos manuales, un commit cada uno**, y cada uno **compilado antes de comitar** (0 errores, 0 avisos, 21-23 s por compilación): `1fe0e62fa` `do_execveat_common` (`fs/exec.c`, 13 líneas), `69d9a13b0` `do_faccessat` (`fs/open.c`, 7), `8bf47d179` `vfs_read` (`fs/read_write.c`, 8), `ad8d8e10b` `vfs_statx` (`fs/stat.c`, 7), `a2a37a2c4` `input_handle_event` (`drivers/input/input.c`, 9; es el del **modo seguro**, que la documentación recomienda mucho contra bucles de arranque). Los parches de referencia de la guía encajaron **tal cual** en 4.19.297 (mismo `do_execveat_common` que solo llama a `__do_execve_file`, mismo `do_faccessat`...), y se comprobó antes que las firmas completas de las funciones `ksu_handle_*` del código `v0.9.5` coinciden con las que declaran. Error del mentor: un `grep ^ssize_t vfs_read` coincidió con dos funciones y falló el `sed` con aritmética; se repitió con `^ssize_t vfs_read(`.
+13. **Las cinco llamadas están realmente enlazadas en `vmlinux`:** `llvm-objdump` muestra `bl <ksu_handle_execveat>` y `<ksu_handle_execveat_sucompat>` dentro de `do_execveat_common`, `<ksu_handle_faccessat>` en `do_faccessat`, `<ksu_handle_vfs_read>`, `<ksu_handle_stat>` y `<ksu_handle_input_handle_event>`. `CONFIG_KPROBES` sigue apagado (`# CONFIG_KPROBES is not set`), como exige la vía manual.
+14. **Arranque con los cinco ganchos** (`boot-lab-ksu02.img`, SHA-256 `6c046ffdd6822e9fe6fd617b307654a1d064357b6abf0643dc0eaedff97bb17e`, uptime 131 s, `su: inaccessible or not found`): en el `dmesg` KernelSU **ya ve el arranque de Android** (`/init argc: 1`, `/system/bin/init first arg: selinux_setup`, `second_stage executed`), lo cual es el gancho de `do_execveat_common` funcionando; sin ganchos (`ksu01`) esas líneas no existían. `KPROBES is disabled` sigue saliendo (el aviso no sabe que hay ganchos manuales) y `load_allow_list open file failed: -2` es normal (aún no hay lista de apps con permiso).
+15. **El APK del gestor y su firma.** La publicación `v0.9.5` tiene 98 archivos (casi todos imágenes `boot.img` para kernels GKI, que no sirven); el gestor es `KernelSU_v0.9.5_11872-release.apk` (8 527 498 bytes, SHA-256 `8384b08fb8c4cf1314fa87aff80839faf284d22eeff41a8319e8eaa1336f1e7b`) y su `11872` coincide con el `KernelSU version: 11872` del kernel compilado. **No tiene firma v1** (`META-INF/*.RSA` vacío), así que se escribió `artifacts/verificar-firma-apk.py`, que solo lee el bloque de firma v2 del APK: primer certificado de **827 bytes (`0x033b`)** y SHA-256 **`c371061b…2d6`**, **idénticos** a `KSU_EXPECTED_SIZE`/`KSU_EXPECTED_HASH` fijados en el kernel. Limitación: eso prueba que APK y kernel **concuerdan entre sí**; ambos vienen del mismo repositorio de GitHub, así que no demuestra por sí solo que la clave sea la del autor legítimo.
+16. **Instalación y estado.** `adb install` → `Success` (MIUI **no** bloqueó la instalación por USB). La app muestra **«Funcionando», versión 11872, Superusuarios 0, Módulos 0**, kernel `4.19.297-uvite`, gestor `v0.9.5 (11872)` y **SELinux Enforcing** (no se tocó).
+17. **Root concedido a `shell` (y solo a `shell`).** En la app: Superusuario > mostrar apps del sistema > `Shell (com.android.shell)` > interruptor. Resultado: `adb shell id` → `uid=2000(shell) … context=u:r:shell:s0`; **`adb shell 'su -c id'` → `uid=0(root) gid=0(root) context=u:r:su:s0`**. Consecuencia asumida: mientras ese permiso esté activo, **cualquier sesión de `adb` en este teléfono puede ser root**; se revierte quitando el interruptor en la misma pantalla. El `dmesg` leído directamente (`su -c dmesg`) muestra los ganchos en acción: `KernelSU: faccessat su->sh!`, `do_execveat_common su found`, `newfstatat su->sh!`.
+18. **Pendiente del módulo 9 cobrado:** con `su`, **`cat /proc/hello_lab` funciona** y devuelve `hola desde el kernel del Redmi Note 11` y `lecturas: 1`, y en la segunda lectura `lecturas: 2` (el contador sube, como programó `hello_show`); el archivo es `-r--r--r-- root root u:object_r:proc:s0`. Como `shell` sigue recibiendo `Permission denied`, queda confirmado que el bloqueo era SELinux y no un fallo del módulo.
+19. **Lo que el root deja ver (para el paso 6 diferido del módulo 12):** `/sys/block/sda/queue/read_ahead_kb = 128`, `scheduler = noop [cfq]`, `sched_latency_ns = 10000000`, `sched_min_granularity_ns = 3000000`, y `/proc/sys/vm/drop_caches` **escribible** (`--w-------`). Para los módulos: `/proc/modules` existe, `modules_disabled = 0`, y están `/system/bin/insmod` y `/system/bin/lsmod`.
+
 ## Evidencias
 
-Este módulo se documenta con los registros guardados:
+Registros guardados:
 - `logs/13-build-ksu01.log` — compilación con KernelSU integrado, sin ganchos.
 - `logs/13-hash-boot-lab-ksu01.txt` — SHA-256 de la imagen probada.
 - `logs/08-dmesg-ksu01.txt` — `dmesg` del arranque (línea 835: `KPROBES is disabled`; líneas 3539 en adelante: `Searching manager...`).
+- `logs/13-build-ksu02a-exec.log`, `…02b-open.log`, `…02c-read.log`, `…02d-stat.log`, `…02e-input.log` — la compilación tras cada gancho (hallazgo #12).
+- `logs/13-hash-boot-lab-ksu02.txt`, `logs/08-dmesg-ksu02.txt` — arranque con los cinco ganchos (líneas 1266 a 1490: `/init argc`, `second_stage executed`).
+- `logs/13-hash-manager-apk.txt` y `artifacts/verificar-firma-apk.py` — hash del APK y el analizador de su firma.
+Capturas (fotos del teléfono):
+
+**00 — `adb install` del gestor (hallazgo #16)**
+`Performing Streamed Install` → `Success`.
+![adb install](evidencias/00-adb-install-del-gestor-success.png)
+
+**01 y 02 — KernelSU «Funcionando» (hallazgo #16)**
+Estado, versión 11872, 0 superusuarios, kernel `4.19.297-uvite`, gestor `v0.9.5 (11872)` y SELinux Enforcing.
+![KernelSU funcionando](evidencias/01-kernelsu-funcionando.png)
+![detalle de versión y SELinux](evidencias/02-kernelsu-detalle-version-y-selinux.png)
+
+**03 — Permiso de superusuario solo para Shell (hallazgo #17)**
+`com.android.shell` con el interruptor activado y perfil «Predeterminado».
+![Shell con superusuario](evidencias/03-shell-con-superusuario.png)
 
 ## Pendientes
 
 - [x] Paso 0: código de KernelSU v0.9.5 descargado y fijado; `setup.sh` leído.
 - [x] Paso 1: integración sin ganchos, compilada, arrancada, sin root (esperado).
-- [ ] Paso 2: los ganchos manuales, **uno por commit**: `fs/exec.c`, `fs/open.c`, `fs/read_write.c`, `fs/stat.c`, `drivers/input/input.c` (y `fs/devpts/inode.c` si hace falta).
-- [ ] Paso 3: instalar la app gestora oficial v0.9.5 **comprobando antes que su firma coincide** con `0x033b` / `c371061b…`.
+- [x] Paso 2: los cinco ganchos manuales, uno por commit y compilados uno a uno (`fs/devpts/inode.c` no hizo falta por ahora).
+- [x] Paso 3: app gestora oficial v0.9.5 instalada **tras comprobar que su firma coincide**; root solo para `shell`.
 - [ ] Paso 4: aprovechar el root: `insmod` de `hello_lab.ko`, leer `/proc/hello_lab`, y el paso 6 diferido del módulo 12 (`drop_caches`).
 - [ ] Probar la reversibilidad de cada gancho con `git revert`.
