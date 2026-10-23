@@ -1,0 +1,33 @@
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 2b9f3984f..6c53f957b 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -683,3 +683,11 @@ config ANT_CHECK_DIV
+          peripheral. The MISC peripheral holds the USB ID interrupt
+          and the driver provides an API to check if this interrupt
+          is available on the current PMIC chip.
++
++config HELLO_LAB
++	bool "Laboratorio: hello_lab (nodo /proc/hello_lab)"
++	depends on PROC_FS
++	default n
++	help
++	  Modulo de aprendizaje del curso. Integrado en el kernel, escribe un
++	  mensaje al arrancar y crea el nodo /proc/hello_lab.
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index c5983c000..204843e50 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -81,3 +81,4 @@ obj-$(CONFIG_FPR_FPC)		+= fpr_FingerprintCard/
+ obj-y                           += qrc/
+ obj-y                           += board_id.o
+ obj-$(CONFIG_KINECTICS_XR_NORDIC) += kxrctrl/
++obj-$(CONFIG_HELLO_LAB)	+= hello_lab.o
+diff --git a/drivers/misc/hello_lab.c b/drivers/misc/hello_lab.c
+new file mode 120000
+index 000000000..36040950a
+--- /dev/null
++++ b/drivers/misc/hello_lab.c
+@@ -0,0 +1 @@
++../../../../modulos/hello_lab/hello_lab.c
+\ No newline at end of file
