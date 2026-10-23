@@ -31,17 +31,17 @@ static const struct file_operations hello_fops = {
 
 static int __init hello_lab_init(void)
 {
-	hello_ent = proc_create("hello_lab", 0444, NULL, &hello_fops);
-	if (!hello_ent)
-			return -ENOMEN;
-	pr_info("hello_lab: cargado, nodo /proc/hello_lab creado\n");
-	return 0;
+		 hello_ent = proc_create("hello_lab", 0444, NULL, &hello_fops);
+		 if (!hello_ent)
+		 		  return -ENOMEM;
+		 pr_info("hello_lab: cargado, nodo /proc/hello_lab creado\n");
+		 return 0;
 }
 
 static void __exit hello_lab_exit(void)
 {
 	proc_remove(hello_ent);
-	pr_info("hello_lab: descargado, nodo /proc/hello_lab elimiando\n");
+	pr_info("hello_lab: descargado, nodo /proc/hello_lab eliminado\n");
 }
 
 module_init(hello_lab_init);
@@ -49,4 +49,4 @@ module_exit(hello_lab_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("fabian");
-MODULE_DESCRIPTION("Laboratorio: nod /proc de solo lectura");
+MODULE_DESCRIPTION("Laboratorio: nodo /proc de solo lectura");
