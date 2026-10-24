@@ -1,7 +1,7 @@
 # Módulo 14 — Más allá de Android: Linux móvil
 
-- Estado: En progreso (investigación de compatibilidad y respaldos hechos; QEMU pendiente)
-- Fecha: 2026-10-23
+- Estado: **Completado** con el táctil pendiente (kernel principal `7.2.1-sm6225` arrancando en el teléfono con raíz ext4 persistente, red, SSH, servidor web y Phosh; ver «Cierre»)
+- Fecha: 2026-10-23 y 2026-10-24
 - Teléfono: Redmi Note 11 (`spes`), modelo `2201117TL`, variante **`spes-sm5602`** (`qcom,board-id` = `0004 0022`), kernel `4.19.297-uvite` con root de KernelSU (módulo 13, solo mientras dure el `fastboot boot`)
 - Objetivo: entender el sistema completo, no solo el kernel, y averiguar **si este teléfono puede correr un Linux móvil** antes de cambiarle nada. Se hace en etapas, de menos a más riesgo, y **primero en QEMU**.
 
@@ -319,6 +319,12 @@ Los cinco inodos de los *namespaces* iniciales frente a los cinco nuevos; PID 1,
 
 Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias en sí no se publican) y `artifacts/respaldar-particiones.sh`. La página de la wiki del dispositivo (`wiki.nura.eco/wiki/Xiaomi_Redmi_Note_11_(xiaomi-spes)`) se consultó en el navegador del usuario porque la herramienta automática estaba bloqueada.
 
+**15 — Phosh en el panel real del teléfono (hallazgos #95 a #98)**
+Pantalla de bloqueo de Phosh capturada con `grim` desde el propio teléfono: reloj, «Saturday, October 24» y «Slide up to unlock» a 1080×2400. (Las fotos del teléfono hechas por el alumno no se versionan.)
+![Phosh](evidencias/15-phosh-pantalla-bloqueo.png)
+
+Registros del kernel principal en el teléfono: `logs/14-kernel-principal-gadget.txt` (primer arranque observado), `logs/14-kernel-principal-pantalla.txt` (con la consola en pantalla), `logs/14-disco-persistencia.txt` (raíz ext4 y reinicio), `logs/15-build-fts-debug.txt` (compilación con los mensajes del táctil).
+
 ## Pendientes
 
 - [x] Compatibilidad: estado del puerto, variante propia, mapa de particiones y veredicto.
@@ -328,8 +334,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Etapa 1, paso 4: red en QEMU (DHCP, DNS) y `apk add openrc` dentro del sistema.
 - [x] Etapa 1, paso 5: tu servicio como servicio de OpenRC, con dependencia, supervisión y relanzamiento comprobados.
 - [x] Etapa 1, pasos 6 y 7: *namespaces* (`unshare`: PID, red, nombre, montajes, IPC) y *cgroups* (límite de memoria con OOM de grupo).
-- [ ] Etapa 1, pendiente (opcional): empaquetar un programa propio como paquete de Alpine (`apk`) o Debian (`.deb`); usuarios y permisos; los controladores `cpu` y `pids` de los *cgroups*; Wayland/Phosh.
-- [ ] Averiguar **cómo entregar el DTB del kernel principal** con `boot.img` v3 (¿se puede con `fastboot boot`, o exige flashear `vendor_boot`?) y qué contiene la ranura `a`.
+- [ ] Etapa 1, pendiente (opcional): empaquetar un programa propio como paquete de Alpine (`apk`) o Debian (`.deb`); los controladores `cpu` y `pids` de los *cgroups*. (Usuarios, permisos y Phosh: hechos en el teléfono.)
+- [x] Entregar el DTB del kernel principal: `boot.img` v2 con DTB propio y una `dtbo` cuya entrada nº 31 es un overlay vacío por etiqueta (hallazgos #43 a #69).
 - [x] Compilar `v7.2.1-sm6225` con `sm6225_defconfig` y nuestro Clang (hecho; falló una vez por un archivo ausente en la rama y se arregló desactivando la opción huérfana).
 - [x] Probar el kernel principal con `fastboot boot` en versión 2 con DTB: aceptado pero **no arranca** (hallazgo #41).
 - [x] Prueba de control: el *bootloader* **acepta la versión 2** y aplica la capa de la placa (hallazgos #43 a #47).
@@ -350,3 +356,15 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
 - [ ] Verificar la firma PGP del kernel 6.18.58 (pendiente del módulo 11).
+
+## Cierre
+
+**Lo que funciona hoy en el teléfono** (kernel principal `7.2.1-sm6225`, arrancado con `fastboot boot artifacts/px/boot-sm6225-v2-disco.img`, sin instalar nada en `boot`): 8 CPU y 4 GiB de RAM, consola en pantalla, USB como *gadget* (registro por `ttyACM0`, shell por `ttyACM1`, red NCM), raíz **ext4 de 100,6 GiB persistente** en `sda16`, `apk` con internet a través de la laptop, **SSH** con clave de laboratorio, **`nginx`** con una página de estado con datos reales, hora por NTP, y **Phosh** corriendo en el panel real con render por software. El autoarranque de red, SSH, NTP y `nginx` está verificado en un reinicio completo.
+
+**Lo que no se consiguió:** (1) el **táctil** (el chip FT3518 está vivo con firmware válido, pero no genera interrupciones; hallazgos #93 a #106); (2) **ver y manejar Phosh remotamente** (`wayvnc` y `phoc` incompatibles, hallazgo #99); (3) GPU (falta `a630_sqe.fw`), Wi-Fi, módem, audio, cámara y batería no se han probado; (4) la sesión de Phosh **no** arranca sola.
+
+**Escrituras hechas en el teléfono (para no olvidarlas):** `dtbo_b` (overlay propio) y `userdata` (ahora ext4 de 3 GiB ampliado en caliente a 100,6 GiB). **Android no arranca normal en este estado** y los datos de `userdata` se perdieron sin respaldo.
+
+**Cómo volver a Android (no probado, plan):** (1) `fastboot flash dtbo_b backup/stock/dtbo.img` (copia verificada, SHA-256 `0db044d8…`); (2) `fastboot set_active b`; (3) la partición `userdata` hay que dejarla en el formato que Android espera (f2fs): lo más seguro es **borrar datos desde el *recovery*** de fábrica o reflashear la ROM con la herramienta de Xiaomi; `fastboot format:f2fs userdata` es una alternativa; (4) reiniciar con `fastboot reboot`. Las imágenes de fábrica de `boot`, `vendor_boot`, `vbmeta` y `vbmeta_system` siguen intactas porque **nunca se escribieron**.
+
+**Lecciones del módulo:** el *bootloader* guarda estado entre pruebas (`fastboot reboot bootloader` antes de cada `fastboot boot`; tras `flash userdata` no usar `reboot bootloader`); no matar un `fastboot` a medias con `kill -9`; `pkill -f` con el patrón en la propia línea mata la shell; un `grep` con código de salida 1 sobre un binario no es «no está»; y **cada vez que una prueba «no hizo nada», faltaba el mensaje**: encender los registros (`FTS_DEBUG_EN`, `dmesg` completo, `debugfs`) resolvió más que cualquier hipótesis.
