@@ -19,6 +19,9 @@ echo "Redmi Note 11 (kernel principal)" > strings/0x409/product
 mkdir -p configs/c.1/strings/0x409
 echo "ACM+NCM" > configs/c.1/strings/0x409/configuration
 mkdir -p functions/acm.GS0 functions/acm.GS1 functions/ncm.usb0
+# MAC fijas (administradas localmente): la interfaz de la laptop siempre se llama enx02fab1a40001
+echo 02:fa:b1:a4:00:01 > functions/ncm.usb0/host_addr
+echo 02:fa:b1:a4:00:02 > functions/ncm.usb0/dev_addr
 ln -sf $G/functions/acm.GS0 configs/c.1/acm.GS0
 ln -sf $G/functions/acm.GS1 configs/c.1/acm.GS1
 ln -sf $G/functions/ncm.usb0 configs/c.1/ncm.usb0
@@ -37,6 +40,10 @@ echo "$U" > UDC 2>/dev/null || say "no se pudo escribir UDC ($?)"
 for i in $(seq 1 30); do [ -c /dev/ttyGS0 ] && break; sleep 1; done
 say "ttyGS0: $(ls -l /dev/ttyGS0 2>&1 | tr -s ' ')"
 ip link set usb0 up 2>/dev/null && ip addr add 172.16.42.1/24 dev usb0 2>/dev/null
+# la laptop (172.16.42.2) hace de puerta de enlace si le activas el reenvio y el NAT
+ip route add default via 172.16.42.2 dev usb0 2>/dev/null
+echo "nameserver 1.1.1.1" > /etc/resolv.conf
+[ -x /usr/sbin/sshd ] && /usr/sbin/sshd && say "sshd iniciado"
 
 ( cat $K > /dev/ttyGS0 ) &
 # segundo puerto serie: una shell para probar el telefono a mano (se reabre si la cierras)

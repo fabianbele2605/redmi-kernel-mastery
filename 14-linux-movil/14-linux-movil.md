@@ -240,6 +240,12 @@ fastboot boot artifacts/px/boot-lab-kexec.img && adb shell 'su -c "cat /sys/fs/p
 80. **Resultado: el teléfono arranca con raíz persistente.** `mount`: `/dev/sda16 on / type ext4 (rw,relatime)`, `df`: 2,9 GiB. Se escribió `/root/prueba-persistencia.txt`, `sync`, `reboot -f` (con Volumen Abajo pulsado para que ABL quede en `fastboot`) y se arrancó la misma imagen: el archivo sigue ahí, `arranques.txt` tiene 2 líneas (uptime 3,43 s y 3,11 s) y no hubo segunda copia. `logs/14-disco-persistencia.txt`.
 81. **Tres trampas de proceso, para no repetirlas.** (a) Tras `fastboot flash userdata` + `fastboot reboot bootloader`, el *fastboot* del teléfono se atasca (`getvar` sin respuesta); se arregla con reinicio físico y **no** usando `reboot bootloader` ahí. (b) No matar un `fastboot` a medias con `kill -9`: deja al bootloader esperando datos. (c) `pkill -f patron` también mata la shell que lleva `patron` en su propia línea de comando (salida 144).
 
+82. **Internet para el teléfono por la laptop.** En la laptop (con `sudo`): `ip addr add 172.16.42.2/24 dev enx…`, `iptables -t nat -A POSTROUTING -s 172.16.42.0/24 -o wlo1 -j MASQUERADE` y dos reglas `FORWARD` con `-I` (Docker puede tener la cadena en `DROP`). En el teléfono: `ip route add default via 172.16.42.2` y `nameserver 1.1.1.1`: `ping 1.1.1.1` 77 ms y el DNS resuelve. **Dos trampas:** NetworkManager quitó la IP de la interfaz una vez (se volvió a poner y aguantó), y el teléfono arranca con el reloj en 1970, así que **`apk` falla con `TLS: server certificate not trusted` hasta poner la hora** (`date -s @<epoch de la laptop>`).
+83. **`apk update`: 28 570 paquetes (Alpine 3.24.3, `aarch64`).** Se instaló `openssh`, `e2fsprogs` y `e2fsprogs-extra` (33 paquetes, 17,4 MiB en total).
+84. **SSH al teléfono con una clave solo para el laboratorio:** `~/.ssh/id_fabian_lab` (ed25519, sin frase; **no se versiona**, no son tus claves personales), `authorized_keys` en `/root/.ssh`, `PasswordAuthentication no`, `PermitRootLogin prohibit-password`. `ssh -i ~/.ssh/id_fabian_lab root@172.16.42.1` entra como `root` en `fabian-lab` con el kernel `7.2.1-sm6225`.
+85. **El ext4 crece a toda la partición: `resize2fs /dev/sda16` en caliente, 3 GiB -> 100,6 GiB** (`EXT4-fs: resized filesystem to 26807251 blocks`; `df`: 96,4 GiB libres). **Es seguro donde el intento del #77 no lo fue:** el problema estaba en la escritura *sparse* de ABL desde `fastboot`; aquí escribe el kernel por el camino de bloques normal. **Prueba:** 3 archivos de 512 MiB en directorios distintos, hash `sha256` idéntico al calculado en la laptop (`ddbb49d5…`) tras `drop_caches`, 0 errores de ext4/E-S; `debugfs` mostró extensiones hasta el bloque 26 804 224 (el extremo de los 102 GiB).
+86. **`gadget-usb` arranca ahora la red y SSH solo, y fija las MAC del cable** (`host_addr` `02:fa:b1:a4:00:01`, `dev_addr` `…:02`), para que la interfaz de la laptop se llame siempre `enx02fab1a40001` en lugar de cambiar en cada arranque. Se copió al disco del teléfono por `scp`. **Aún sin verificar en un reinicio.**
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -306,7 +312,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Anular la capa `dtbo`: resuelto con un overlay vacío por etiqueta (hallazgos #64 a #69).
 - [x] Ver la pantalla del kernel principal (hallazgos #71 a #73).
 - [x] Red USB (hallazgo #74) y disco ext4 persistente como raíz (hallazgos #75 a #80).
-- [ ] Siguiente: ampliar el ext4 a toda la partición (con cuidado, #77), instalar paquetes (`apk`) con la laptop como puerta de enlace, un servicio de verdad (sshd) y valorar Phosh. Comparar con Nura.
+- [x] Ampliar el ext4, `apk`, SSH (hallazgos #82 a #85).
+- [ ] Siguiente: verificar el autoarranque de red y SSH tras un reinicio (#86), un servicio real, Phosh, y comparar con Nura.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
