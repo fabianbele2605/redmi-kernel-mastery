@@ -3,5 +3,6 @@
 ::sysinit:/bin/mount -t sysfs sysfs /sys
 ::sysinit:/bin/mount -t devtmpfs devtmpfs /dev
 ::sysinit:/bin/hostname fabian-lab
+::once:/usr/local/bin/gadget-usb
 tty1::respawn:/usr/local/bin/pantalla
 ::shutdown:/bin/umount -a -r

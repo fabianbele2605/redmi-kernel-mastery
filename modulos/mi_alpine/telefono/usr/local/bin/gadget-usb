@@ -1,0 +1,47 @@
+#!/bin/sh
+# Convierte el telefono en un dispositivo USB compuesto (puerto serie ACM + red NCM)
+# y vuelca por el puerto serie el registro del kernel y un informe cada 5 s.
+# Es el UNICO canal de salida del kernel principal en este telefono (sin pantalla ni RAM que sobreviva).
+K=/dev/kmsg
+say() { echo "gadget-usb: $*" > $K; }
+
+mount -t configfs none /sys/kernel/config 2>/dev/null
+G=/sys/kernel/config/usb_gadget/lab
+mkdir -p $G || { say "no hay configfs de gadget"; exit 1; }
+cd $G || exit 1
+echo 0x1d6b > idVendor
+echo 0x0104 > idProduct
+echo 0x0200 > bcdUSB
+mkdir -p strings/0x409
+echo "fabian-lab" > strings/0x409/serialnumber
+echo "lab" > strings/0x409/manufacturer
+echo "Redmi Note 11 (kernel principal)" > strings/0x409/product
+mkdir -p configs/c.1/strings/0x409
+echo "ACM+NCM" > configs/c.1/strings/0x409/configuration
+mkdir -p functions/acm.GS0 functions/ncm.usb0
+ln -sf $G/functions/acm.GS0 configs/c.1/acm.GS0
+ln -sf $G/functions/ncm.usb0 configs/c.1/ncm.usb0
+say "gadget montado; esperando un UDC"
+
+U=""
+for i in $(seq 1 120); do
+	U=$(ls /sys/class/udc 2>/dev/null | head -1)
+	[ -n "$U" ] && break
+	sleep 1
+done
+if [ -z "$U" ]; then say "NO hay UDC tras 120 s"; ls /sys/class/udc /sys/class/typec /sys/bus/platform/drivers 2>&1 | head -20 > $K; exit 1; fi
+say "UDC = $U; activando"
+echo "$U" > UDC 2>/dev/null || say "no se pudo escribir UDC ($?)"
+
+for i in $(seq 1 30); do [ -c /dev/ttyGS0 ] && break; sleep 1; done
+say "ttyGS0: $(ls -l /dev/ttyGS0 2>&1 | tr -s ' ')"
+ip link set usb0 up 2>/dev/null && ip addr add 172.16.42.1/24 dev usb0 2>/dev/null
+
+( cat $K > /dev/ttyGS0 ) &
+while true; do
+	{
+		echo "=== fabian-lab $(uname -r)   uptime $(cut -d' ' -f1 /proc/uptime) s   UDC=$U"
+		echo "gadget state: $(cat /sys/class/udc/$U/state 2>/dev/null)   cpus: $(cat /sys/devices/system/cpu/online)"
+	} > /dev/ttyGS0
+	sleep 5
+done
