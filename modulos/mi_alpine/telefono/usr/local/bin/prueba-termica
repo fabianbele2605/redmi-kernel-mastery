@@ -1,0 +1,56 @@
+#!/bin/sh
+# Prueba termica: reposo -> todos los nucleos al 100 % -> enfriamiento, midiendo cada 5 s.
+# Si cualquier sensor llega al limite, mata la carga y lo anota (corte de seguridad).
+# uso: prueba-termica [seg_reposo=30] [seg_carga=600] [seg_enfriar=120] [limite_C=70]
+# salida: /root/termica.csv  (y /root/termica.fin al terminar)
+BASE=${1:-30}; CARGA=${2:-600}; ENF=${3:-120}; LIM=${4:-70}
+OUT=/root/termica.csv
+N=$(grep -c '^processor' /proc/cpuinfo)
+rm -f /root/termica.fin "$OUT"
+
+zonas=""; for z in /sys/class/thermal/thermal_zone*; do [ -r $z/temp ] && zonas="$zonas $z"; done
+pols=""; for p in /sys/devices/system/cpu/cpufreq/policy*; do [ -r $p/scaling_cur_freq ] && pols="$pols $p"; done
+
+{
+	printf 't_s,fase,cargas,max_C'
+	for z in $zonas; do printf ',%s' "$(cat $z/type)"; done
+	for p in $pols; do printf ',MHz_%s' "$(basename $p)"; done
+	for b in /sys/class/power_supply/*; do [ -r $b/capacity ] && printf ',%%%s' "$(basename $b)"; done
+	printf ',carga_1min\n'
+} > "$OUT"
+
+PIDS=""
+t0=$(date +%s); fase=reposo; cortado=0
+while :; do
+	t=$(( $(date +%s) - t0 ))
+	if   [ $t -ge $((BASE + CARGA + ENF)) ]; then break
+	elif [ $t -ge $((BASE + CARGA)) ]; then fase=enfriando
+	elif [ $t -ge $BASE ]; then fase=carga
+	fi
+	[ $cortado = 1 ] && [ "$fase" = carga ] && fase=cortado
+	# arrancar o parar la carga segun la fase
+	if [ "$fase" = carga ] && [ -z "$PIDS" ] && [ $cortado = 0 ]; then
+		for i in $(seq 1 $N); do ( while :; do :; done ) & PIDS="$PIDS $!"; done
+	fi
+	if [ "$fase" = enfriando ] && [ -n "$PIDS" ]; then kill $PIDS 2>/dev/null; PIDS=""; fi
+
+	max=0; fila=""
+	for z in $zonas; do
+		v=$(cat $z/temp 2>/dev/null); v=${v:-0}
+		[ "$v" -gt "$max" ] && max=$v
+		fila="$fila,$(awk -v v=$v 'BEGIN{printf "%.1f", v/1000}')"
+	done
+	for p in $pols; do fila="$fila,$(( $(cat $p/scaling_cur_freq) / 1000 ))"; done
+	for b in /sys/class/power_supply/*; do [ -r $b/capacity ] && fila="$fila,$(cat $b/capacity)"; done
+	nc=0; [ -n "$PIDS" ] && nc=$N
+	printf '%s,%s,%s,%s%s,%s\n' "$t" "$fase" "$nc" "$(awk -v v=$max 'BEGIN{printf "%.1f", v/1000}')" "$fila" "$(cut -d' ' -f1 /proc/loadavg)" >> "$OUT"
+
+	if [ $((max / 1000)) -ge $LIM ] && [ -n "$PIDS" ]; then
+		kill $PIDS 2>/dev/null; PIDS=""; cortado=1; fase=enfriando
+		echo "CORTE: un sensor llego a $((max/1000)) C (limite $LIM) en t=$t s" >> "$OUT.aviso"
+		echo "prueba-termica: CORTE por temperatura ($((max/1000)) C)" > /dev/kmsg
+	fi
+	sleep 5
+done
+[ -n "$PIDS" ] && kill $PIDS 2>/dev/null
+echo "fin $(date)" > /root/termica.fin
