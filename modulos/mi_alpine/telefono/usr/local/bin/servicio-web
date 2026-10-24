@@ -1,0 +1,34 @@
+#!/bin/sh
+# Servicio web del telefono: arranca nginx y reescribe cada 5 s una pagina con datos REALES del sistema.
+# Se lanza desde inittab con respawn. Los datos salen de /proc y /sys; nada es inventado.
+W=/var/www/localhost/htdocs
+mkdir -p /run/nginx "$W"
+nginx 2>/dev/null
+
+while true; do
+	{
+		cpu=$(grep -c '^processor' /proc/cpuinfo)
+		mem=$(awk '/MemTotal/ {t=$2} /MemAvailable/ {a=$2} END {printf "%d MiB libres de %d MiB", a/1024, t/1024}' /proc/meminfo)
+		disco=$(df -h / | awk 'NR==2 {print $3 " usados de " $2 " (" $5 ")"}')
+		cat <<EOF
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta http-equiv="refresh" content="5">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>fabian-lab</title>
+<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;padding:0 1rem}
+td{padding:.2rem 1rem .2rem 0}h1{font-size:1.3rem}</style></head><body>
+<h1>fabian-lab: Linux $(uname -r) en un Redmi Note 11</h1>
+<table>
+<tr><td>hora</td><td>$(date '+%F %T')</td></tr>
+<tr><td>encendido hace</td><td>$(awk '{printf "%d min %d s", $1/60, $1%60}' /proc/uptime)</td></tr>
+<tr><td>CPUs</td><td>$cpu</td></tr>
+<tr><td>carga</td><td>$(cut -d' ' -f1-3 /proc/loadavg)</td></tr>
+<tr><td>memoria</td><td>$mem</td></tr>
+<tr><td>disco /</td><td>$disco</td></tr>
+<tr><td>bateria</td><td>$(for b in /sys/class/power_supply/*; do [ -r $b/capacity ] && printf '%s %s%% ' $(basename $b) $(cat $b/capacity); done)</td></tr>
+</table>
+<h2>Temperaturas</h2><table>
+$(for z in /sys/class/thermal/thermal_zone*; do [ -r $z/temp ] && printf '<tr><td>%s</td><td>%s &deg;C</td></tr>\n' "$(cat $z/type)" "$(awk '{printf "%.1f", $1/1000}' $z/temp)"; done)
+</table></body></html>
+EOF
+	} > "$W/index.html.tmp" && mv "$W/index.html.tmp" "$W/index.html"
+	sleep 5
+done
