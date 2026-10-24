@@ -253,6 +253,8 @@ fastboot boot artifacts/px/boot-lab-kexec.img && adb shell 'su -c "cat /sys/fs/p
 90. **Dos errores de configuración que dieron 404, para no repetirlos.** (a) La `default.conf` de Alpine hace `return 404` a todo: hay que sustituirla (`modulos/mi_alpine/telefono/etc/nginx/http.d/default.conf`). (b) `try_files $uri =404;` **no aplica `index` a la raíz `/`**: hace falta `try_files $uri $uri/ =404;`. `pgrep -x nginx` da 0 porque el proceso se llama `nginx: master process`.
 91. **Prueba de carga corta: 2 000 peticiones con 16 en paralelo desde la laptop por el cable USB (NCM): 2 000 respuestas 200 en 1,8 s (~1 140 peticiones/s).** Carga 0,24 y `cpu0123`/`cpu67` a 41 °C (de 40 °C en reposo). El cuello de botella es `curl` en la laptop y el enlace USB, no el teléfono. No es una medición de capacidad real (la página es estática y pequeña).
 
+92. **Reinicio de comprobación superado: todo el autoarranque funciona sin intervención** (`reboot -f` con Volumen Abajo + `fastboot boot` de la misma imagen). A los 3,3 s del kernel: `gadget-usb: sshd iniciado`; a los 6,2 s: `reloj ajustado por NTP` (hora real, ya no 1970; `apk` deja de fallar por TLS tras ese momento). `nginx` (un proceso maestro) y `servicio-web` activos, `http://172.16.42.1/` devuelve 200, `arranques.txt` con 4 líneas (sin segunda copia del sistema), `/` = 100,6 GiB. Cierra los pendientes de los hallazgos #86, #88 y #89.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -322,7 +324,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Ampliar el ext4, `apk`, SSH (hallazgos #82 a #85).
 - [x] Autoarranque de red y SSH tras un reinicio (hallazgo #87).
 - [x] Primer servicio real: nginx con página de estado (hallazgos #89 a #91).
-- [ ] Siguiente: comprobar tras un reinicio que NTP (#88) y el servicio web (#89) suben solos; luego Phosh y comparar con Nura.
+- [x] Autoarranque de NTP, sshd y nginx verificado en un reinicio (hallazgo #92).
+- [ ] Siguiente: Phosh (GPU sin firmware: render por software) y comparar con Nura; cerrar el Módulo 14 y actualizar `docs/README.md`.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
