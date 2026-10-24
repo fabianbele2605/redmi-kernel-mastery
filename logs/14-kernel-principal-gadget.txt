@@ -1,0 +1,1878 @@
+# captura del gadget USB, 2026-10-23 20:16:46, hasta 120 s
+20:16:46 gadget_usb=0 puerto=ninguno
+20:17:04 gadget_usb=1 puerto=/dev/ttyACM0
+20:17:04 leyendo /dev/ttyACM0 ...
+6,136,23263,-;GICv3: CPU6: found redistributor 102 region 0:0x000000000f3c0000
+6,137,23314,-;arch_timer: Enabling local workaround for ARM erratum 858921
+6,138,23344,-;arch_timer: CPU6: Trapping CNTVCT access
+6,139,23375,-;CPU6: Booted secondary processor 0x0000000102 [0x411fd090]
+6,140,25431,-;Detected VIPT I-cache on CPU7
+6,141,25757,-;GICv3: CPU7: found redistributor 103 region 0:0x000000000f3e0000
+6,142,25811,-;arch_timer: Enabling local workaround for ARM erratum 858921
+6,143,25842,-;arch_timer: CPU7: Trapping CNTVCT access
+6,144,25875,-;CPU7: Booted secondary processor 0x0000000103 [0x411fd090]
+6,145,26110,-;smp: Brought up 1 node, 8 CPUs
+6,146,26318,-;SMP: Total of 8 processors activated.
+6,147,26327,-;CPU: All CPU(s) started at EL1
+6,148,26349,-;CPU features: detected: 32-bit EL0 Support
+6,149,26358,-;CPU features: detected: 32-bit EL1 Support
+6,150,26370,-;CPU features: detected: CRC32 instructions
+6,151,26388,-;CPU features: detected: PMUv3
+6,152,26564,-;alternatives: applying system-wide alternatives
+6,153,29655,-;Memory: 3607760K/4158464K available (22080K kernel code, 5718K rwdata, 17428K rodata, 2944K init, 1736K bss, 511120K reserved, 32768K cma-reserved)
+6,154,30705,-;devtmpfs: initialized
+6,155,45012,-;posixtimers hash table entries: 4096 (order: 4, 65536 bytes, linear)
+6,156,45135,-;futex hash table entries: 2048 (131072 bytes on 1 NUMA nodes, total 128 KiB, linear).
+6,157,45544,-;2G module region forced by RANDOMIZE_MODULE_REGION_FULL
+6,158,45576,-;0 pages in range for non-PLT usage
+6,159,45580,-;511744 pages in range for PLT usage
+7,160,45842,-;pinctrl core: initialized pinctrl subsystem
+7,161,50422,-;faux_driver reg-dummy: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=faux
+ DEVICE=+faux:reg-dummy
+6,162,50699,-;DMI: not present or invalid.
+6,163,52901,-;NET: Registered PF_NETLINK/PF_ROUTE protocol family
+6,164,54124,-;DMA: preallocated 512 KiB GFP_KERNEL pool for atomic allocations
+6,165,54264,-;DMA: preallocated 512 KiB GFP_KERNEL|GFP_DMA pool for atomic allocations
+6,166,54315,-;audit: initializing netlink subsys (disabled)
+5,167,54502,-;audit: type=2000 audit(0.052:1): state=initialized audit_enabled=0 res=1
+6,168,60641,-;thermal_sys: Registered thermal governor 'step_wise'
+6,169,60658,-;thermal_sys: Registered thermal governor 'power_allocator'
+6,170,60787,-;cpuidle: using governor menu
+6,171,60976,-;NET: Registered PF_QIPCRTR protocol family
+6,172,61542,-;hw-breakpoint: found 6 breakpoint and 4 watchpoint registers.
+6,173,61802,-;ASID allocator initialised with 32768 entries
+6,174,65860,-;Serial: AMBA PL011 UART driver
+6,175,70286,-;CPUidle PSCI: Initialized CPU PM domain topology using OSI mode
+6,176,93604,-;/soc@0/ufshc@4804000: Fixed dependency cycle(s) with /soc@0/phy@4807000
+6,177,93742,-;/soc@0/phy@4807000: Fixed dependency cycle(s) with /soc@0/ufshc@4804000
+6,178,93952,-;/soc@0/geniqup@4ac0000/i2c@4a84000/rt1711h@4e/connector: Fixed dependency cycle(s) with /soc@0/usb@4ef8800/usb@4e00000
+6,179,94349,-;/soc@0/usb@4ef8800/usb@4e00000: Fixed dependency cycle(s) with /soc@0/geniqup@4ac0000/i2c@4a84000/rt1711h@4e/connector
+6,180,94866,-;/soc@0/display-subsystem@5e00000/display-controller@5e01000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/dsi@5e94000
+6,181,95086,-;/soc@0/display-subsystem@5e00000/dsi@5e94000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/dsi@5e94000/panel@0
+6,182,95262,-;/soc@0/display-subsystem@5e00000/dsi@5e94000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/display-controller@5e01000
+6,183,95695,-;/soc@0/display-subsystem@5e00000/dsi@5e94000/panel@0: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/dsi@5e94000
+6,184,95834,-;/soc@0/display-subsystem@5e00000/phy@5e94400: Fixed dependency cycle(s) with /soc@0/clock-controller@5f00000
+6,185,95912,-;/soc@0/clock-controller@5f00000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/phy@5e94400
+6,186,96359,-;/soc@0/interrupt-controller@f200000: Fixed dependency cycle(s) with /soc@0/interrupt-controller@f200000
+7,187,101970,-;sm6225-tlmm 500000.pinctrl: try to register 121 pins ...
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,188,101995,-;pinctrl core: registered pin 0 (GPIO_0) on 500000.pinctrl
+7,189,102012,-;pinctrl core: registered pin 1 (GPIO_1) on 500000.pinctrl
+7,190,102028,-;pinctrl core: registered pin 2 (GPIO_2) on 500000.pinctrl
+7,191,102042,-;pinctrl core: registered pin 3 (GPIO_3) on 500000.pinctrl
+7,192,102056,-;pinctrl core: registered pin 4 (GPIO_4) on 500000.pinctrl
+7,193,102070,-;pinctrl core: registered pin 5 (GPIO_5) on 500000.pinctrl
+7,194,102083,-;pinctrl core: registered pin 6 (GPIO_6) on 500000.pinctrl
+7,195,102097,-;pinctrl core: registered pin 7 (GPIO_7) on 500000.pinctrl
+7,196,102110,-;pinctrl core: registered pin 8 (GPIO_8) on 500000.pinctrl
+6,0,0,-;Booting 7,197,102123,-;pinctrl core: registered pin 9 (GPIO_9) on 500000.pinctrl
+5,1,=supst
+
+
+
+6,4,7,198,102136,-;pinctrl core: registered pin 10 (GPIO_10) on 500000.pinctrl
+7,199,102151,-;pinctrl core: registered pin 11 (GPIO_11) on 500000.pinctrl
+7,200,102165,-;pinctrl core: registered pin 12 (GPIO_12) on 500000.pinctrl
+7,201,102178,-;pinctrl core: registered pin 13 (GPIO_13) on 500000.pinctrl
+7,202,102192,-;pinctrl core: registered pin 14 (GPIO_14) on 500000.pinctrl
+7,203,102205,-;pinctrl core: registered pin 15 (GPIO_15) on 500000.pinctrl
+7,204,102219,-;pinctrl core: registered pin 16 (GPIO_16) on 500000.pinctrl
+7,205,102232,-;pinctrl core: registered pin 17 (GPIO_17) on 500000.pinctrl
+7,206,102246,-;pinctrl core: registered pin 18 (GPIO_18) on 500000.pinctrl
+7,207,102260,-;pinctrl core: registered pin 19 (GPIO_19) on 500000.pinctrl
+7,208,102273,-;pinctrl core: registered pin 20 (GPIO_20) on 500000.pinctrl
+7,209,102286,-;pinctrl core: registered pin 21 (GPIO_21) on 500000.pinctrl
+7,210,102300,-;pinctrl core: registered pin 22 (GPIO_22) on 500000.pinctrl
+7,211,102313,-;pinctrl core: registered pin 23 (GPIO_23) on 500000.pinctrl
+7,212,102326,-;pinctrl core: registered pin 24 (GPIO_24) on 500000.pinctrl
+7,213,102340,-;pinctrl core: registered pin 25 (GPIO_25) on 500000.pinctrl
+7,214,102353,-;pinctrl core: registered pin 26 (GPIO_26) on 500000.pinctrl
+7,215,102366,-;pinctrl core: registered pin 27 (GPIO_27) on 500000.pinctrl
+7,216,102380,-;pinctrl core: registered pin 28 (GPIO_28) on 500000.pinctrl
+7,217,102393,-;pinctrl core: registered pin 29 (GPIO_29) on 500000.pinctrl
+7,218,102407,-;pinctrl core: registered pin 30 (GPIO_30) on 500000.pinctrl
+7,219,102420,-;pinctrl core: registered pin 31 (GPIO_31) on 500000.pinctrl
+7,220,102433,-;pinctrl core: registered pin 32 (GPIO_32) on 500000.pinctrl
+7,221,102446,-;pinctrl core: registered pin 33 (GPIO_33) on 500000.pinctrl
+7,222,102460,-;pinctrl core: registered pin 34 (GPIO_34) on 500000.pinctrl
+7,223,102473,-;pinctrl core: registered pin 35 (GPIO_35) on 500000.pinctrl
+7,224,102486,-;pinctrl core: registered pin 36 (GPIO_36) on 500000.pinctrl
+7,225,102498,-;pinctrl core: registered pin 37 (GPIO_37) on 500000.pinctrl
+7,226,102512,-;pinctrl core: registered pin 38 (GPIO_38) on 500000.pinctrl
+7,227,102524,-;pinctrl core: registered pin 39 (GPIO_39) on 500000.pinctrl
+7,228,102538,-;pinctrl core: registered pin 40 (GPIO_40) on 500000.pinctrl
+7,229,102550,-;pinctrl core: registered pin 41 (GPIO_41) on 500000.pinctrl
+7,230,102564,-;pinctrl core: registered pin 42 (GPIO_42) on 500000.pinctrl
+7,231,102576,-;pinctrl core: registered pin 43 (GPIO_43) on 500000.pinctrl
+7,232,102589,-;pinctrl core: registered pin 44 (GPIO_44) on 500000.pinctrl
+7,233,102602,-;pinctrl core: registered pin 45 (GPIO_45) on 500000.pinctrl
+7,234,102615,-;pinctrl core: registered pin 46 (GPIO_46) on 500000.pinctrl
+7,235,102671,-;pinctrl core: registered pin 47 (GPIO_47) on 500000.pinctrl
+7,236,102687,-;pinctrl core: registered pin 48 (GPIO_48) on 500000.pinctrl
+7,237,102701,-;pinctrl core: registered pin 49 (GPIO_49) on 500000.pinctrl
+7,238,102715,-;pinctrl core: registered pin 50 (GPIO_50) on 500000.pinctrl
+7,239,102728,-;pinctrl core: registered pin 51 (GPIO_51) on 500000.pinctrl
+7,240,102741,-;pinctrl core: registered pin 52 (GPIO_52) on 500000.pinctrl
+7,241,102754,-;pinctrl core: registered pin 53 (GPIO_53) on 500000.pinctrl
+7,242,102766,-;pinctrl core: registered pin 54 (GPIO_54) on 500000.pinctrl
+7,243,102779,-;pinctrl core: registered pin 55 (GPIO_55) on 500000.pinctrl
+7,244,102805,-;pinctrl core: registered pin 56 (GPIO_56) on 500000.pinctrl
+7,245,102819,-;pinctrl core: registered pin 57 (GPIO_57) on 500000.pinctrl
+7,246,102833,-;pinctrl core: registered pin 58 (GPIO_58) on 500000.pinctrl
+7,247,102847,-;pinctrl core: registered pin 59 (GPIO_59) on 500000.pinctrl
+7,248,102860,-;pinctrl core: registered pin 60 (GPIO_60) on 500000.pinctrl
+7,249,102874,-;pinctrl core: registered pin 61 (GPIO_61) on 500000.pinctrl
+7,250,102887,-;pinctrl core: registered pin 62 (GPIO_62) on 500000.pinctrl
+7,251,102900,-;pinctrl core: registered pin 63 (GPIO_63) on 500000.pinctrl
+7,252,102915,-;pinctrl core: registered pin 64 (GPIO_64) on 500000.pinctrl
+7,253,102929,-;pinctrl core: registered pin 65 (GPIO_65) on 500000.pinctrl
+7,254,102942,-;pinctrl core: registered pin 66 (GPIO_66) on 500000.pinctrl
+7,255,102956,-;pinctrl core: registered pin 67 (GPIO_67) on 500000.pinctrl
+7,256,102969,-;pinctrl core: registered pin 68 (GPIO_68) on 500000.pinctrl
+7,257,102981,-;pinctrl core: registered pin 69 (GPIO_69) on 500000.pinctrl
+7,258,102994,-;pinctrl core: registered pin 70 (GPIO_70) on 500000.pinctrl
+7,259,103007,-;pinctrl core: registered pin 71 (GPIO_71) on 500000.pinctrl
+7,260,103020,-;pinctrl core: registered pin 72 (GPIO_72) on 500000.pinctrl
+7,261,103033,-;pinctrl core: registered pin 73 (GPIO_73) on 500000.pinctrl
+5cfffff (6144 Kiap nob00000
+
+6 m7,262,103046,-;pinctrl core: registered pin 74 (GPIO_74) on 500000.pinctrl
+7,263,103059,-;pinctrl core: registered pin 75 (GPIO_75) on 500000.pinctrl
+7,264,103071,-;pinctrl core: registered pin 76 (GPIO_76) on 500000.pinctrl
+7,265,103084,-;pinctrl core: registered pin 77 (GPIO_77) on 500000.pinctrl
+7,266,103097,-;pinctrl core: registered pin 78 (GPIO_78) on 500000.pinctrl
+7,267,103110,-;pinctrl core: registered pin 79 (GPIO_79) on 500000.pinctrl
+7,268,103122,-;pinctrl core: registered pin 80 (GPIO_80) on 500000.pinctrl
+7,269,103135,-;pinctrl core: registered pin 81 (GPIO_81) on 500000.pinctrl
+7,270,103148,-;pinctrl core: registered pin 82 (GPIO_82) on 500000.pinctrl
+7,271,103161,-;pinctrl core: registered pin 83 (GPIO_83) on 500000.pinctrl
+7,272,103174,-;pinctrl core: registered pin 84 (GPIO_84) on 500000.pinctrl
+7,273,103186,-;pinctrl core: registered pin 85 (GPIO_85) on 500000.pinctrl
+7,274,103199,-;pinctrl core: registered pin 86 (GPIO_86) on 500000.pinctrl
+7,275,103212,-;pinctrl core: registered pin 87 (GPIO_87) on 500000.pinctrl
+7,276,103225,-;pinctrl core: registered pin 88 (GPIO_88) on 500000.pinctrl
+7,277,103238,-;pinctrl core: registered pin 89 (GPIO_89) on 500000.pinctrl
+7,278,103251,-;pinctrl core: registered pin 90 (GPIO_90) on 500000.pinctrl
+7,279,103264,-;pinctrl core: registered pin 91 (GPIO_91) on 500000.pinctrl
+7,280,103276,-;pinctrl core: registered pin 92 (GPIO_92) on 500000.pinctrl
+7,281,103289,-;pinctrl core: registered pin 93 (GPIO_93) on 500000.pinctrl
+7,282,103302,-;pinctrl core: registered pin 94 (GPIO_94) on 500000.pinctrl
+7,283,103315,-;pinctrl core: registered pin 95 (GPIO_95) on 500000.pinctrl
+7,284,103327,-;pinctrl core: registered pin 96 (GPIO_96) on 500000.pinctrl
+7,285,103340,-;pinctrl core: registered pin 97 (GPIO_97) on 500000.pinctrl
+7,286,103353,-;pinctrl core: registered pin 98 (GPIO_98) on 500000.pinctrl
+7,287,103366,-;pinctrl core: registered pin 99 (GPIO_99) on 500000.pinctrl
+7,288,103379,-;pinctrl core: registered pin 100 (GPIO_100) on 500000.pinctrl
+7,289,103392,-;pinctrl core: registered pin 101 (GPIO_101) on 500000.pinctrl
+7,290,103406,-;pinctrl core: registered pin 102 (GPIO_102) on 500000.pinctrl
+7,291,103419,-;pinctrl core: registered pin 103 (GPIO_103) on 500000.pinctrl
+7,292,103432,-;pinctrl core: registered pin 104 (GPIO_104) on 500000.pinctrl
+7,293,103445,-;pinctrl core: registered pin 105 (GPIO_105) on 500000.pinctrl
+7,294,103458,-;pinctrl core: registered pin 106 (GPIO_106) on 500000.pinctrl
+7,295,103471,-;pinctrl core: registered pin 107 (GPIO_107) on 500000.pinctrl
+7,296,103484,-;pinctrl core: registered pin 108 (GPIO_108) on 500000.pinctrl
+7,297,103497,-;pinctrl core: registered pin 109 (GPIO_109) on 500000.pinctrl
+7,298,103511,-;pinctrl core: registered pin 110 (GPIO_110) on 500000.pinctrl
+7,299,103524,-;pinctrl core: registered pin 111 (GPIO_111) on 500000.pinctrl
+7,300,103538,-;pinctrl core: registered pin 112 (GPIO_112) on 500000.pinctrl
+7,301,103551,-;pinctrl core: registered pin 113 (UFS_RESET) on 500000.pinctrl
+7,302,103564,-;pinctrl core: registered pin 114 (SDC1_RCLK) on 500000.pinctrl
+7,303,103577,-;pinctrl core: registered pin 115 (SDC1_CLK) on 500000.pinctrl
+7,304,103596,-;pinctrl core: registered pin 116 (SDC1_CMD) on 500000.pinctrl
+7,305,103611,-;pinctrl core: registered pin 117 (SDC1_DATA) on 500000.pinctrl
+7,306,103624,-;pinctrl core: registered pin 118 (SDC2_CLK) on 500000.pinctrl
+7,307,103638,-;pinctrl core: registered pin 119 (SDC2_CMD) on 500000.pinctrl
+7,308,103652,-;pinctrl core: registered pin 120 (SDC2_DATA) on 500000.pinctrl
+7,309,104089,-;sm6225-tlmm 500000.pinctrl: no hogs found
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,310,105263,-;sm6225-tlmm 500000.pinctrl: Probed Qualcomm pinctrl driver
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,311,127507,-;/soc@0/ufshc@4804000: Fixed dependency cycle(s) with /soc@0/phy@4807000
+6,312,129296,-;/soc@0/ufshc@4804000: Fixed dependency cycle(s) with /soc@0/phy@4807000
+6,313,129523,-;/soc@0/phy@4807000: Fixed dependency cycle(s) with /soc@0/ufshc@4804000
+6,314,132786,-;/soc@0/geniqup@4ac0000/i2c@4a84000/rt1711h@4e/connector: Fixed dependency cycle(s) with /soc@0/usb@4ef8800/usb@4e00000
+6,315,134939,-;/soc@0/usb@4ef8800/usb@4e00000: Fixed dependency cycle(s) with /soc@0/geniqup@4ac0000/i2c@4a84000/rt1711h@4e/connector
+6,316,143592,-;/soc@0/display-subsystem@5e00000: Fixed dependency cycle(s) with /soc@0/clock-controller@5f00000
+6,317,143992,-;/soc@0/display-subsystem@5e00000/display-controller@5e01000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/dsi@5e94000
+6,318,144292,-;/soc@0/display-subsystem@5e00000/dsi@5e94000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/dsi@5e94000/panel@0
+6,319,144553,-;/soc@0/display-subsystem@5e00000/dsi@5e94000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/display-controller@5e01000
+6,320,145313,-;/soc@0/display-subsystem@5e00000/dsi@5e94000/panel@0: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/dsi@5e94000
+6,321,145556,-;/soc@0/display-subsystem@5e00000/phy@5e94400: Fixed dependency cycle(s) with /soc@0/clock-controller@5f00000
+6,322,146733,-;/soc@0/display-subsystem@5e00000/phy@5e94400: Fixed dependency cycle(s) with /soc@0/clock-controller@5f00000
+6,323,147063,-;/soc@0/display-subsystem@5e00000: Fixed dependency cycle(s) with /soc@0/clock-controller@5f00000
+6,324,147174,-;/soc@0/clock-controller@5f00000: Fixed dependency cycle(s) with /soc@0/display-subsystem@5e00000/phy@5e94400
+6,325,184149,-;HugeTLB: registered 1.00 GiB page size, pre-allocated 0 pages
+6,326,184192,-;HugeTLB: 0 KiB vmemmap can be freed for a 1.00 GiB page
+6,327,184229,-;HugeTLB: registered 32.0 MiB page size, pre-allocated 0 pages
+6,328,184259,-;HugeTLB: 0 KiB vmemmap can be freed for a 32.0 MiB page
+6,329,184290,-;HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+6,330,184318,-;HugeTLB: 0 KiB vmemmap can be freed for a 2.00 MiB page
+6,331,184349,-;HugeTLB: registered 64.0 KiB page size, pre-allocated 0 pages
+6,332,184377,-;HugeTLB: 0 KiB vmemmap can be freed for a 64.0 KiB page
+6,333,189284,-;ACPI: Interpreter disabled.
+6,334,205303,-;iommu: Default domain type: Translated
+6,335,205341,-;iommu: DMA domain TLB invalidation policy: strict mode
+5,336,206492,-;SCSI subsystem initialized
+7,337,206737,-;libata version 3.00 loaded.
+6,338,207271,-;usbcore: registered new interface driver usbfs
+6,339,207408,-;usbcore: registered new interface driver hub
+6,340,207518,-;usbcore: registered new device driver usb
+6,341,211709,-;mc: Linux media interface: v0.10
+6,342,211820,-;videodev: Linux video capture interface: v2.00
+6,343,211973,-;pps_core: LinuxPPS API ver. 1 registered
+6,344,212002,-;pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+6,345,212060,-;PTP clock support registered
+7,346,212825,-;generic pinconfig core: found bias-pull-up with value 1
+7,347,212849,-;generic pinconfig core: found drive-strength with value 2
+7,348,212890,-;pinctrl core: add 2 pinctrl maps
+7,349,212921,-;generic pinconfig core: found bias-pull-down with value 1
+7,350,212938,-;generic pinconfig core: found drive-strength with value 2
+7,351,212970,-;pinctrl core: add 2 pinctrl maps
+7,352,213054,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,353,213098,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,354,213159,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,355,213197,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,356,213300,-;generic pinconfig core: found bias-pull-up with value 1
+7,357,213320,-;generic pinconfig core: found drive-strength with value 2
+7,358,213353,-;pinctrl core: add 2 pinctrl maps
+7,359,213381,-;generic pinconfig core: found bias-pull-down with value 1
+7,360,213397,-;generic pinconfig core: found drive-strength with value 2
+7,361,213428,-;pinctrl core: add 2 pinctrl maps
+7,362,213489,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,363,213528,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,364,213585,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,365,213621,-;sm6225-tlmm 500000.pinctrl: found group selector 108 for gpio108
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,366,213643,-;sm6225-tlmm 500000.pinctrl: request pin 108 (GPIO_108) for onewire-gpio
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,367,213736,-;sm6225-tlmm 500000.pinctrl: request pin 108 (GPIO_108) for 500000.pinctrl:620
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,368,214117,-;EDAC MC: Ver: 3.0.0
+6,369,215682,-;scmi_core: SCMI protocol bus registered
+6,370,222918,-;FPGA manager framework
+6,371,223133,-;Advanced Linux Sound Architecture Driver Initialized.
+6,372,224671,-;Bluetooth: Core ver 2.22
+6,373,224751,-;NET: Registered PF_BLUETOOTH protocol family
+6,374,224782,-;Bluetooth: HCI device and connection manager initialized
+6,375,224820,-;Bluetooth: HCI socket layer initialized
+6,376,224851,-;Bluetooth: L2CAP socket layer initialized
+6,377,224892,-;Bluetooth: SCO socket layer initialized
+6,378,225872,-;vgaarb: loaded
+6,379,229265,-;clocksource: Switched to clocksource arch_sys_counter
+5,380,229968,-;VFS: Disk quotas dquot_6.6.0
+6,381,230036,-;VFS: Dquot-cache hash table entries: 512 (4096 bytes)
+6,382,230647,-;pnp: PnP ACPI: disabled
+6,383,234940,-;s3: Bringing 0uV into 300000-300000uV
+6,384,235796,-;s4: Bringing 0uV into 300000-300000uV
+6,385,236470,-;s6: Bringing 0uV into 400000-400000uV
+6,386,237026,-;s7: Bringing 0uV into 1576000-1576000uV
+6,387,237599,-;s8: Bringing 0uV into 1060000-1060000uV
+6,388,238167,-;l1: Bringing 0uV into 952000-952000uV
+6,389,238721,-;l4: Bringing 0uV into 720000-720000uV
+6,390,239310,-;l5: Bringing 0uV into 1648000-1648000uV
+6,391,239981,-;l6: Bringing 0uV into 576000-576000uV
+6,392,240571,-;l7: Bringing 0uV into 1256000-1256000uV
+6,393,241227,-;l8: Bringing 0uV into 400000-400000uV
+6,394,241821,-;l9: Bringing 0uV into 1504000-1504000uV
+6,395,242528,-;l10: Bringing 0uV into 1704000-1704000uV
+6,396,243013,-;l11: Bringing 0uV into 1704000-1704000uV
+6,397,243478,-;l12: Bringing 0uV into 1624000-1624000uV
+6,398,244047,-;l13: Bringing 0uV into 1504000-1504000uV
+6,399,244496,-;l14: Bringing 0uV into 1704000-1704000uV
+6,400,244882,-;NET: Registered PF_INET protocol family
+6,401,244976,-;l15: Bringing 0uV into 2704000-2704000uV
+6,402,245288,-;IP idents hash table entries: 65536 (order: 7, 524288 bytes, linear)
+6,403,245491,-;l16: Bringing 0uV into 1704000-1704000uV
+6,404,245991,-;l17: Bringing 0uV into 1224000-1224000uV
+6,405,246452,-;l18: Bringing 0uV into 1232000-1232000uV
+6,406,246917,-;l19: Bringing 0uV into 1624000-1624000uV
+6,407,247413,-;l20: Bringing 0uV into 1624000-1624000uV
+6,408,247878,-;l21: Bringing 0uV into 1600000-1600000uV
+6,409,248491,-;l22: Bringing 0uV into 2952000-2952000uV
+6,410,249131,-;l23: Bringing 0uV into 3200000-3200000uV
+6,411,249674,-;l24: Bringing 0uV into 2704000-2704000uV
+6,412,253694,-;tcp_listen_portaddr_hash hash table entries: 2048 (order: 3, 32768 bytes, linear)
+6,413,253822,-;Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+6,414,253884,-;TCP established hash table entries: 32768 (order: 6, 262144 bytes, linear)
+6,415,254376,-;TCP bind hash table entries: 32768 (order: 8, 1048576 bytes, linear)
+6,416,256385,-;TCP: Hash tables configured (established 32768 bind 32768)
+6,417,256580,-;UDP hash table entries: 2048 (order: 5, 131072 bytes, linear)
+6,418,257205,-;NET: Registered PF_UNIX/PF_LOCAL protocol family
+6,419,257938,-;RPC: Registered named UNIX socket transport module.
+6,420,257985,-;RPC: Registered udp transport module.
+6,421,258013,-;RPC: Registered tcp transport module.
+6,422,258039,-;RPC: Registered tcp-with-tls transport module.
+6,423,258064,-;RPC: Registered tcp NFSv4.1 backchannel transport module.
+7,424,259157,-;faux_driver regulatory: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=faux
+ DEVICE=+faux:regulatory
+6,425,259376,-;PCI: CLS 0 bytes, default 64
+6,426,259689,-;Unpacking initramfs...
+6,427,265375,-;kvm [1]: HYP mode not available
+5,428,267813,-;Initialise system trusted keyrings
+6,429,268067,-;workingset: timestamp_bits=42 (anon: 37) max_order=20 bucket_order=0 (anon: 0)
+6,430,269043,-;squashfs: version 4.0 (2009/01/31) Phillip Lougher
+5,431,269635,-;NFS: Registering the id_resolver key type
+5,432,269700,-;Key type id_resolver registered
+5,433,269729,-;Key type id_legacy registered
+6,434,269796,-;nfs4filelayout_init: NFSv4 File Layout Driver Registering...
+6,435,269829,-;nfs4flexfilelayout_init: NFSv4 Flexfile Layout Driver Registering...
+5,436,270627,-;Key type asymmetric registered
+5,437,270664,-;Asymmetric key parser 'x509' registered
+6,438,270803,-;Block layer SCSI generic (bsg) driver version 0.4 loaded (major 240)
+6,439,270844,-;io scheduler mq-deadline registered
+6,440,270871,-;io scheduler kyber registered
+6,441,270969,-;io scheduler bfq registered
+6,442,344629,-;ledtrig-cpu: registered to indicate activity on CPUs
+6,443,536164,-;Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+7,444,540230,-;serial8250 serial8250: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=platform
+ DEVICE=+platform:serial8250
+6,445,550617,-;msm_serial: driver initialized
+6,446,552907,-;SuperH (H)SCI(F) driver initialized
+6,447,554180,-;STM32 USART driver initialized
+6,448,585225,-;[drm] Initialized simpledrm 1.0.0 for 5c000000.framebuffer on minor 0
+6,449,715495,-;Console: switching to colour frame buffer device 135x150
+6,450,724544,-;Freeing initrd memory: 4224K
+6,451,737288,-;[ds28e16] authentic_work: authentic result is 1
+6,452,775985,-;simple-framebuffer 5c000000.framebuffer: [drm] fb0: simpledrmdrmfb frame buffer device
+ SUBSYSTEM=platform
+ DEVICE=+platform:5c000000.framebuffer
+6,453,792308,-;loop: module loaded
+6,454,797611,-;megasas: 07.734.00.00-rc1
+6,455,818969,-;spmi_pmic_arb 1c40000.spmi: PMIC arbiter version v5 (0x50010000)
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi
+7,456,840693,-;qcom-spmi-gpio 1c40000.spmi:pmic@0:gpio@c000: try to register 9 pins ...
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi:pmic@0:gpio@c000
+7,457,840726,-;pinctrl core: registered pin 0 (gpio1) on 1c40000.spmi:pmic@0:gpio@c000
+7,458,840747,-;pinctrl core: registered pin 1 (gpio2) on 1c40000.spmi:pmic@0:gpio@c000
+7,459,840763,-;pinctrl core: registered pin 2 (gpio3) on 1c40000.spmi:pmic@0:gpio@c000
+7,460,840778,-;pinctrl core: registered pin 3 (gpio4) on 1c40000.spmi:pmic@0:gpio@c000
+7,461,840793,-;pinctrl core: registered pin 4 (gpio5) on 1c40000.spmi:pmic@0:gpio@c000
+7,462,840808,-;pinctrl core: registered pin 5 (gpio6) on 1c40000.spmi:pmic@0:gpio@c000
+7,463,840823,-;pinctrl core: registered pin 6 (gpio7) on 1c40000.spmi:pmic@0:gpio@c000
+7,464,840838,-;pinctrl core: registered pin 7 (gpio8) on 1c40000.spmi:pmic@0:gpio@c000
+7,465,840852,-;pinctrl core: registered pin 8 (gpio9) on 1c40000.spmi:pmic@0:gpio@c000
+7,466,840878,-;qcom-spmi-gpio 1c40000.spmi:pmic@0:gpio@c000: no hogs found
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi:pmic@0:gpio@c000
+6,467,851013,-;tun: Universal TUN/TAP device driver, 1.6
+6,468,854059,-;usbcore: registered new interface driver qmi_wwan
+6,469,854963,-;VFIO - User Level meta-driver version: 0.3
+6,470,873731,-;usbcore: registered new interface driver cdc_wdm
+6,471,874065,-;usbcore: registered new interface driver usb-storage
+6,472,894268,-;i2c_dev: i2c /dev entries driver
+3,473,918446,-;nopmi_chg nopmi_chg_init: nopmi_chg init end
+7,474,960191,-;faux_driver psci-cpuidle: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=faux
+ DEVICE=+faux:psci-cpuidle
+6,475,1000508,-;clocksource: arch_mmio_counter: mask: 0xffffffffffffff max_cycles: 0x46d987e47, max_idle_ns: 440795202767 ns
+6,476,1001305,-;arch-timer-mmio f120000.timer: mmio timer running at 19.20MHz (virt)
+ SUBSYSTEM=platform
+ DEVICE=+platform:f120000.timer
+6,477,1003097,-;usbcore: registered new interface driver usbhid
+6,478,1003594,-;usbhid: USB HID core driver
+7,479,1021131,-;qcom_glink_ssr remoteproc:glink-edge.glink_ssr.-1.-1: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=rpmsg
+ DEVICE=+rpmsg:remoteproc:glink-edge.glink_ssr.-1.-1
+6,480,1035851,-;hw perfevents: enabled with armv8_pmuv3 PMU driver, 7 (0,8000003f) counters available
+6,481,1053749,-;gnss: GNSS driver registered with major 504
+7,482,1068046,-;icc_smd_rpm icc_smd_rpm: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=platform
+ DEVICE=+platform:icc_smd_rpm
+6,483,1069968,-;usbcore: registered new interface driver snd-usb-audio
+7,484,1070662,-;faux_driver snd-soc-dummy: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=faux
+ DEVICE=+faux:snd-soc-dummy
+6,485,1071227,-;[Awinic] aw87xxx_pa_init:driver version: v2.0.0.10
+7,486,1072685,-;generic pinconfig core: found drive-strength with value 16
+7,487,1072714,-;generic pinconfig core: found output-high with value 1
+7,488,1072745,-;pinctrl core: add 2 pinctrl maps
+7,489,1072826,-;sm6225-tlmm 500000.pinctrl: found group selector 92 for gpio92
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,490,1072866,-;sm6225-tlmm 500000.pinctrl: found group selector 92 for gpio92
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,491,1072890,-;sm6225-tlmm 500000.pinctrl: request pin 92 (GPIO_92) for soc@0:codec
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,492,1073085,-;sm6225-tlmm 500000.pinctrl: request pin 92 (GPIO_92) for 500000.pinctrl:604
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+4,493,1073556,-;wcd937x_codec soc@0:codec: supply vdd-mic-bias not found, using dummy regulator
+ SUBSYSTEM=platform
+ DEVICE=+platform:soc@0:codec
+3,494,1075562,-;wcd937x_codec soc@0:codec: missing qcom,mbhc-buttons-vthreshold-microvolt entry
+ SUBSYSTEM=platform
+ DEVICE=+platform:soc@0:codec
+6,495,1087318,-;NET: Registered PF_INET6 protocol family
+6,496,1090254,-;Segment Routing with IPv6
+6,497,1090398,-;In-situ OAM (IOAM) with IPv6
+6,498,1090587,-;NET: Registered PF_PACKET protocol family
+6,499,1091532,-;Bluetooth: RFCOMM TTY layer initialized
+6,500,1091640,-;Bluetooth: RFCOMM socket layer initialized
+6,501,1091737,-;Bluetooth: RFCOMM ver 1.11
+6,502,1091813,-;Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+6,503,1091890,-;Bluetooth: BNEP filters: protocol multicast
+6,504,1091970,-;Bluetooth: BNEP socket layer initialized
+5,505,1092150,-;Key type dns_resolver registered
+6,506,1194539,-;registered taskstats version 1
+5,507,1195098,-;Loading compiled-in X.509 certificates
+6,508,1217390,-;Demotion targets for Node 0: null
+5,509,1219955,-;Key type .fscrypt registered
+5,510,1220058,-;Key type fscrypt-provisioning registered
+4,511,1264173,-;qcom-snps-hs-femto-v2-phy 1613000.phy: supply vdda33 not found, using dummy regulator
+ SUBSYSTEM=platform
+ DEVICE=+platform:1613000.phy
+4,512,1265163,-;qcom-snps-hs-femto-v2-phy 1613000.phy: supply vdda18 not found, using dummy regulator
+ SUBSYSTEM=platform
+ DEVICE=+platform:1613000.phy
+6,513,1441955,-;cpu cpu0: EM: created perf domain
+ SUBSYSTEM=cpu
+ DEVICE=+cpu:cpu0
+6,514,1447004,-;cpu cpu4: EM: created perf domain
+ SUBSYSTEM=cpu
+ DEVICE=+cpu:cpu4
+6,515,1449738,-;qcom_scm: convention: smc arm 64
+6,516,1451141,-;qcom_scm firmware:scm: qseecom: found qseecom with version 0x1402000
+ SUBSYSTEM=platform
+ DEVICE=+platform:firmware:scm
+6,517,1451168,-;qcom_scm firmware:scm: qseecom: untested machine, skipping
+ SUBSYSTEM=platform
+ DEVICE=+platform:firmware:scm
+5,518,1457501,-;arm-smmu 59a0000.iommu: probing hardware configuration...
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,519,1457618,-;arm-smmu 59a0000.iommu: SMMUv2 with:
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,520,1457692,-;arm-smmu 59a0000.iommu: \x09stage 1 translation
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,521,1457765,-;arm-smmu 59a0000.iommu: \x09non-coherent table walk
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,522,1457831,-;arm-smmu 59a0000.iommu: \x09(IDR0.CTTW overridden by FW configuration)
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,523,1457906,-;arm-smmu 59a0000.iommu: \x09stream matching with 4 register groups
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,524,1457990,-;arm-smmu 59a0000.iommu: \x095 context banks (0 stage-2 only)
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,525,1458078,-;arm-smmu 59a0000.iommu: \x09Supported page sizes: 0x61311000
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,526,1458154,-;arm-smmu 59a0000.iommu: \x09Stage-1: 48-bit VA -> 36-bit IPA
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+5,527,1458283,-;arm-smmu 59a0000.iommu: \x09preserved 0 boot mappings
+ SUBSYSTEM=platform
+ DEVICE=+platform:59a0000.iommu
+6,528,1459010,-;platform 5900000.gpu: Adding to iommu group 0
+ SUBSYSTEM=platform
+ DEVICE=+platform:5900000.gpu
+5,529,1461576,-;arm-smmu c600000.iommu: probing hardware configuration...
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,530,1461663,-;arm-smmu c600000.iommu: SMMUv2 with:
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,531,1461726,-;arm-smmu c600000.iommu: \x09stage 1 translation
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,532,1461793,-;arm-smmu c600000.iommu: \x09non-coherent table walk
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,533,1461859,-;arm-smmu c600000.iommu: \x09(IDR0.CTTW overridden by FW configuration)
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,534,1461935,-;arm-smmu c600000.iommu: \x09stream matching with 50 register groups
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,535,1462015,-;arm-smmu c600000.iommu: \x0948 context banks (0 stage-2 only)
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,536,1462342,-;arm-smmu c600000.iommu: \x09Supported page sizes: 0x61311000
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,537,1462419,-;arm-smmu c600000.iommu: \x09Stage-1: 36-bit VA -> 36-bit IPA
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+5,538,1462527,-;arm-smmu c600000.iommu: \x09preserved 0 boot mappings
+ SUBSYSTEM=platform
+ DEVICE=+platform:c600000.iommu
+6,539,1463294,-;platform 1b04000.dma-controller: Adding to iommu group 1
+ SUBSYSTEM=platform
+ DEVICE=+platform:1b04000.dma-controller
+6,540,1463467,-;platform 1b20000.crypto: Adding to iommu group 1
+ SUBSYSTEM=platform
+ DEVICE=+platform:1b20000.crypto
+6,541,1463599,-;platform 4784000.mmc: Adding to iommu group 2
+ SUBSYSTEM=platform
+ DEVICE=+platform:4784000.mmc
+6,542,1463729,-;platform 4804000.ufshc: Adding to iommu group 3
+ SUBSYSTEM=platform
+ DEVICE=+platform:4804000.ufshc
+6,543,1463858,-;platform 4a00000.dma-controller: Adding to iommu group 4
+ SUBSYSTEM=platform
+ DEVICE=+platform:4a00000.dma-controller
+6,544,1463992,-;platform 4ac0000.geniqup: Adding to iommu group 5
+ SUBSYSTEM=platform
+ DEVICE=+platform:4ac0000.geniqup
+6,545,1464139,-;platform 5e00000.display-subsystem: Adding to iommu group 6
+ SUBSYSTEM=platform
+ DEVICE=+platform:5e00000.display-subsystem
+6,546,1464277,-;platform 5840000.ipa: Adding to iommu group 7
+ SUBSYSTEM=platform
+ DEVICE=+platform:5840000.ipa
+6,547,1464413,-;platform c800000.wifi: Adding to iommu group 8
+ SUBSYSTEM=platform
+ DEVICE=+platform:c800000.wifi
+3,548,1490171,-;Couldn't find UBWC config data for this platform!
+3,549,1490198,-;msm-mdss 5e00000.display-subsystem: probe with driver msm-mdss failed with error -22
+ SUBSYSTEM=platform
+ DEVICE=+platform:5e00000.display-subsystem
+6,550,1491199,-;starting to probe ath10k_snoc
+6,551,1492269,-;actual ath10k init starts here
+4,552,1492870,-;ath10k_snoc c800000.wifi: supply vdd-3.3-ch1 not found, using dummy regulator
+ SUBSYSTEM=platform
+ DEVICE=+platform:c800000.wifi
+6,553,1493110,-;actual ath10k init ends here
+6,554,1498433,-;platform 4e00000.usb: Adding to iommu group 9
+ SUBSYSTEM=platform
+ DEVICE=+platform:4e00000.usb
+6,555,1498663,-;/soc@0/geniqup@4ac0000/i2c@4a84000/rt1711h@4e/connector: Fixed dependency cycle(s) with /soc@0/usb@4ef8800/usb@4e00000
+6,556,1498826,-;/soc@0/usb@4ef8800/usb@4e00000: Fixed dependency cycle(s) with /soc@0/geniqup@4ac0000/i2c@4a84000/rt1711h@4e/connector
+6,557,1510628,-;ufshcd-qcom 4804000.ufshc: ufshcd_populate_vreg: Unable to find vccq-supply regulator, assuming enabled
+ SUBSYSTEM=platform
+ DEVICE=+platform:4804000.ufshc
+6,558,1512166,-;ufshcd-qcom 4804000.ufshc: Found QC Inline Crypto Engine (ICE) v3.1.0
+ SUBSYSTEM=platform
+ DEVICE=+platform:4804000.ufshc
+6,559,1512187,-;ufshcd-qcom 4804000.ufshc: A supported HWKM is not present. Supporting raw keys only.
+ SUBSYSTEM=platform
+ DEVICE=+platform:4804000.ufshc
+6,560,1522732,-;scsi host0: ufshcd
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:host0
+5,561,1661129,-;scsi 0:0:0:49488: Well-known LUN    MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49488
+7,562,1667483,-;ufs_device_wlun 0:0:0:49488: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49488
+5,563,1668545,-;scsi 0:0:0:49476: Well-known LUN    MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49476
+7,564,1671448,-;ufs_device_wlun 0:0:0:49476: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49476
+7,565,1671690,-;sd 0:0:0:49476: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49476
+5,566,1671961,-;scsi 0:0:0:49456: Well-known LUN    MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49456
+3,567,1672952,-;adding glink subdev
+3,568,1672959,-;finished adding glink subdev
+6,569,1673165,-;remoteproc remoteproc0: modem is available
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc0
+7,570,1675544,-;ufs_device_wlun 0:0:0:49456: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49456
+7,571,1675764,-;sd 0:0:0:49456: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:49456
+5,572,1676462,-;scsi 0:0:0:0: Direct-Access     MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+3,573,1676543,-;adding glink subdev
+3,574,1676551,-;finished adding glink subdev
+6,575,1676754,-;remoteproc remoteproc1: adsp is available
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc1
+4,576,1676907,-;remoteproc remoteproc1: Direct firmware load for qcom/sm6225/XIAOMI/SPESN/adsp.mbn failed with error -2
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc1
+6,577,1676948,-;remoteproc remoteproc1: powering up adsp
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc1
+4,578,1676990,-;remoteproc remoteproc1: Direct firmware load for qcom/sm6225/XIAOMI/SPESN/adsp.mbn failed with error -2
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc1
+3,579,1677027,-;remoteproc remoteproc1: request_firmware failed: -2
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc1
+7,580,1680401,-;ufs_device_wlun 0:0:0:0: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+7,581,1680663,-;sd 0:0:0:0: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+5,582,1681006,-;scsi 0:0:0:1: Direct-Access     MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+3,583,1681189,-;adding glink subdev
+3,584,1681195,-;finished adding glink subdev
+5,585,1681235,-;sd 0:0:0:0: [sda] 29644800 4096-byte logical blocks: (121 GB/113 GiB)
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+6,586,1681412,-;remoteproc remoteproc2: cdsp is available
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc2
+5,587,1681688,-;sd 0:0:0:0: [sda] Write Protect is off
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+7,588,1681727,-;sd 0:0:0:0: [sda] Mode Sense: 00 32 00 10
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+5,589,1682515,-;sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, supports DPO and FUA
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+6,590,1682810,-;sd 0:0:0:0: [sda] Preferred minimum I/O size 4096 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+6,591,1682838,-;sd 0:0:0:0: [sda] Optimal transfer size 524288 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+7,592,1683113,-;ufs_device_wlun 0:0:0:1: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+7,593,1683164,-;sd 0:0:0:1: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+5,594,1683622,-;sd 0:0:0:1: [sdb] 2048 4096-byte logical blocks: (8.39 MB/8.00 MiB)
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+5,595,1683756,-;scsi 0:0:0:2: Direct-Access     MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+5,596,1683957,-;sd 0:0:0:1: [sdb] Write Protect is off
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+7,597,1683994,-;sd 0:0:0:1: [sdb] Mode Sense: 00 32 00 10
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+5,598,1684260,-;sd 0:0:0:1: [sdb] Write cache: disabled, read cache: enabled, supports DPO and FUA
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+6,599,1684428,-;sd 0:0:0:1: [sdb] Preferred minimum I/O size 4096 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+6,600,1684470,-;sd 0:0:0:1: [sdb] Optimal transfer size 524288 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+7,601,1685733,-;ufs_device_wlun 0:0:0:2: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+7,602,1686471,-;sd 0:0:0:2: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+4,603,1686547,-;remoteproc remoteproc2: Direct firmware load for qcom/sm6225/XIAOMI/SPESN/cdsp.mbn failed with error -2
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc2
+6,604,1686596,-;remoteproc remoteproc2: powering up cdsp
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc2
+5,605,1686660,-;scsi 0:0:0:3: Direct-Access     MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+4,606,1689135,-;remoteproc remoteproc2: Direct firmware load for qcom/sm6225/XIAOMI/SPESN/cdsp.mbn failed with error -2
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc2
+5,607,1692134,-;sd 0:0:0:2: [sdc] 2048 4096-byte logical blocks: (8.39 MB/8.00 MiB)
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+5,608,1697003,-;sd 0:0:0:2: [sdc] Write Protect is off
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+7,609,1699494,-;sd 0:0:0:2: [sdc] Mode Sense: 00 32 00 10
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+5,610,1699849,-;sd 0:0:0:2: [sdc] Write cache: disabled, read cache: enabled, supports DPO and FUA
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+3,611,1701374,-;remoteproc remoteproc2: request_firmware failed: -2
+ SUBSYSTEM=remoteproc
+ DEVICE=+remoteproc:remoteproc2
+6,612,1702702,-;sd 0:0:0:2: [sdc] Preferred minimum I/O size 4096 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+6,613,1707334,-;sd 0:0:0:2: [sdc] Optimal transfer size 524288 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+7,614,1711201,-;ufs_device_wlun 0:0:0:3: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+7,615,1712029,-;sd 0:0:0:3: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+5,616,1712338,-;scsi 0:0:0:4: Direct-Access     MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+5,617,1715270,-;sd 0:0:0:3: [sdd] 8192 4096-byte logical blocks: (33.6 MB/32.0 MiB)
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+5,618,1718041,-;sd 0:0:0:3: [sdd] Write Protect is off
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+7,619,1720673,-;sd 0:0:0:3: [sdd] Mode Sense: 00 32 00 10
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+5,620,1720886,-;sd 0:0:0:3: [sdd] Write cache: enabled, read cache: enabled, supports DPO and FUA
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+6,621,1723695,-;sd 0:0:0:3: [sdd] Preferred minimum I/O size 4096 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+7,622,1726157,-;generic pinconfig core: found bias-pull-up with value 1
+7,623,1726178,-;generic pinconfig core: found drive-strength with value 2
+7,624,1726195,-;pinctrl core: add 4 pinctrl maps
+7,625,1726228,-;sm6225-tlmm 500000.pinctrl: found group selector 4 for gpio4
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,626,1726235,-;sm6225-tlmm 500000.pinctrl: found group selector 4 for gpio4
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,627,1726243,-;sm6225-tlmm 500000.pinctrl: found group selector 5 for gpio5
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,628,1726247,-;sm6225-tlmm 500000.pinctrl: found group selector 5 for gpio5
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,629,1726254,-;sm6225-tlmm 500000.pinctrl: request pin 4 (GPIO_4) for 4a84000.i2c
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,630,1726266,-;sm6225-tlmm 500000.pinctrl: request pin 5 (GPIO_5) for 4a84000.i2c
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,631,1726308,-;sd 0:0:0:3: [sdd] Optimal transfer size 524288 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+6,632,1726370,-;geni_i2c 4a84000.i2c: Bus frequency not specified, default to 100kHz.
+ SUBSYSTEM=platform
+ DEVICE=+platform:4a84000.i2c
+6,633,1729066,-; sdb: sdb1 sdb2
+6,634,1729800,-; sda: sda1 sda2 sda3 sda4 sda5 sda6 sda7 sda8 sda9 sda10 sda11 sda12 sda13 sda14 sda15 sda16
+7,635,1730665,-;ufs_device_wlun 0:0:0:4: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+7,636,1731452,-;sd 0:0:0:4: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+5,637,1731807,-;scsi 0:0:0:5: Direct-Access     MICRON   MT128GAXAU2U228C 0106 PQ: 0 ANSI: 6
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+5,638,1731952,-;sd 0:0:0:4: [sde] 1572864 4096-byte logical blocks: (6.44 GB/6.00 GiB)
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+5,639,1732057,-;sd 0:0:0:4: [sde] Write Protect is off
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+7,640,1732063,-;sd 0:0:0:4: [sde] Mode Sense: 00 32 00 10
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+5,641,1732245,-;sd 0:0:0:4: [sde] Write cache: enabled, read cache: enabled, supports DPO and FUA
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+6,642,1732317,-;sd 0:0:0:4: [sde] Preferred minimum I/O size 4096 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+6,643,1732322,-;sd 0:0:0:4: [sde] Optimal transfer size 524288 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+6,644,1732573,-;[Awinic] [0-0058]aw87xxx_malloc_init: struct aw87xxx devm_kzalloc and init down
+6,645,1732579,-;[Awinic] [0-0058]aw87xxx_dtsi_parse: parse dev_index=[1]
+7,646,1732613,-;sm6225-tlmm 500000.pinctrl: request pin 106 (GPIO_106) for 500000.pinctrl:618
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,647,1732632,-;[Awinic] [0-0058]aw87xxx_dtsi_parse: reset gpio parse succeed
+5,648,1733170,-;sd 0:0:0:0: [sda] Attached SCSI disk
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:0
+6,649,1736646,-;[Awinic] [0-0058]aw_dev_hw_pwr_ctrl: hw power on
+5,650,1736768,-;sd 0:0:0:1: [sdb] Attached SCSI disk
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:1
+7,651,1741410,-;ufs_device_wlun 0:0:0:5: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,652,1742963,-;[Awinic] [0-0058]aw_dev_get_chipid: read chipid[0x5a] succeed
+7,653,1745989,-;sd 0:0:0:5: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,654,1746882,-; sdc: sdc1 sdc2
+5,655,1747643,-;sd 0:0:0:2: [sdc] Attached SCSI disk
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:2
+6,656,1748123,-;[Awinic] [0-0058]aw_dev_chip_init: product is pid_5A class
+5,657,1753287,-;sd 0:0:0:5: [sdf] 8192 4096-byte logical blocks: (33.6 MB/32.0 MiB)
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,658,1757438,-;[Awinic] [0-0058]aw_dev_hw_pwr_ctrl: hw power off
+5,659,1758370,-;sd 0:0:0:5: [sdf] Write Protect is off
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,660,1760915,-;[Awinic] [0-0058]aw87xxx_fw_load_init: enter
+7,661,1764124,-;sd 0:0:0:5: [sdf] Mode Sense: 00 32 00 10
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,662,1767198,-;[Awinic] [0-0058]aw_monitor_dtsi_parse: esd_enable parse failed, user default[disable]
+5,663,1771212,-;sd 0:0:0:5: [sdf] Write cache: enabled, read cache: enabled, supports DPO and FUA
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,664,1773472,-;[Awinic] [0-0058]aw_monitor_init: monitor init succeed
+6,665,1776915,-;sd 0:0:0:5: [sdf] Preferred minimum I/O size 4096 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,666,1779452,-;[Awinic] [0-0058]aw87xxx_i2c_probe: succeed
+6,667,1782423,-;sd 0:0:0:5: [sdf] Optimal transfer size 524288 bytes
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+6,668,1785700,-;[Awinic] [0-005b]aw87xxx_malloc_init: struct aw87xxx devm_kzalloc and init down
+6,669,1822544,-;[Awinic] [0-005b]aw87xxx_dtsi_parse: parse dev_index=[0]
+7,670,1825948,-;sm6225-tlmm 500000.pinctrl: request pin 35 (GPIO_35) for 500000.pinctrl:547
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,671,1825967,-;[Awinic] [0-005b]aw87xxx_dtsi_parse: reset gpio parse succeed
+6,672,1831728,-; sdd: sdd1 sdd2 sdd3
+6,673,1832601,-; sde: sde1 sde2 sde3 sde4 sde5 sde6 sde7 sde8 sde9 sde10 sde11 sde12 sde13 sde14 sde15 sde16 sde17 sde18 sde19 sde20 sde21 sde22 sde23 sde24 sde25 sde26 sde27 sde28 sde29 sde30 sde31 sde32 sde33 sde34 sde35 sde36 sde37 sde38 sde39 sde40 sde41 sde42 sde43 sde44 sde45 sde46 sde47 sde48 sde49 sde50 sde51 sde52 sde53 sde54 sde55 sde56 sde57 sde58 sde59 sde60 sde61
+6,674,1832924,-;[Awinic] [0-005b]aw_dev_hw_pwr_ctrl: hw power on
+6,675,1834051,-;[Awinic] [0-005b]aw_dev_get_chipid: read chipid[0x5a] succeed
+6,676,1834058,-;[Awinic] [0-005b]aw_dev_chip_init: product is pid_5A class
+5,677,1835345,-;sd 0:0:0:3: [sdd] Attached SCSI disk
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:3
+6,678,1836976,-;[Awinic] [0-005b]aw_dev_hw_pwr_ctrl: hw power off
+6,679,1836994,-;[Awinic] [0-005b]aw87xxx_fw_load_init: enter
+6,680,1837001,-;[Awinic] [0-005b]aw_monitor_dtsi_parse: esd_enable parse failed, user default[disable]
+6,681,1837009,-;[Awinic] [0-005b]aw_monitor_init: monitor init succeed
+6,682,1837024,-;[Awinic] [0-005b]aw87xxx_i2c_probe: succeed
+7,683,1837438,-;generic pinconfig core: found bias-pull-up with value 1
+7,684,1837442,-;generic pinconfig core: found drive-strength with value 2
+7,685,1837445,-;generic pinconfig core: found input-enable with value 1
+7,686,1837454,-;pinctrl core: add 2 pinctrl maps
+7,687,1837485,-;sm6225-tlmm 500000.pinctrl: found group selector 105 for gpio105
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,688,1837490,-;sm6225-tlmm 500000.pinctrl: found group selector 105 for gpio105
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,689,1837495,-;sm6225-tlmm 500000.pinctrl: request pin 105 (GPIO_105) for 0-006a
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,690,1840262,-;0
+5,691,1848688,-;sd 0:0:0:4: [sde] Attached SCSI disk
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:4
+6,692,1859823,-; sdf: sdf1 sdf2 sdf3 sdf4 sdf5
+3,693,1869335,-;[sm5602] fg_battery_parse_dt(3047): not battery,id property
+5,694,1872436,-;sd 0:0:0:5: [sdf] Attached SCSI disk
+ SUBSYSTEM=scsi
+ DEVICE=+scsi:0:0:0:5
+7,695,1877662,-;generic pinconfig core: found bias-pull-up with value 1
+7,696,1884975,-;generic pinconfig core: found drive-strength with value 2
+7,697,1884983,-;generic pinconfig core: found input-enable with value 1
+7,698,1885001,-;pinctrl core: add 2 pinctrl maps
+7,699,1885039,-;sm6225-tlmm 500000.pinctrl: found group selector 84 for gpio84
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,700,1885048,-;sm6225-tlmm 500000.pinctrl: found group selector 84 for gpio84
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,701,1885055,-;sm6225-tlmm 500000.pinctrl: request pin 84 (GPIO_84) for 0-0066
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+3,702,1886312,-;[sc8551] sc8551_detect_device: sc8551_detect_device:PART_INFO:0x51
+4,703,1886333,-;OF: /soc@0/geniqup@4ac0000/i2c@4a84000/sc8551-charger@66: Read of boolean property 'sc,sc8551,bat-therm-disable' with a value.
+4,704,1897001,-;OF: /soc@0/geniqup@4ac0000/i2c@4a84000/sc8551-charger@66: Read of boolean property 'sc,sc8551,bus-therm-disable' with a value.
+3,705,1904204,-;[sc8551-STANDALONE]:sc8551_set_reg_reset:mode : 0  reg reset
+7,706,2206668,-;generic pinconfig core: found bias-pull-up with value 1
+7,707,2206695,-;generic pinconfig core: found drive-strength with value 2
+7,708,2206729,-;pinctrl core: add 4 pinctrl maps
+7,709,2206778,-;sm6225-tlmm 500000.pinctrl: found group selector 6 for gpio6
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,710,2206796,-;sm6225-tlmm 500000.pinctrl: found group selector 6 for gpio6
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,711,2206819,-;sm6225-tlmm 500000.pinctrl: found group selector 7 for gpio7
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,712,2206834,-;sm6225-tlmm 500000.pinctrl: found group selector 7 for gpio7
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,713,2206859,-;sm6225-tlmm 500000.pinctrl: request pin 6 (GPIO_6) for 4a88000.i2c
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,714,2206882,-;sm6225-tlmm 500000.pinctrl: request pin 7 (GPIO_7) for 4a88000.i2c
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,715,2207028,-;geni_i2c 4a88000.i2c: Bus frequency not specified, default to 100kHz.
+ SUBSYSTEM=platform
+ DEVICE=+platform:4a88000.i2c
+7,716,2227331,-;pinctrl core: add 4 pinctrl maps
+7,717,2227379,-;sm6225-tlmm 500000.pinctrl: found group selector 8 for gpio8
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,718,2227392,-;sm6225-tlmm 500000.pinctrl: found group selector 9 for gpio9
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,719,2227403,-;sm6225-tlmm 500000.pinctrl: found group selector 10 for gpio10
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,720,2227415,-;sm6225-tlmm 500000.pinctrl: found group selector 11 for gpio11
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,721,2227425,-;sm6225-tlmm 500000.pinctrl: request pin 8 (GPIO_8) for 4a8c000.serial
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,722,2227438,-;sm6225-tlmm 500000.pinctrl: request pin 9 (GPIO_9) for 4a8c000.serial
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,723,2227447,-;sm6225-tlmm 500000.pinctrl: request pin 10 (GPIO_10) for 4a8c000.serial
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,724,2227457,-;sm6225-tlmm 500000.pinctrl: request pin 11 (GPIO_11) for 4a8c000.serial
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,725,2227680,-;generic pinconfig core: found bias-pull-up with value 1
+7,726,2227690,-;generic pinconfig core: found drive-strength with value 8
+7,727,2227704,-;pinctrl core: add 2 pinctrl maps
+7,728,2227713,-;generic pinconfig core: found bias-pull-up with value 1
+7,729,2227719,-;generic pinconfig core: found drive-strength with value 8
+7,730,2227730,-;pinctrl core: add 2 pinctrl maps
+7,731,2227740,-;generic pinconfig core: found bias-pull-down with value 1
+7,732,2227746,-;generic pinconfig core: found drive-strength with value 2
+7,733,2227757,-;pinctrl core: add 2 pinctrl maps
+7,734,2227766,-;generic pinconfig core: found bias-pull-down with value 1
+7,735,2227771,-;generic pinconfig core: found drive-strength with value 2
+7,736,2227783,-;pinctrl core: add 2 pinctrl maps
+7,737,2227810,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,738,2227824,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,739,2227841,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,740,2227853,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,741,2227868,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,742,2227880,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,743,2227897,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,744,2227908,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,745,2228067,-;sm6225-tlmm 500000.pinctrl: request pin 86 (GPIO_86) for 500000.pinctrl:598
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,746,2228107,-;sm6225-tlmm 500000.pinctrl: request pin 80 (GPIO_80) for 500000.pinctrl:592
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,747,2228139,-;sm6225-tlmm 500000.pinctrl: request pin 98 (GPIO_98) for 500000.pinctrl:610
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,748,2228812,-;input: fts_ts as /devices/platform/soc@0/4ac0000.geniqup/4a88000.i2c/i2c-1/1-0038/input/input0
+6,749,2231446,-;4a8c000.serial: ttyHS0 at MMIO 0x4a8c000 (irq = 142, base_baud = 0) is a MSM
+7,750,2235536,-;generic pinconfig core: found bias-pull-up with value 1
+7,751,2235548,-;generic pinconfig core: found drive-strength with value 8
+7,752,2235559,-;pinctrl core: add 2 pinctrl maps
+7,753,2235565,-;generic pinconfig core: found bias-pull-up with value 1
+7,754,2235568,-;generic pinconfig core: found drive-strength with value 8
+7,755,2235574,-;pinctrl core: add 2 pinctrl maps
+7,756,2235580,-;generic pinconfig core: found bias-pull-down with value 1
+7,757,2235582,-;generic pinconfig core: found drive-strength with value 2
+7,758,2235588,-;pinctrl core: add 2 pinctrl maps
+7,759,2235596,-;generic pinconfig core: found bias-pull-down with value 1
+7,760,2235599,-;generic pinconfig core: found drive-strength with value 2
+7,761,2235604,-;pinctrl core: add 2 pinctrl maps
+7,762,2235633,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,763,2235641,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,764,2235651,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,765,2235656,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,766,2235665,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,767,2235671,-;sm6225-tlmm 500000.pinctrl: found group selector 80 for gpio80
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,768,2235679,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,769,2235684,-;sm6225-tlmm 500000.pinctrl: found group selector 86 for gpio86
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,770,2235690,-;sm6225-tlmm 500000.pinctrl: request pin 80 (GPIO_80) for 1-0038
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,771,2235698,-;sm6225-tlmm 500000.pinctrl: request pin 86 (GPIO_86) for 1-0038
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,772,2239966,-;serial serial0: tty port ttyHS0 registered
+ SUBSYSTEM=serial
+ DEVICE=+serial:serial0
+6,773,2246832,-;FCC: effective vote is now 2000 voted by NOPMI_DEFAULT_VOTER,0
+6,774,2274252,-;FV: effective vote is now 4400 voted by NOPMI_DEFAULT_VOTER,0
+6,775,2282470,-;USB_ICL: effective vote is now 2000 voted by NOPMI_DEFAULT_VOTER,0
+7,776,2331728,-;generic pinconfig core: found bias-disable with value 0
+7,777,2331741,-;generic pinconfig core: found drive-strength with value 16
+7,778,2331757,-;generic pinconfig core: found bias-pull-up with value 1
+7,779,2331762,-;generic pinconfig core: found drive-strength with value 10
+7,780,2331772,-;generic pinconfig core: found bias-pull-up with value 1
+7,781,2331777,-;generic pinconfig core: found drive-strength with value 10
+7,782,2331788,-;generic pinconfig core: found bias-pull-up with value 1
+7,783,2331792,-;generic pinconfig core: found drive-strength with value 2
+3,784,2331792,-;qcrypto 1b20000.crypto: error -EBUSY: can't request region for resource [mem 0x01b20000-0x01b3ffff]
+ SUBSYSTEM=platform
+ DEVICE=+platform:1b20000.crypto
+7,785,2331803,-;pinctrl core: add 5 pinctrl maps
+7,786,2334631,-;generic pinconfig core: found bias-disable with value 0
+7,787,2334647,-;generic pinconfig core: found drive-strength with value 2
+7,788,2334661,-;generic pinconfig core: found bias-pull-up with value 1
+7,789,2334666,-;generic pinconfig core: found drive-strength with value 2
+7,790,2334676,-;generic pinconfig core: found bias-pull-up with value 1
+7,791,2334680,-;generic pinconfig core: found drive-strength with value 2
+7,792,2334689,-;generic pinconfig core: found bias-disable with value 0
+7,793,2334694,-;generic pinconfig core: found drive-strength with value 2
+7,794,2334705,-;pinctrl core: add 5 pinctrl maps
+7,795,2334759,-;sm6225-tlmm 500000.pinctrl: found group selector 118 for sdc2_clk
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,796,2334772,-;sm6225-tlmm 500000.pinctrl: found group selector 119 for sdc2_cmd
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,797,2334781,-;sm6225-tlmm 500000.pinctrl: found group selector 120 for sdc2_data
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,798,2334798,-;sm6225-tlmm 500000.pinctrl: found group selector 88 for gpio88
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,799,2334807,-;sm6225-tlmm 500000.pinctrl: found group selector 88 for gpio88
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,800,2334820,-;sm6225-tlmm 500000.pinctrl: found group selector 118 for sdc2_clk
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,801,2334829,-;sm6225-tlmm 500000.pinctrl: found group selector 119 for sdc2_cmd
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,802,2334838,-;sm6225-tlmm 500000.pinctrl: found group selector 120 for sdc2_data
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,803,2334851,-;sm6225-tlmm 500000.pinctrl: found group selector 88 for gpio88
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,804,2334860,-;sm6225-tlmm 500000.pinctrl: found group selector 88 for gpio88
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,805,2334868,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+3,806,2335383,-;qcrypto 1b20000.crypto: probe with driver qcrypto failed with error -16
+ SUBSYSTEM=platform
+ DEVICE=+platform:1b20000.crypto
+7,807,2358401,-;generic pinconfig core: found bias-pull-up with value 1
+7,808,2358412,-;generic pinconfig core: found drive-strength with value 2
+7,809,2358425,-;pinctrl core: add 2 pinctrl maps
+7,810,2358456,-;sm6225-tlmm 500000.pinctrl: found group selector 93 for gpio93
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,811,2358467,-;sm6225-tlmm 500000.pinctrl: found group selector 93 for gpio93
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,812,2358474,-;sm6225-tlmm 500000.pinctrl: request pin 93 (GPIO_93) for 0-004e
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+6,813,2393515,-;mmc0: SDHCI controller on 4784000.mmc [4784000.mmc] using ADMA 64-bit
+7,814,2408469,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,815,2452017,-;generic pinconfig core: found bias-pull-up with value 1
+7,816,2452026,-;generic pinconfig core: found input-enable with value 1
+7,817,2452030,-;generic pinconfig core: found power-source with value 0
+7,818,2452037,-;pinctrl core: add 2 pinctrl maps
+7,819,2452050,-;qcom-spmi-gpio 1c40000.spmi:pmic@0:gpio@c000: found group selector 4 for gpio5
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi:pmic@0:gpio@c000
+7,820,2452055,-;qcom-spmi-gpio 1c40000.spmi:pmic@0:gpio@c000: found group selector 4 for gpio5
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi:pmic@0:gpio@c000
+7,821,2452059,-;qcom-spmi-gpio 1c40000.spmi:pmic@0:gpio@c000: request pin 4 (gpio5) for gpio-keys
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi:pmic@0:gpio@c000
+7,822,2452223,-;qcom-spmi-gpio 1c40000.spmi:pmic@0:gpio@c000: request pin 4 (gpio5) for 1c40000.spmi:pmic@0:gpio@c000:630
+ SUBSYSTEM=platform
+ DEVICE=+platform:1c40000.spmi:pmic@0:gpio@c000
+6,823,2452476,-;input: gpio-keys as /devices/platform/gpio-keys/input/input1
+4,824,2462477,-;fts_ts 1-0038: Direct firmware load for focaltech_ts_fw_samsung.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:1-0038
+5,825,2462982,-;cfg80211: Loading compiled-in X.509 certificates for regulatory database
+5,826,2475124,-;Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+5,827,2479032,-;Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+4,828,2482578,-;faux_driver regulatory: Direct firmware load for regulatory.db failed with error -2
+ SUBSYSTEM=faux
+ DEVICE=+faux:regulatory
+4,829,2486032,-;clk: Not disabling unused clocks
+6,830,2489350,-;cfg80211: failed to load regulatory.db
+4,831,2492832,-;PM: genpd: Not disabling unused power domains
+6,832,2500491,-;ALSA device list:
+6,833,2503949,-;  No soundcards found.
+6,834,2508029,-;Freeing unused kernel memory: 2944K
+6,835,2511359,-;Run /init as init process
+7,836,2514823,-;  with arguments:
+7,837,2514827,-;    /init
+7,838,2514829,-;  with environment:
+7,839,2514831,-;    HOME=/
+7,840,2514833,-;    TERM=linux
+7,841,2514834,-;    panel_info=1
+12,842,2535207,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,843,2547563,-;gadget-usb: gadget montado; esperando un UDC
+12,844,2552773,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 2.53 s   ciclo 1
+12,845,2555737,-;gadget-usb: UDC = 4e00000.usb; activando
+7,846,2565499,-;configfs-gadget.lab gadget.0: no of_node; not parsing pinctrl DT
+ SUBSYSTEM=gadget
+ DEVICE=+gadget:gadget.0
+6,847,2565866,-;configfs-gadget.lab gadget.0: HOST MAC 12:b9:2a:47:90:79
+ SUBSYSTEM=gadget
+ DEVICE=+gadget:gadget.0
+6,848,2565870,-;configfs-gadget.lab gadget.0: MAC 3a:52:7b:f2:3c:42
+ SUBSYSTEM=gadget
+ DEVICE=+gadget:gadget.0
+12,849,2576742,-;gadget-usb: ttyGS0: crw------- 1 root root 506, 0 Jan 1 00:00 /dev/ttyGS0
+12,850,2593696,-;CPUs: 8   MemTotal: 3654512 kB\x0ainterfaces: lo: \x0aframebuffer: /dev/dri/card0 /dev/fb0 \x0aUSB (UDC): 4e00000.usb 
+12,851,2620146,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):\x0a  mapss-thermal 43400
+12,852,2687023,-;  cdsp-hvx-thermal 42200\x0a  cpu45-thermal 46900\x0a  cpu67-thermal 48400\x0a  cpu0123-thermal 45700\x0a  modem0-thermal 41100\x0a  display-thermal 43000\x0a  gpu-thermal 41100\x0a  bq25890-charger-0 37000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 40300
+12,853,2723732,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,854,3427650,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,855,3486198,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,856,4515703,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,857,4581907,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+4,858,4833988,-;aw87xxx_pa 0-0058: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-0058
+4,859,5089757,-;aw87xxx_pa 0-005b: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-005b
+AT#PO7,860,5603207,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+R7,861,5667671,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+TCFG?
+7,862,6691726,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+
+ DEVICE=+platform:500000.pinctrl
+7,863,6750766,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+4,864,6850667,-;aw87xxx_pa 0-0058: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-0058
+4,865,7105791,-;aw87xxx_pa 0-005b: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-005b
+6,866,7430071,-;USB_ICL: effective vote is now 500 voted by NOPMI_TYPE_VOTER,2
+12,867,7736445,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,868,7766554,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 7.73 s   ciclo 2
+12,869,7776750,-;CPUs: 8   MemTotal: 3654512 kB\x0ainterfaces: lo: usb0: 
+12,870,7786583,-;framebuffer: /dev/dri/card0 /dev/fb0 \x0aUSB (UDC): 4e00000.usb 
+7,871,7798249,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,872,7800408,-;bateria: battery=100% bms=100% 
+12,873,7809470,-;temperaturas (mC):\x0a  mapss-thermal 41500
+7,874,7845872,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,875,7933211,-;  cdsp-hvx-thermal 40300\x0a  cpu45-thermal 43400\x0a  cpu67-thermal 43400\x0a  cpu0123-thermal 43000\x0a  modem0-thermal 39900\x0a  display-thermal 41100\x0a  gpu-thermal 39900\x0a  bq25890-charger-0 37000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 39100
+12,876,7962453,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 8.58 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+AT7,877,8867021,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+#4,878,8897486,-;aw87xxx_pa 0-0058: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-0058
+7,879,8927027,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+PO4,880,9154316,-;aw87xxx_pa 0-005b: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-005b
+RTCFG?
+7,881,9954949,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl7,882,10004867,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+4,883,10946015,-;aw87xxx_pa 0-0058: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ SUBSYSTEM=i2c
+ DEVICE=+i2c:0-0058
+3,884,10965364,-;[Awinic] [0-0058]aw87xxx_fw_load_retry: can not load firmware,please check name or file exists
+7,885,11015574,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,886,11064713,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+
+4,887,11202311,-;aw87xxx_pa 0-005b: Direct firmware load for aw87xxx_acf.bin failed with error -2
+ DEVICE=+i2c:0-005b
+3,888,11221632,-;[Awinic] [0-005b]aw87xxx_fw_load_retry: can not load firmware,please check name or file exists
+AT#PO7,889,12098932,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,890,12149888,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+RTCFG?
+4,891,12825050,-;platform a740000.soundwire: deferred probe pending: platform: wait for supplier /soc@0/pinctrl@a7c0000/lpi-swr-tx-active-state
+ SUBSYSTEM=platform
+ DEVICE=+platform:a740000.soundwire
+
+ SUBSYSTEM=platform
+ DEVICE=+platform:a730000.codec
+4,894,12882598,-;platform a600000.codec: deferred probe pending: platform: supplier a730000.codec not ready
+ SUBSYSTEM=platform
+ DEVICE=+platform:a600000.codec
+4,895,12884947,-;platform a620000.codec: deferred probe pending: platform: wait for supplier /soc@0/pinctrl@a7c0000/lpi-dmic23-active-state
+ SUBSYSTEM=platform
+ DEVICE=+platform:a620000.codec
+4,896,12889359,-;platform sound: deferred probe pending: snd-sm8250: MultiMedia1: error getting cpu dai name
+ SUBSYSTEM=platform
+ DEVICE=+platform:sound
+4,897,12891738,-;platform a7c0000.pinctrl: deferred probe pending: (reason unknown)
+ SUBSYSTEM=platform
+ DEVICE=+platform:a7c0000.pinctrl
+6,898,12894156,-;sm6225-gpucc 5990000.clock-controller: sync_state() pending due to 596a000.gmu
+ SUBSYSTEM=platform
+6,899,12896278,-;qnoc-sm6115 1900000.interconnect: sync_state() pending due to 5e00000.display-subsystem
+ SUBSYSTEM=platform
+ DEVICE=+platform:1900000.interconnect
+6,900,12898356,-;qnoc-sm6115 4480000.interconnect: sync_state() pending due to 5e00000.display-subsystem
+ SUBSYSTEM=platform
+ DEVICE=+platform:4480000.interconnect
+6,901,12900470,-;gcc-sm6225 1400000.clock-controller: sync_state() pending due to 5e00000.display-subsystem
+6,902,12902596,-;disp_cc-sm6375 5f00000.clock-controller: sync_state() pending due to 5e00000.display-subsystem
+ SUBSYSTEM=platform
+
+6,903,12904629,-;qnoc-sm6115 1900000.interconnect: sync_state() pending due to 5840000.ipa
+ SUBSYSTEM=platform
+ DEVICE=+platform:1900000.interconnect
+6,904,12906734,-;qnoc-sm6115 4480000.interconnect: sync_state() pending due to 5840000.ipa
+ SUBSYSTEM=platform
+ DEVICE=+platform:4480000.interconnect
+6,905,12908733,-;qnoc-sm6115 1880000.interconnect: sync_state() pending due to 5840000.ipa
+ SUBSYSTEM=platform
+ DEVICE=+platform:1880000.interconnect
+6,906,12910767,-;qnoc-sm6115 1880000.interconnect:interconnect-mmrt: sync_state() pending due to 5e00000.display-subsystem
+ SUBSYSTEM=platform
+ DEVICE=+platform:1880000.interconnect:interconnect-mmr
+12,907,12977125,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,908,13003665,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 12.97 s   ciclo 3
+12,909,13014515,-;CPUs: 8   MemTotal: 3654512 kB\x0ainterfaces: lo: usb0: 
+12,910,13020795,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,911,13024863,-;USB (UDC): 4e00000.usb 
+12,912,13042176,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,913,13050256,-;  mapss-thermal 41100
+12,914,13140491,-;  cdsp-hvx-thermal 39900\x0a  cpu45-thermal 41500\x0a  cpu67-thermal 42200\x0a  cpu0123-thermal 42200\x0a  modem0-thermal 39500\x0a  display-thermal 40700\x0a  gpu-thermal 39100\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 39100
+7,915,13160799,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,916,13162254,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,917,13204541,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 13.60 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,918,14211079,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,919,14271862,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+AT
+7,920,15298784,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,921,15349373,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,922,16355052,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,923,16405554,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,924,17411125,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,925,17478164,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+AT
+12,926,18185706,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,927,18203061,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 18.17 s   ciclo 4
+12,928,18214089,-;CPUs: 8   MemTotal: 3654512 kB\x0ainterfaces: lo: usb0: 
+12,929,18219751,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,930,18223565,-;USB (UDC): 4e00000.usb 
+12,931,18240972,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,932,18249360,-;  mapss-thermal 40700
+12,933,18337175,-;  cdsp-hvx-thermal 39500\x0a  cpu45-thermal 41500\x0a  cpu67-thermal 41800\x0a  cpu0123-thermal 41800\x0a  modem0-thermal 39100\x0a  display-thermal 39900\x0a  gpu-thermal 39100\x0a  bq25890-charger-0 37000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38700
+12,934,18358683,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,935,18498752,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,936,18546695,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 18.62 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,937,19554947,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl7,938,19604242,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,939,20611015,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,940,20670480,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform DEVICE=+platform:500000.pinctrl
+AT
+7,941,21699122,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+7,942,21748649,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform DEVICE=+platform:500000.pinctrl
+7,943,22755715,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,944,22815115,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform DEVICE=+platform:500000.pinctrl
+12,945,23374239,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,946,23394789,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 23.37 s   ciclo 5
+12,947,23402863,-;CPUs: 8   MemTotal: 3654512 kB
+12,948,23407016,-;interfaces: lo: usb0: 
+12,949,23412982,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,950,23419012,-;USB (UDC): 4e00000.usb 
+12,951,23437208,-;bateria: battery=100% bms=100% 
+12,952,23461408,-;temperaturas (mC):\x0a  mapss-thermal 39900
+12,953,23554479,-;  cdsp-hvx-thermal 39500\x0a  cpu45-thermal 41100\x0a  cpu67-thermal 41500\x0a  cpu0123-thermal 41500\x0a  modem0-thermal 38700\x0a  display-thermal 39500\x0a  gpu-thermal 38700\x0a  bq25890-charger-0 37000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38400
+12,954,23575536,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 23.64 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+AT7,955,23843304,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+
+7,956,23908668,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,957,24931348,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+
+ DEVICE=+platform:500000.pinctrl
+7,958,24997396,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,959,26018797,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+7,960,26085374,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+AT
+7,961,27107292,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,962,27156782,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,963,28162722,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,964,28212785,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,965,28588736,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,966,28594676,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026
+12,967,28599072,-;uptime: 28.59 s   ciclo 6
+12,968,28612616,-;CPUs: 8   MemTotal: 3654512 kB
+12,969,28619311,-;interfaces: lo: usb0: 
+12,970,28626461,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,971,28632596,-;USB (UDC): 4e00000.usb 
+12,972,28652234,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,973,28660694,-;  mapss-thermal 40300
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 28.66 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+12,974,28753719,-;  cdsp-hvx-thermal 39500\x0a  cpu45-thermal 41500\x0a  cpu67-thermal 41800\x0a  cpu0123-thermal 42200\x0a  modem0-thermal 39100\x0a  display-thermal 40300\x0a  gpu-thermal 38700\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38400
+4,975,28779594,-;printk: tee: 1 output lines suppressed due to ratelimiting
+7,976,29219659,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,977,29284892,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+AT
+7,978,30307556,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,979,30373259,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+7,980,31395058,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,981,31445746,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,982,32450970,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,983,32500982,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,984,33507198,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,985,33572632,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 33.68 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+12,986,33798802,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,987,33815693,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 33.80 s   ciclo 7
+12,988,33828100,-;CPUs: 8   MemTotal: 3654512 kB
+12,989,33831833,-;interfaces: lo: usb0: 
+12,990,33837592,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,991,33843396,-;USB (UDC): 4e00000.usb 
+12,992,33863356,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,993,33871387,-;  mapss-thermal 40300
+12,994,33956151,-;  cdsp-hvx-thermal 39100\x0a  cpu45-thermal 41100\x0a  cpu67-thermal 41500\x0a  cpu0123-thermal 41500\x0a  modem0-thermal 38700\x0a  display-thermal 39900\x0a  gpu-thermal 38700\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38400
+12,995,33973619,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,996,34595191,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,997,34661960,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,998,35683188,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,999,35749640,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1000,36770937,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1001,36820129,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1002,37826905,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1003,37892497,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 38.70 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1004,38915740,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1005,38975924,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1006,38986195,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1007,38992196,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026
+12,1008,38996014,-;uptime: 38.98 s   ciclo 8
+12,1009,39011709,-;CPUs: 8   MemTotal: 3654512 kB
+12,1010,39033626,-;interfaces: lo: usb0: \x0aframebuffer: /dev/dri/card0 /dev/fb0 
+12,1011,39056209,-;USB (UDC): 4e00000.usb \x0abateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1012,39072305,-;  mapss-thermal 40700
+12,1013,39120684,-;  cdsp-hvx-thermal 39500\x0a  cpu45-thermal 42600\x0a  cpu67-thermal 42200\x0a  cpu0123-thermal 41500\x0a  modem0-thermal 39100\x0a  display-thermal 39500\x0a  gpu-thermal 39100\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38400
+12,1014,39138192,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1015,40002891,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1016,40048335,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1017,41058933,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1018,41118182,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1019,42146978,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1020,42207144,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1021,43234925,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1022,43300146,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 43.72 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+12,1023,44150967,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1024,44168057,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 44.15 s   ciclo 9
+12,1025,44176988,-;CPUs: 8   MemTotal: 3654512 kB
+12,1026,44183843,-;interfaces: lo: usb0: 
+12,1027,44190264,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1028,44196163,-;USB (UDC): 4e00000.usb 
+12,1029,44216287,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1030,44224744,-;  mapss-thermal 40300
+12,1031,44312802,-;  cdsp-hvx-thermal 39100\x0a  cpu45-thermal 41500\x0a  cpu67-thermal 41500\x0a  cpu0123-thermal 41500\x0a  modem0-thermal 38400\x0a  display-thermal 39900\x0a  gpu-thermal 38700\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38000
+12,1032,44330335,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1033,44338477,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1034,44391782,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1035,45410666,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1036,45461327,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1037,46467025,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1038,46525661,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1039,47555742,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1040,47618426,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1041,48643340,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1042,48692335,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 48.74 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+12,1043,49343029,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1044,49358720,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 49.34 s   ciclo 10
+12,1045,49371892,-;CPUs: 8   MemTotal: 3654512 kB
+12,1046,49376781,-;interfaces: lo: usb0: 
+12,1047,49383990,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1048,49390046,-;USB (UDC): 4e00000.usb 
+12,1049,49420070,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1050,49435944,-;  mapss-thermal 39900
+12,1051,49522952,-;  cdsp-hvx-thermal 39100\x0a  cpu45-thermal 40700\x0a  cpu67-thermal 41100\x0a  cpu0123-thermal 41500\x0a  modem0-thermal 38700\x0a  display-thermal 39500\x0a  gpu-thermal 38400\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38000
+12,1052,49540078,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1053,49698529,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1054,49758139,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1055,50786767,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1056,50850028,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1057,51876034,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1058,51935167,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1059,52963136,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1060,53012461,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 53.76 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1061,54019376,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1062,54085665,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1063,54552849,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1064,54569042,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 54.55 s   ciclo 11
+12,1065,54579894,-;CPUs: 8   MemTotal: 3654512 kB
+12,1066,54585553,-;interfaces: lo: usb0: 
+12,1067,54592355,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1068,54598369,-;USB (UDC): 4e00000.usb 
+12,1069,54618560,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1070,54625527,-;  mapss-thermal 39500
+12,1071,54736886,-;  cdsp-hvx-thermal 39100\x0a  cpu45-thermal 41500\x0a  cpu67-thermal 41500\x0a  cpu0123-thermal 41100\x0a  modem0-thermal 38700\x0a  display-thermal 39500\x0a  gpu-thermal 38700\x0a  bq25890-charger-0 37000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 37600
+12,1072,54754676,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1073,55107133,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1074,55156971,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1075,56162929,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1076,56212501,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1077,57218669,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1078,57269220,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1079,58275043,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1080,58325673,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 58.79 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1081,59330803,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1082,59381549,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1083,59766160,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1084,59770668,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026
+12,1085,59774545,-;uptime: 59.76 s   ciclo 12
+12,1086,59783246,-;CPUs: 8   MemTotal: 3654512 kB
+12,1087,59788974,-;interfaces: lo: usb0: 
+12,1088,59792901,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1089,59797138,-;USB (UDC): 4e00000.usb 
+12,1090,59820659,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1091,59827707,-;  mapss-thermal 40300
+12,1092,59909199,-;  cdsp-hvx-thermal 38700\x0a  cpu45-thermal 42200\x0a  cpu67-thermal 42600\x0a  cpu0123-thermal 41500\x0a  modem0-thermal 38400\x0a  display-thermal 39100\x0a  gpu-thermal 38700\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38000
+4,1093,59928934,-;printk: tee: 1 output lines suppressed due to ratelimiting
+7,1094,60387443,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1095,60436636,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1096,61442965,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1097,61493363,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1098,62499067,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1099,62549563,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1100,63554672,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1101,63605081,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 63.81 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1102,64611483,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1103,64677423,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1104,64938592,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1105,64956237,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 64.94 s   ciclo 13
+12,1106,64965237,-;CPUs: 8   MemTotal: 3654512 kB
+12,1107,64970605,-;interfaces: lo: usb0: 
+12,1108,64977279,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1109,64983279,-;USB (UDC): 4e00000.usb 
+12,1110,65003347,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1111,65011378,-;  mapss-thermal 39500
+12,1112,65097890,-;  cdsp-hvx-thermal 38700\x0a  cpu45-thermal 40700\x0a  cpu67-thermal 41100\x0a  cpu0123-thermal 40700\x0a  modem0-thermal 38400\x0a  display-thermal 39100\x0a  gpu-thermal 38000\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38000
+12,1113,65115206,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1114,65698713,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1115,65749238,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1116,66754739,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1117,66805414,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1118,67810949,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1119,67857079,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 68.83 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1120,68866947,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1121,68921333,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1122,69954897,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1123,70005015,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1124,70129646,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1125,70148566,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 70.13 s   ciclo 14
+12,1126,70155517,-;CPUs: 8   MemTotal: 3654512 kB
+12,1127,70161793,-;interfaces: lo: usb0: 
+12,1128,70168527,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1129,70174560,-;USB (UDC): 4e00000.usb 
+12,1130,70195042,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1131,70202815,-;  mapss-thermal 39500
+12,1132,70286806,-;  cdsp-hvx-thermal 38700\x0a  cpu45-thermal 40700\x0a  cpu67-thermal 41100\x0a  cpu0123-thermal 41100\x0a  modem0-thermal 38400\x0a  display-thermal 39500\x0a  gpu-thermal 38400\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 37600
+12,1133,70306915,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1134,71011296,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1135,71060355,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1136,72067184,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1137,72127501,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1138,73155051,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1139,73206381,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 73.85 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1140,74211523,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1141,74277071,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1142,75298681,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1143,75319943,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1144,75335402,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 75.32 s   ciclo 15
+12,1145,75348253,-;CPUs: 8   MemTotal: 3654512 kB
+7,1146,75350988,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1147,75352559,-;interfaces: lo: usb0: 
+12,1148,75358488,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1149,75364744,-;USB (UDC): 4e00000.usb 
+12,1150,75391999,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1151,75414371,-;  mapss-thermal 39900
+12,1152,75519521,-;  cdsp-hvx-thermal 38700\x0a  cpu45-thermal 40700\x0a  cpu67-thermal 41100\x0a  cpu0123-thermal 41100\x0a  modem0-thermal 38700\x0a  display-thermal 39500\x0a  gpu-thermal 38000\x0a  bq25890-charger-0 38000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38000
+12,1153,75536663,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1154,76386797,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1155,76437009,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1156,77442950,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1157,77492264,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1158,78498665,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1159,78548613,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+=== fabian-lab 7.2.1-sm6225-upstream+   uptime 78.87 s   UDC=4e00000.usb
+gadget state: configured   cpus: 0-7
+7,1160,79555007,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1161,79604294,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1162,80549906,-;=== fabian-lab: Linux 7.2.1-sm6225-upstream+ en un Redmi Note 11 ===
+12,1163,80566700,-;arranque: #1 SMP PREEMPT Fri Oct 23 18:14:57 -05 2026\x0auptime: 80.55 s   ciclo 16
+12,1164,80579592,-;CPUs: 8   MemTotal: 3654512 kB
+12,1165,80583013,-;interfaces: lo: usb0: 
+12,1166,80589478,-;framebuffer: /dev/dri/card0 /dev/fb0 
+12,1167,80594838,-;USB (UDC): 4e00000.usb 
+7,1168,80610895,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1169,80615237,-;bateria: battery=100% bms=100% \x0atemperaturas (mC):
+12,1170,80623115,-;  mapss-thermal 40300
+7,1171,80656326,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+12,1172,80718233,-;  cdsp-hvx-thermal 38700\x0a  cpu45-thermal 40700\x0a  cpu67-thermal 41100\x0a  cpu0123-thermal 41100\x0a  modem0-thermal 38400\x0a  display-thermal 39500\x0a  gpu-thermal 38400\x0a  bq25890-charger-0 37000\x0a  bms 34000\x0a  battery 34000\x0a  wlan-thermal 38000
+12,1173,80735748,-;remoteprocs: modem=offline adsp=offline cdsp=offline 
+7,1174,81667058,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
+7,1175,81717017,-;sm6225-tlmm 500000.pinctrl: request pin 88 (GPIO_88) for 4784000.mmc
+ SUBSYSTEM=platform
+ DEVICE=+platform:500000.pinctrl
