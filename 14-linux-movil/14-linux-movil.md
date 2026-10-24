@@ -255,6 +255,9 @@ fastboot boot artifacts/px/boot-lab-kexec.img && adb shell 'su -c "cat /sys/fs/p
 
 92. **Reinicio de comprobación superado: todo el autoarranque funciona sin intervención** (`reboot -f` con Volumen Abajo + `fastboot boot` de la misma imagen). A los 3,3 s del kernel: `gadget-usb: sshd iniciado`; a los 6,2 s: `reloj ajustado por NTP` (hora real, ya no 1970; `apk` deja de fallar por TLS tras ese momento). `nginx` (un proceso maestro) y `servicio-web` activos, `http://172.16.42.1/` devuelve 200, `arranques.txt` con 4 líneas (sin segunda copia del sistema), `/` = 100,6 GiB. Cierra los pendientes de los hallazgos #86, #88 y #89.
 
+93. **Los botones funcionan y el táctil no.** `/proc/bus/input/devices` lista `fts_ts` (FocalTech, `i2c-1`, dirección `0x38`) y `gpio-keys`. Con 40 s de lectura de `/dev/input/event*`: **72 eventos de `gpio-keys`** (pulsaciones de Volumen) y **0 eventos de `fts_ts`** tocando y deslizando; la interrupción del táctil (`msmgpio 80`, en cero) no se movió nunca, la de los botones (`spmi-gpio 4`) llegó a 228. Prueba de control hecha (primero los botones, luego el táctil), así que el método de lectura es válido.
+94. **Pista, sin confirmar: falta el *firmware* del táctil.** El controlador dice `Direct firmware load for focaltech_ts_fw_samsung.bin failed with error -2`. Ese archivo vive en el Android de fábrica (partición `vendor`, dentro de `super`, que sigue intacta en el teléfono) y **no** está en las imágenes que respaldamos (`boot`, `vendor_boot`, `dtbo`, `vbmeta`). Otras causas posibles: alimentación (`avdd-gpio`) o *reset* del controlador no activados. Sin táctil, Phosh no se puede manejar en el propio teléfono.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -325,7 +328,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Autoarranque de red y SSH tras un reinicio (hallazgo #87).
 - [x] Primer servicio real: nginx con página de estado (hallazgos #89 a #91).
 - [x] Autoarranque de NTP, sshd y nginx verificado en un reinicio (hallazgo #92).
-- [ ] Siguiente: Phosh (GPU sin firmware: render por software) y comparar con Nura; cerrar el Módulo 14 y actualizar `docs/README.md`.
+- [ ] Táctil: conseguir `focaltech_ts_fw_samsung.bin` de la partición `vendor` (dentro de `super`) o revisar alimentación/reset (hallazgos #93 y #94).
+- [ ] Siguiente: Phosh visto por VNC a través de la red USB (no necesita táctil) y comparar con Nura; cerrar el Módulo 14 y actualizar `docs/README.md`.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
