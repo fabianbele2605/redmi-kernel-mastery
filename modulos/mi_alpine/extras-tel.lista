@@ -1,0 +1,2 @@
+# Entradas del TELEFONO: /init es el script modulos/mi_alpine/telefono/init (no un enlace a busybox)
+nod /dev/console 600 0 0 c 5 1

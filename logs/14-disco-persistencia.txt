@@ -1,0 +1,23 @@
+# primer arranque con disco (copia del sistema) y arranque tras reinicio duro; salidas del shell del telefono
+## arranque 1
+---
+[    3.096917] init-disco: esperando /dev/sda16
+[    3.132974] EXT4-fs (sda16): mounted filesystem <uuid> r/w with ordered data mode. Quot
+[    3.133684] init-disco: montado /dev/sda16 (ext4)
+[    3.134291] init-disco: disco vacio: copiando el sistema (primer arranque)
+[    3.436846] init-disco: copia terminada
+/dev/sda16 on / type ext4 (rw,relatime)
+/dev/sda16                2.9G     10.4M      2.7G   0% /
+arranque con disco: uptime 3.43 s
+---
+/sys/kernel/config/usb_gadget/lab # ## arranque 2 (tras reboot -f)
+---
+[    3.027153] init-disco: esperando /dev/sda16
+[    3.112883] init-disco: montado /dev/sda16 (ext4)
+hola desde el disco, escrito en el primer arranque
+arranque con disco: uptime 3.43 s
+arranque con disco: uptime 3.11 s
+/etc/lab-primer-arranque
+/dev/sda16                2.9G     10.4M      2.7G   0% /
+---
+/sys/kernel/config/usb_gadget/lab # 
