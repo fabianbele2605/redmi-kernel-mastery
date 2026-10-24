@@ -44,6 +44,8 @@ ip link set usb0 up 2>/dev/null && ip addr add 172.16.42.1/24 dev usb0 2>/dev/nu
 ip route add default via 172.16.42.2 dev usb0 2>/dev/null
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 [ -x /usr/sbin/sshd ] && /usr/sbin/sshd && say "sshd iniciado"
+# sin RTC el reloj arranca en 1970 (y apk falla por TLS): ajustarlo por NTP en cuanto haya internet
+( for i in $(seq 1 30); do ntpd -n -q -p pool.ntp.org >/dev/null 2>&1 && { say "reloj ajustado por NTP: $(date)"; break; }; sleep 10; done ) &
 
 ( cat $K > /dev/ttyGS0 ) &
 # segundo puerto serie: una shell para probar el telefono a mano (se reabre si la cierras)

@@ -246,6 +246,9 @@ fastboot boot artifacts/px/boot-lab-kexec.img && adb shell 'su -c "cat /sys/fs/p
 85. **El ext4 crece a toda la partición: `resize2fs /dev/sda16` en caliente, 3 GiB -> 100,6 GiB** (`EXT4-fs: resized filesystem to 26807251 blocks`; `df`: 96,4 GiB libres). **Es seguro donde el intento del #77 no lo fue:** el problema estaba en la escritura *sparse* de ABL desde `fastboot`; aquí escribe el kernel por el camino de bloques normal. **Prueba:** 3 archivos de 512 MiB en directorios distintos, hash `sha256` idéntico al calculado en la laptop (`ddbb49d5…`) tras `drop_caches`, 0 errores de ext4/E-S; `debugfs` mostró extensiones hasta el bloque 26 804 224 (el extremo de los 102 GiB).
 86. **`gadget-usb` arranca ahora la red y SSH solo, y fija las MAC del cable** (`host_addr` `02:fa:b1:a4:00:01`, `dev_addr` `…:02`), para que la interfaz de la laptop se llame siempre `enx02fab1a40001` en lugar de cambiar en cada arranque. Se copió al disco del teléfono por `scp`. **Aún sin verificar en un reinicio.**
 
+87. **Verificado en un reinicio completo (`reboot -f` con Volumen Abajo, `fastboot boot` de la misma imagen): el autoarranque funciona.** Sin tocar nada a mano en el teléfono: interfaz de la laptop `enx02fab1a40001` (nombre fijo gracias a las MAC del #86), ruta por defecto y DNS puestos, SSH entra con la clave, `/` = ext4 de 100,6 GiB, `arranques.txt` con 3 líneas, `ping 1.1.1.1` 140 ms. En la laptop hizo falta **un perfil fijo de NetworkManager** (`nmcli connection add type ethernet ifname enx02fab1a40001 con-name lab-telefono ipv4.method manual ipv4.addresses 172.16.42.2/24 ipv6.method ignore`): el perfil automático intentaba DHCP y por eso se había perdido la IP en el #82. Las reglas `iptables` (NAT y `FORWARD` por subred) **no** persisten en la laptop.
+88. **El reloj arranca en 1970 (no hay RTC) y rompe `apk` por TLS.** `ntpd -n -q -p pool.ntp.org` de busybox lo pone en hora (offset +1 792 807 810 s). Se añadió a `gadget-usb` en segundo plano, con 30 reintentos cada 10 s, y se copió al disco. **Aún sin comprobar en el siguiente arranque.**
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -313,7 +316,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Ver la pantalla del kernel principal (hallazgos #71 a #73).
 - [x] Red USB (hallazgo #74) y disco ext4 persistente como raíz (hallazgos #75 a #80).
 - [x] Ampliar el ext4, `apk`, SSH (hallazgos #82 a #85).
-- [ ] Siguiente: verificar el autoarranque de red y SSH tras un reinicio (#86), un servicio real, Phosh, y comparar con Nura.
+- [x] Autoarranque de red y SSH tras un reinicio (hallazgo #87).
+- [ ] Siguiente: comprobar que NTP pone la hora solo (#88), un servicio real, Phosh, y comparar con Nura.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
