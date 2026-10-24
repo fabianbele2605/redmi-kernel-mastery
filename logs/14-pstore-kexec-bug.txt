@@ -1,0 +1,74 @@
+# Extracto de /sys/fs/pstore/console-ramoops-0 leido con tu kernel 4.19 tras el primer intento de kexec -e (sin apagar los nucleos a mano).
+# Solo las lineas del banner y las ~70 finales (el BUG de machine_kexec); identificadores tapados.
+# Fuente completa: 3406 lineas, NO versionada.
+
+[    0.000000] Booting Linux on physical CPU 0x0000000000 [0x51af8014]
+[    0.000000] Linux version 4.19.297-uvite (fabian@fabian-HP-255-15-6-inch-G10-Notebook-PC) (Android (6443078 based on r383902) clang version 11.0.1 (https://android.googlesource.com/toolchain/llvm-p
+[...]
+[  111.360443] msm_dwc3_perf_vote_work: in_perf_mode:0, interrupts in last sample:1
+[  111.508992] ipa-wan __ipa_wwan_close:1170 [rmnet_ipa0]: ipa3_deregister_intf failed -22
+[  111.520971] [kexec][0xb61a93e0][19:22:46.645066] wlan: [9337:E:SER] wlan_serialization_peek_head_pending_cmd_using_psoc: 204: Empty Queue
+[  111.521777] [schedu][0xb61acfaa][19:22:46.645864] wlan: [2335:E:tdls] tdls_process_reset_all_peers: 488: tdls objects are NULL 
+[  111.583440] [bq2589x] bq2589x_psy_unregister: bq2589x_psy_unregister  
+[  111.589252] [bq2589x] pd_tcp_notifier_call: pd_tcp_notifier_call : TCP_NOTIFY_SINK_VBUS
+[  111.589311] [bq2589x] pd_tcp_notifier_call: pd_tcp_notifier_call: TCP_NOTIFY_SOURCE_VBUS
+[  111.595997] print_req_error: I/O error, dev sda, sector 23884936
+[  111.596133] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=129, level=-1, want_hash=sha256:1d6ae18404d3c5bd5d8cff934cc6a71860c9e50952671a625fb85ff869a612f3, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596153] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=130, level=-1, want_hash=sha256:b78133dbabf3388c8e41d7250bb9b38d4a615bbfa78b4be73576f8f6e12a70c7, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596170] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=131, level=-1, want_hash=sha256:e709489169ff3e49a4b29090fd35225bd56c5c2ee03b52751549d2c4a273188c, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596188] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=132, level=-1, want_hash=sha256:e37e83cd17161fc4dbc84ad09e3419028c678982658fdf218f794812f5533ffc, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596205] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=133, level=-1, want_hash=sha256:0b36dc38d7ab6bf9ef9fc2aef20d74bfb0ccb1c427303492f3142a83aa90bb3e, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596223] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=134, level=-1, want_hash=sha256:23c15cb79987559c44082ab516c5557cc104c6c30074baaf04a86efbd7fd78bd, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596242] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=135, level=-1, want_hash=sha256:07593e7e36bf60eb674b5c9c58c7c65588eae80823bd067496f4d09a5c3bf987, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596259] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=136, level=-1, want_hash=sha256:dfcc4726d1b6ef3f8d23fc0b0d57247cadf2e1946f5a4b0ac9bef41da9d98dcf, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596277] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=137, level=-1, want_hash=sha256:de8b164a5405f7c1c64eaf0806b22c55853429eccda811c15e5261f4c87ac1ec, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.596294] fs-verity (dm-40, inode 34440): FILE CORRUPTED! index=138, level=-1, want_hash=sha256:2b63009cf4cd9623953c1fc724490985e8eb1d38178827249c863aa9519d6d0b, real_hash=sha256:ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+[  111.615503] kexec_core: Starting new kernel
+[  111.615538] Non-boot CPUs are not disabled
+[  111.615570] Kernel BUG at machine_kexec+0x2d4/0x2d8 [verbose debug info unavailable]
+[  111.615582] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+[  111.615591] Modules linked in:
+[  111.615602] Process kexec (pid: 9337, stack limit = 0x00000000763d4c03)
+[  111.615615] CPU: 0 PID: 9337 Comm: kexec Tainted: G S                4.19.297-uvite #12
+[  111.615622] Hardware name: Qualcomm Technologies, Inc. SPES KHAJE IDP nopmi (DT)
+[  111.615631] pstate: 20000005 (nzCv daif -PAN -UAO)
+[  111.615639] pc : machine_kexec+0x2d4/0x2d8
+[  111.615645] lr : machine_kexec+0x40/0x2d8
+[  111.615651] sp : ffffff801431bcc0
+[  111.615657] x29: ffffff801431bcc0 x28: ffffffd0eafe0000 
+[  111.615664] x27: 0000000000000000 x26: 0000000000000000 
+[  111.615671] x25: 0000000056000000 x24: ffffffadfbda7000 
+[  111.615677] x23: 0000000000000000 x22: 00000000fee1dead 
+[  111.615684] x21: 0000000000000000 x20: ffffffd08e4e8000 
+[  111.615691] x19: 0000000000000000 x18: 0000000000169300 
+[  111.615697] x17: 0000000000000000 x16: ffffffd0eafe0000 
+[  111.615704] x15: ffffffadfb34308f x14: 0000000000000050 
+[  111.615711] x13: 000000000000b42c x12: 0000000000000000 
+[  111.615717] x11: 0000000000000000 x10: ffffffffffffffff 
+[  111.615724] x9 : 0101010101010101 x8 : 0808080808080808 
+[  111.615731] x7 : 746f6f622d6e6f4e x6 : ffffffadfbda355a 
+[  111.615738] x5 : 0000000000000000 x4 : 0000000000000000 
+[  111.615744] x3 : 000000000000002e x2 : 0000000000000000 
+[  111.615752] x1 : ffffffd0eafe0000 x0 : 0000000000000008 
+[  111.615761] Call trace:
+[  111.615769]  machine_kexec+0x2d4/0x2d8
+[  111.615780]  kernel_kexec+0x84/0x94
+[  111.615789]  __arm64_sys_reboot+0x20c/0x2b8
+[  111.615800]  el0_svc_common+0x98/0x160
+[  111.615808]  el0_svc_handler+0x60/0x78
+[  111.615817]  el0_svc+0x8/0x140
+[  111.615826] Code: aa1503e2 aa1403e3 aa1f03e4 d63f02e0 (d4210000) 
+[  111.615845] ---[ end trace d9079b06c12927fc ]---
+[  111.615877] Kernel panic - not syncing: Fatal exception
+[  111.618367] ipa_wigig ipa_wigig_save_regs:1055 wigig ctx is not initialized
+[  112.218508] ipa ipa3_active_clients_panic_notifier:305 
+[  112.218508] ---- Active Clients Table ----
+[  112.218508] 
+[  112.218508] Total active clients count: 2
+[  112.218508] 
+[  112.218524] Kernel Offset: 0x2df1800000 from 0xffffff8008000000
+[  112.218533] CPU features: 0x00000040,6008200c
+[  112.218539] Memory Limit: none
+[  112.218555] Rebooting in 5 seconds..
+[  117.219071] Going down for restart now
+[  117.219394] Forcing a warm reset of the system
