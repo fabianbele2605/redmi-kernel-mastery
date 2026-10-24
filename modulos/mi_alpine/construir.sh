@@ -21,6 +21,10 @@ if [ "${1:-}" = "telefono" ]; then               # variante del telefono: consol
 	NOMBRE=mi_alpine_tel
 	EXTRAS="$AQUI/extras-tel.lista"
 	rm -f "$OUT/alpine/init"; cp "$AQUI/telefono/init" "$OUT/alpine/init"; chmod 755 "$OUT/alpine/init"
+	# firmware propietario del tactil (FocalTech): el driver lo pide a los ~2,7 s, antes de montar el disco.
+	# Sale de backup/ (no se publica); si no esta, el initramfs se construye igual, sin tactil.
+	FW=backup/super-extraido/fw
+	if [ -d "$FW" ]; then mkdir -p "$OUT/alpine/lib/firmware"; cp "$FW"/*.bin "$OUT/alpine/lib/firmware/"; fi
 fi
 aarch64-linux-gnu-gcc -static -O2 -Wall -Wextra -o "$OUT/alpine/usr/local/bin/hog" "$AQUI/hog.c"   # tu programa de memoria
 chmod 755 "$OUT/alpine/usr/local/bin/"* "$OUT/alpine/etc/init.d/"*
