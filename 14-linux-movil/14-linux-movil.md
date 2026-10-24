@@ -226,6 +226,11 @@ fastboot boot artifacts/px/boot-lab-kexec.img && adb shell 'su -c "cat /sys/fs/p
 68. **Hace falta `--os_version 12.0.0 --os_patch_level 2023-12` en `mkbootimg`** para imitar al control original; sin ellos las pruebas no eran comparables.
 69. **Escrituras al teléfono hechas (solo `dtbo_b`):** vacía → mínima → *no-op* de fragmento → tabla de 40 entradas con la nº 31 reemplazada (`artifacts/px/dtbo-noop3.img`). **La `dtbo` de fábrica sigue en `backup/stock/dtbo.img` (SHA-256 `0db044d8…`) y se restaura con `fastboot flash dtbo_b backup/stock/dtbo.img`.** Android no arranca normal con la `dtbo` modificada hasta restaurarla.
 
+70. **Shell por USB: segundo puerto serie.** `gadget-usb` ahora crea `acm.GS0` (registro del kernel, `/dev/ttyACM0` en la laptop) y `acm.GS1` (una `sh` que se reabre sola, `/dev/ttyACM1`). Con ella se interroga al teléfono en vivo: `uname -r` = `7.2.1-sm6225-upstream+`, `fb0 = simpledrmdrmfb 1080x2400x32`.
+71. **La pantalla en blanco no era el panel: el driver `msm-mdss` no arrancaba.** Escribir ceros en `/dev/fb0` no cambiaba nada (el panel no lee el buffer de `simpledrm`). Con `debugfs` montado y un `bind` manual salió el motivo: `Couldn't find UBWC config data for this platform!` y `probe ... failed with error -22`. Los proveedores estaban todos `available` y `qcom,sm6225-mdss` está en la tabla del controlador.
+72. **Causa real: ABL fusiona la raíz de la `dtbo` sobre el DTB.** `/proc/device-tree/compatible` en el teléfono decía `qcom,khaje-idp qcom,khaje qcom,idp` (copiado de la entrada nº 31 en mi overlay), no `xiaomi,spes qcom,sm6225`. `qcom_ubwc_config_get_data()` busca por el `compatible` de la **máquina**, no encontró nada y el `probe` falló. **Arreglo:** `artifacts/px/dtbo-noop4.img`: overlay vacío con `compatible = "xiaomi,spes", "qcom,sm6225"` y el `model` del DTB principal, conservando `msm-id`, `board-id` y `pmic-id` para que ABL lo elija.
+73. **Resultado: pantalla con la consola del kernel principal.** Con ese cambio `msm_dpu` quedó con `DPU catalog: lm=1 intf=1 dspp=1 ctl=1 sspp=2`, `[drm] Initialized msm 1.13.0` y `fb0: msmdrmfb frame buffer device`; la foto del teléfono mostró la consola con **8 pingüinos de arranque (uno por CPU)** y el informe de `tty1`. Avisos: falta `qcom/a630_sqe.fw` (GPU, no hace falta para la pantalla) y `sys_imageblit: framebuffer is not in virtual address space` (el dibujo funciona pese a ese aviso). `logs/14-kernel-principal-pantalla.txt`, 1 734 líneas, con las MAC del gadget enmascaradas. La foto no se versiona.
+
 ## Evidencias
 
 ![Respaldo de 14 particiones con verificación](evidencias/01-respaldo-de-particiones.png)
@@ -290,7 +295,8 @@ Registros: `logs/14-hash-particiones.txt` (SHA-256 de las 14 copias; las copias 
 - [x] Hacer el salto con `kexec` (3 intentos): el `BUG` del 4.19 se resolvió apagando los núcleos a mano; el kernel principal **probablemente** se ejecutó, pero **no se pudo observar** (hallazgos #53 a #59).
 - [x] Canal de observación por USB (gadget ACM+NCM): preparado y probado en QEMU, sin resultado en el teléfono (hallazgos #60 a #62).
 - [x] Anular la capa `dtbo`: resuelto con un overlay vacío por etiqueta (hallazgos #64 a #69).
-- [ ] Siguiente: ver la pantalla del kernel principal, probar la red NCM (`172.16.42.1`) y montar un sistema de archivos real en el UFS.
+- [x] Ver la pantalla del kernel principal (hallazgos #71 a #73).
+- [ ] Siguiente: probar la red NCM (`172.16.42.1`), montar un sistema de archivos real en el UFS y decidir entre nuestro sistema y Nura.
 - [ ] Medir el comportamiento térmico del kernel principal antes de dejarlo trabajando.
 - [ ] Etapa 3 alternativa, sin escribir nada: `fastboot boot` con el kernel 4.19 propio y un `initramfs` de Alpine con los nodos de `/dev` hechos a mano (solo prueba de que el espacio de usuario corre; sin pantalla).
 - [ ] **Etapa 4, solo con confirmación explícita del usuario:** `fastboot flash`. Antes verificar a qué partición va el *rootfs*, si Android sigue arrancando, y hacer una copia fuera de la laptop de `backup/particiones/`.
